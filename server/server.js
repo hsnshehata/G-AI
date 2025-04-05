@@ -7,7 +7,7 @@ const statRoutes = require('./routes/stats');
 const whatsappRoutes = require('./routes/whatsapp');
 const configRoutes = require('./routes/config');
 const Config = require('./models/Config');
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAI = require('openai'); // ✅ تم تعديل الاستدعاء هنا
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
@@ -48,8 +48,10 @@ const authenticateToken = async (req, res, next) => {
     process.env[config.key] = config.value;
   });
 
-  // Initialize OpenAI
-  const openai = new OpenAIApi(new Configuration({ apiKey: process.env.API_KEY }));
+  // ✅ Initialize OpenAI بالإصدار الجديد
+  const openai = new OpenAI({
+    apiKey: process.env.API_KEY,
+  });
 
   // Routes
   app.use('/bots', authenticateToken, botRoutes);
@@ -78,11 +80,11 @@ const authenticateToken = async (req, res, next) => {
   app.post('/chat', async (req, res) => {
     const { message, pageId, userId } = req.body;
     try {
-      const response = await openai.createChatCompletion({
+      const response = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: message }],
       });
-      const reply = response.data.choices[0].message.content;
+      const reply = response.choices[0].message.content;
 
       // Save chat to DB
       await Chat.findOneAndUpdate(
@@ -128,9 +130,9 @@ const authenticateToken = async (req, res, next) => {
     }
   });
 
-  const configRoutes = require('./routes/config');
-app.use('/config', configRoutes);
-
+  // ⚠️ تكرار غير ضروري لمسار config، لذا نحذفه:
+  // const configRoutes = require('./routes/config');
+  // app.use('/config', configRoutes);
 
   // Initialize WhatsApp Clients for all users
   const users = await User.find({ 'permissions.whatsapp': true });
