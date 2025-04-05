@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bot Config Settings</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Bot Config Settings</h1>
+
+    <form id="config-form">
+      <label>OpenAI Key</label>
+      <input type="text" id="openaiKey" required />
+
+      <label>GitHub Token</label>
+      <input type="text" id="githubToken" required />
+
+      <label>WhatsApp Token</label>
+      <input type="text" id="whatsappToken" required />
+
+      <label>MongoDB URI</label>
+      <input type="text" id="mongoUri" required />
+
+      <label>Bot Name</label>
+      <input type="text" id="botName" required />
+
+      <label>Description</label>
+      <textarea id="botDescription"></textarea>
+
+      <label>Active</label>
+      <select id="active">
+        <option value="true">Active</option>
+        <option value="false">Inactive</option>
+      </select>
+
+      <button type="submit">Save Settings</button>
+    </form>
+
+    <p id="status-message"></p>
+  </div>
+
+  <script src="config.js"></script>
+</body>
+</html>
