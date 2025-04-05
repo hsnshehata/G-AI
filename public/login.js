@@ -9,7 +9,7 @@ async function login() {
   }
 
   try {
-    const res = await fetch('/auth/login', {
+    const res = await fetch('/login', { // ✅ تم تعديل المسار هنا
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
