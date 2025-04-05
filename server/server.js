@@ -42,6 +42,26 @@ const authenticateToken = async (req, res, next) => {
   // Connect to MongoDB
   await connectDB();
 
+  // 🟩 هنا بالضبط ضيف الكود المؤقت لإنشاء Super Admin
+  const existing = await User.findOne({ username: 'hsn' });
+  if (!existing) {
+    const hashedPassword = await bcrypt.hash('662015', 10);
+
+    const user = new User({
+      username: 'hsn',
+      password: hashedPassword,
+      pageId: '123456789',
+      pageToken: 'fake-token',
+      title: 'Super Admin Bot',
+      role: 'superadmin',
+    });
+
+    await user.save();
+    console.log('✅ Super Admin created');
+  } else {
+    console.log('ℹ️ Super Admin already exists');
+  }
+
   // Load Config into process.env
   const configs = await Config.find();
   configs.forEach(config => {
@@ -129,10 +149,6 @@ const authenticateToken = async (req, res, next) => {
       res.status(500).json({ error: `Image upload error: ${err.message}` });
     }
   });
-
-  // ⚠️ تكرار غير ضروري لمسار config، لذا نحذفه:
-  // const configRoutes = require('./routes/config');
-  // app.use('/config', configRoutes);
 
   // Initialize WhatsApp Clients for all users
   const users = await User.find({ 'permissions.whatsapp': true });
