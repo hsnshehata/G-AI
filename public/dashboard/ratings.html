@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage Ratings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container section">
+    <h2>Ratings</h2>
+
+    <div class="controls">
+      <select id="bot-select"></select>
+      <select id="rating-type">
+        <option value="positive">👍 Positive</option>
+        <option value="negative">👎 Negative</option>
+      </select>
+      <button id="load-ratings">🔍 Load</button>
+      <button id="delete-ratings">🗑️ Delete</button>
+    </div>
+
+    <table id="ratings-table">
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Message</th>
+          <th>Rating</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="rating-list"></tbody>
+    </table>
+  </div>
+
+  <script src="ratings.js"></script>
+</body>
+</html>

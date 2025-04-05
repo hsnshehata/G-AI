@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bot Rules</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>Manage Bot Rules</h2>
+
+    <div class="rule-form">
+      <input type="text" id="keyword" placeholder="Keyword">
+      <textarea id="response" placeholder="Response message"></textarea>
+      <button onclick="addRule()">Add Rule</button>
+    </div>
+
+    <ul id="rules-list"></ul>
+  </div>
+  <script src="rules.js"></script>
+</body>
+</html>

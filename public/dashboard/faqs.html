@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FAQ Management</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .faq-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .faq-question { font-weight: bold; }
+    .faq-controls button { margin-left: 5px; }
+    .inactive { opacity: 0.5; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>FAQs إدارة الأسئلة الشائعة</h2>
+
+    <!-- Form to Add New FAQ -->
+    <form id="faq-form">
+      <input type="text" id="question" placeholder="Enter question" required />
+      <input type="text" id="answer" placeholder="Enter answer" required />
+      <button type="submit">Add FAQ</button>
+      <button type="button" id="suggest-answer">🪄 اقتراح إجابة تلقائية</button>
+    </form>
+
+    <!-- Search Input -->
+    <input type="text" id="faq-search" placeholder="ابحث عن سؤال..." style="width: 100%; padding: 8px; margin: 10px 0;" />
+
+    <!-- FAQ List -->
+    <div id="faq-list"></div>
+
+    <!-- Export Button -->
+    <button id="export-json">📤 تصدير كـ JSON</button>
+  </div>
+
+  <script src="faqs.js"></script>
+</body>
+</html>

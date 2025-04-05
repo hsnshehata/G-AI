@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bot Stats</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container section">
+    <h2>📊 Bot Statistics</h2>
+
+    <div class="controls">
+      <select id="bot-select"></select>
+      <button id="load-stats">🔄 Load Stats</button>
+    </div>
+
+    <div id="stats-summary">
+      <p><strong>📅 Daily:</strong> <span id="daily-count">0</span></p>
+      <p><strong>📆 Weekly:</strong> <span id="weekly-count">0</span></p>
+      <p><strong>📈 Monthly:</strong> <span id="monthly-count">0</span></p>
+      <p><strong>🧠 Avg. Words/Reply:</strong> <span id="avg-words">0</span></p>
+      <p><strong>🔁 Top Words:</strong> <span id="top-words">Loading...</span></p>
+    </div>
+
+    <canvas id="stats-chart" height="100"></canvas>
+  </div>
+
+  <script src="stats.js"></script>
+</body>
+</html>
