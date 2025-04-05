@@ -42,24 +42,6 @@ const authenticateToken = async (req, res, next) => {
   // Connect to MongoDB
   await connectDB();
 
-  // 🟩 هنا بالضبط ضيف الكود الإجباري لإنشاء أو تحديث Super Admin
-  const hashedPassword = await bcrypt.hash('662015', 10);
-
-  await User.findOneAndUpdate(
-    { username: 'hsn' },
-    {
-      username: 'hsn',
-      password: hashedPassword,
-      pageId: '123456789',
-      pageToken: 'fake-token',
-      title: 'Super Admin Bot',
-      role: 'superadmin',
-    },
-    { upsert: true }
-  );
-
-  console.log('✅ Super Admin created or updated');
-
   // Load Config into process.env
   const configs = await Config.find();
   configs.forEach(config => {
