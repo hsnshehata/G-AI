@@ -42,25 +42,23 @@ const authenticateToken = async (req, res, next) => {
   // Connect to MongoDB
   await connectDB();
 
-  // 🟩 هنا بالضبط ضيف الكود المؤقت لإنشاء Super Admin
-  const existing = await User.findOne({ username: 'hsn' });
-  if (!existing) {
-    const hashedPassword = await bcrypt.hash('662015', 10);
+  // 🟩 هنا بالضبط ضيف الكود الإجباري لإنشاء أو تحديث Super Admin
+  const hashedPassword = await bcrypt.hash('662015', 10);
 
-    const user = new User({
+  await User.findOneAndUpdate(
+    { username: 'hsn' },
+    {
       username: 'hsn',
       password: hashedPassword,
       pageId: '123456789',
       pageToken: 'fake-token',
       title: 'Super Admin Bot',
       role: 'superadmin',
-    });
+    },
+    { upsert: true }
+  );
 
-    await user.save();
-    console.log('✅ Super Admin created');
-  } else {
-    console.log('ℹ️ Super Admin already exists');
-  }
+  console.log('✅ Super Admin created or updated');
 
   // Load Config into process.env
   const configs = await Config.find();
