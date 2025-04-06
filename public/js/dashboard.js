@@ -84,3 +84,11 @@ window.onload = () => {
     document.getElementById("dashboard").style.display = "block";
   }
 };
+
+// دالة تسجيل الخروج
+function logout() {
+  localStorage.removeItem("token");
+  token = null;
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("login-section").style.display = "block";
+}
