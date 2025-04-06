@@ -106,7 +106,7 @@ async function loadRules() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "فشل تحميل القواعد");
-    renderRules(data);
+    renderRules(Array.isArray(data) ? data : data.rules || []); // التعديل هنا
   } catch (err) {
     document.getElementById("content-area").innerHTML = `<p style="color:red;">${err.message}</p>`;
   }
