@@ -7,6 +7,7 @@ const statRoutes = require('./routes/stats');
 const whatsappRoutes = require('./routes/whatsapp');
 const configRoutes = require('./routes/config');
 const authRoutes = require('./routes/auth'); // إضافة استيراد مسارات التوثيق
+const rulesRoutes = require('./routes/rules'); // إضافة استيراد مسارات القواعد
 const Config = require('./models/Config');
 const OpenAI = require('openai');
 const jwt = require('jsonwebtoken');
@@ -62,6 +63,7 @@ const authenticateToken = async (req, res, next) => {
   app.use('/stats', authenticateToken, statRoutes);
   app.use('/whatsapp', authenticateToken, whatsappRoutes);
   app.use('/config', authenticateToken, configRoutes);
+  app.use('/rules', rulesRoutes); // إضافة مسار القواعد
 
   // Start Server
   app.listen(PORT, () => {
