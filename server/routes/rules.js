@@ -7,7 +7,7 @@ const {
   deleteRule
 } = require('../controllers/rulesController');
 
-const authenticateToken = require('../middleware/authenticateToken');
+const authenticateToken = require('../middleware/auth');
 
 router.use(authenticateToken);
 
