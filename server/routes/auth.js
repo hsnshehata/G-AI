@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { login } = require('../controllers/authController');
-const authenticateToken = require('../middleware/auth'); // إضافة الميدل وير
+const { loginUser } = require('../controllers/authController');
 
-// إضافة المصادقة للتأكد من صحة التوكن قبل السماح بتسجيل الدخول
-router.post('/login', authenticateToken, login);  // استخدام المصادقة للتوكن
+router.post('/login', loginUser);
 
 module.exports = router;
