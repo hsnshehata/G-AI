@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة التحكم - G-AI</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- نموذج تسجيل الدخول -->
+  <div id="login-section">
+    <h2>تسجيل الدخول</h2>
+    <input type="text" id="username" placeholder="اسم المستخدم" />
+    <input type="password" id="password" placeholder="كلمة المرور" />
+    <button onclick="login()">دخول</button>
+    <p id="login-error" style="color:red;"></p>
+  </div>
+
+  <!-- لوحة التحكم -->
+  <div id="dashboard" style="display:none;">
+    <h1>لوحة التحكم</h1>
+
+    <div>
+      <button onclick="loadSection('rules')">📜 القواعد</button>
+      <button onclick="loadSection('chats')">💬 المحادثات</button>
+      <button onclick="loadSection('ratings')">⭐ التقييمات</button>
+      <button onclick="loadSection('stats')">📊 الإحصائيات</button>
+      <button onclick="loadSection('settings')">⚙️ الإعدادات</button>
+    </div>
+
+    <div id="content-area">
+      <!-- محتوى الأقسام يظهر هنا -->
+    </div>
+  </div>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
