@@ -1,4 +1,5 @@
 import initAddBot from './addBot.js';
+import initRules from './rules.js';
 
 // عناصر الصفحة
 const loginSection = document.getElementById('login-section');
