@@ -57,7 +57,14 @@ const authenticateToken = async (req, res, next) => {
 
   // Routes
   app.use('/auth', authRoutes); // إضافة مسار التوثيق
-  app.use('/bots', authenticateToken, botRoutes);
+// bots/create مفتوح، باقي المسارات محمية
+app.use('/bots', (req, res, next) => {
+  if (req.method === 'POST' && req.path === '/create') {
+    return botRoutes(req, res, next); // يسمح بإنشاء بوت بدون توكن
+  } else {
+    return authenticateToken(req, res, () => botRoutes(req, res, next));
+  }
+});
   app.use('/chats', authenticateToken, chatRoutes);
   app.use('/ratings', authenticateToken, ratingRoutes);
   app.use('/stats', authenticateToken, statRoutes);
