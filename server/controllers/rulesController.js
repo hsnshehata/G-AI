@@ -1,91 +1,65 @@
 const Rule = require('../models/Rule');
-const Activity = require('../models/Activity');
+const Bot = require('../models/Bot');
 
-exports.getRules = async (req, res) => {
+// جلب القواعد (العامة والخاصة)
+const getRules = async (req, res) => {
   try {
-    const query = req.user.role === 'superadmin' ? {} : { pageId: req.user.pageId };
-    const rules = await Rule.find(query);
-    res.json({ rules, pageId: req.user.pageId });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch rules' });
-  }
-};
+    const { botId } = req.query;
 
-exports.addRule = async (req, res) => {
-  try {
-    const { keyword, response, pageId } = req.body;
-    if (!keyword || !response || !pageId) return res.status(400).json({ error: 'Missing fields' });
+    if (!botId) {
+      // قواعد عامة فقط
+      const globalRules = await Rule.find({ type: 'global' });
+      return res.json(globalRules);
+    }
 
-    if (req.user.role !== 'superadmin' && req.user.pageId !== pageId)
-      return res.status(403).json({ error: 'Unauthorized' });
-
-    const newRule = await Rule.create({ keyword, response, pageId });
-
-    await Activity.create({
-      user: req.user.username,
-      role: req.user.role,
-      botId: pageId,
-      action: 'Added Rule',
-      details: `Keyword: ${keyword}`
+    const rules = await Rule.find({
+      $or: [
+        { type: 'global' },
+        { type: 'bot', botId }
+      ]
     });
 
-    res.status(201).json({ success: true, rule: newRule });
+    res.json(rules);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to add rule' });
+    console.error('getRules error:', err);
+    res.status(500).json({ error: 'فشل في تحميل القواعد' });
   }
 };
 
-exports.updateRule = async (req, res) => {
+// إنشاء قاعدة جديدة
+const createRule = async (req, res) => {
   try {
-    const { keyword, response } = req.body;
-    const rule = await Rule.findById(req.params.id);
-    if (!rule) return res.status(404).json({ error: 'Rule not found' });
+    const { text, type, botId } = req.body;
 
-    if (req.user.role !== 'superadmin' && req.user.pageId !== rule.pageId)
-      return res.status(403).json({ error: 'Unauthorized' });
+    if (type === 'bot' && !botId) {
+      return res.status(400).json({ error: 'يجب تحديد botId للقواعد الخاصة' });
+    }
 
-    rule.keyword = keyword;
-    rule.response = response;
+    const rule = new Rule({ text, type, botId: type === 'bot' ? botId : null });
     await rule.save();
-
-    await Activity.create({
-      user: req.user.username,
-      role: req.user.role,
-      botId: rule.pageId,
-      action: 'Updated Rule',
-      details: `Rule ID: ${rule._id}`
-    });
-
-    res.json({ success: true, rule });
+    res.status(201).json({ message: 'تمت إضافة القاعدة', rule });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to update rule' });
+    console.error('createRule error:', err);
+    res.status(500).json({ error: 'فشل في إنشاء القاعدة' });
   }
 };
 
-exports.deleteRule = async (req, res) => {
+// حذف قاعدة
+const deleteRule = async (req, res) => {
   try {
     const rule = await Rule.findById(req.params.id);
-    if (!rule) return res.status(404).json({ error: 'Rule not found' });
-
-    if (req.user.role !== 'superadmin' && req.user.pageId !== rule.pageId)
-      return res.status(403).json({ error: 'Unauthorized' });
+    if (!rule) return res.status(404).json({ error: 'القاعدة غير موجودة' });
 
     await rule.deleteOne();
-
-    await Activity.create({
-      user: req.user.username,
-      role: req.user.role,
-      botId: rule.pageId,
-      action: 'Deleted Rule',
-      details: `Rule ID: ${rule._id}`
-    });
-
-    res.json({ success: true });
+    res.json({ message: 'تم حذف القاعدة' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to delete rule' });
+    console.error('deleteRule error:', err);
+    res.status(500).json({ error: 'فشل في حذف القاعدة' });
   }
+};
+
+module.exports = {
+  getRules,
+  createRule,
+  deleteRule,
 };
