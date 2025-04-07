@@ -4,7 +4,6 @@ export default function initAddBot() {
   const fbToken = document.getElementById('fbToken');
   const pageId = document.getElementById('pageId');
 
-  // إظهار خانة Facebook Page ID عند إدخال توكن فيسبوك
   fbToken.addEventListener('input', () => {
     if (fbToken.value.trim() !== '') {
       pageId.style.display = 'block';
@@ -28,24 +27,21 @@ export default function initAddBot() {
     };
 
     try {
-      const res = await fetch('/api/bots/create', {
+      const res = await fetch('/bots/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
       const result = await res.json();
+      msg.textContent = res.ok ? '✅ تم إنشاء البوت بنجاح!' : `❌ ${result.message}`;
+      msg.style.color = res.ok ? 'green' : 'red';
       if (res.ok) {
-        msg.textContent = '✅ تم إنشاء البوت بنجاح!';
-        msg.style.color = 'green';
         form.reset();
         pageId.style.display = 'none';
-      } else {
-        msg.textContent = `❌ خطأ: ${result.message || 'فشل في الإنشاء'}`;
-        msg.style.color = 'red';
       }
     } catch (err) {
-      msg.textContent = `❌ حدث خطأ في الاتصال بالسيرفر`;
+      msg.textContent = '❌ حدث خطأ في الاتصال بالسيرفر';
       msg.style.color = 'red';
       console.error(err);
     }
