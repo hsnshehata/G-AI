@@ -2,18 +2,17 @@ const express = require('express');
 const router = express.Router();
 const {
   getRules,
-  addRule,
-  updateRule,
-  deleteRule
+  createRule,
+  deleteRule,
 } = require('../controllers/rulesController');
 
-const authenticateToken = require('../middleware/auth');
-
-router.use(authenticateToken);
-
+// جلب القواعد (العامة + الخاصة)
 router.get('/', getRules);
-router.post('/', addRule);
-router.put('/:id', updateRule);
+
+// إضافة قاعدة
+router.post('/', createRule);
+
+// حذف قاعدة
 router.delete('/:id', deleteRule);
 
 module.exports = router;
