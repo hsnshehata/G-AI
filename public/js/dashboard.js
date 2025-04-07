@@ -45,6 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // تحميل صفحة إنشاء البوت
   initAddBot();
+
+  // عند الضغط على زر "إدارة القواعد"
+  document.getElementById('rules-btn')?.addEventListener('click', () => {
+    initRules();
+  });
 });
 
 // إظهار الداشبورد وإخفاء صفحة الدخول
