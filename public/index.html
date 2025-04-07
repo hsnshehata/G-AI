@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>لوحة التحكم - G-AI</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة التحكم</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- صفحة تسجيل الدخول -->
+  <!-- ✅ صفحة تسجيل الدخول -->
   <section id="login-section">
     <div class="login-box">
       <h2>تسجيل الدخول</h2>
@@ -19,21 +19,33 @@
     </div>
   </section>
 
-  <!-- محتوى الداشبورد -->
-  <section id="dashboard-section">
+  <!-- ✅ لوحة التحكم -->
+  <section id="dashboard-section" style="display:none;">
     <header>
       <h1>لوحة التحكم</h1>
       <button id="logout-btn">تسجيل الخروج</button>
     </header>
 
-    <nav>
-      <button id="add-bot-btn">➕ إنشاء بوت جديد</button>
-      <button id="rules-btn">⚙️ إدارة القواعد</button>
+    <!-- التبويبات العلوية -->
+    <nav class="top-tabs">
+      <button data-tab="bots" class="active">🤖 البوتات</button>
+      <button data-tab="rules">🧠 القواعد</button>
+      <button data-tab="chats">💬 المحادثات</button>
+      <button data-tab="stats">📊 الإحصائيات</button>
     </nav>
 
-    <div id="dashboard-content">
-      <!-- هنا هيظهر كل قسم -->
-    </div>
+    <!-- محتوى القسم المتغير -->
+    <main id="main-content">
+      <!-- سيتم تحميل الأقسام هنا -->
+    </main>
+
+    <!-- شريط سفلي -->
+    <footer class="bottom-nav">
+      <button data-tab="bots" class="active">بوتاتي</button>
+      <button data-tab="rules">القواعد</button>
+      <button data-tab="chats">المحادثات</button>
+      <button data-tab="stats">الإحصائيات</button>
+    </footer>
   </section>
 
   <script type="module" src="js/dashboard.js"></script>
