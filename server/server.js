@@ -7,6 +7,7 @@ const User = require('./models/User');
 const Chat = require('./models/Chat');
 const { initializeWhatsAppClient } = require('./services/whatsapp');
 const aiRoutes = require('./routes/ai'); // إضافة في الأعلى
+const rulesRoutes = require('./routes/rules');
 
 
 // مسارات المشروع
@@ -68,6 +69,7 @@ const authenticateToken = async (req, res, next) => {
   app.use('/config', authenticateToken, configRoutes);     // الإعدادات
   app.use('/rules', rulesRoutes);                   // القواعد (مفتوحة حاليًا)
   app.use('/ai', aiRoutes); // إضافة مسارات الذكاء الاصطناعي
+  app.use('/rules', rulesRoutes);
 
   // تشغيل السيرفر
   app.listen(PORT, () => {
