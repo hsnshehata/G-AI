@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
 const User = require('./models/User');
 const Chat = require('./models/Chat');
 const { initializeWhatsAppClient } = require('./services/whatsapp');
+const aiRoutes = require('./routes/ai'); // إضافة في الأعلى
+
 
 // مسارات المشروع
 const botRoutes = require('./routes/bots');
@@ -65,6 +67,7 @@ const authenticateToken = async (req, res, next) => {
   app.use('/whatsapp', authenticateToken, whatsappRoutes); // واتساب
   app.use('/config', authenticateToken, configRoutes);     // الإعدادات
   app.use('/rules', rulesRoutes);                   // القواعد (مفتوحة حاليًا)
+  app.use('/ai', aiRoutes); // إضافة مسارات الذكاء الاصطناعي
 
   // تشغيل السيرفر
   app.listen(PORT, () => {
