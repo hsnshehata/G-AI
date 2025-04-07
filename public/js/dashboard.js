@@ -50,6 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('rules-btn')?.addEventListener('click', () => {
     initRules();
   });
+
+  // عند الضغط على زر "إنشاء بوت"
+  document.getElementById('add-bot-btn')?.addEventListener('click', () => {
+    initAddBot();
+  });
 });
 
 // إظهار الداشبورد وإخفاء صفحة الدخول
