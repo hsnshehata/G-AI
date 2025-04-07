@@ -1,3 +1,9 @@
+body:not(.logged-in) #dashboard-section { display: none; }
+body.logged-in #login-section { display: none; }
+
+/* باقي التنسيقات كما هي */
+
+
 :root {
   --bg-light: #f5f5f5;
   --text-light: #333;
