@@ -1,21 +1,25 @@
 const mongoose = require('mongoose');
 
 const ruleSchema = new mongoose.Schema({
+  text: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  type: {
+    type: String,
+    enum: ['global', 'bot'], // global = قواعد عامة، bot = خاصة ببوت معين
+    required: true
+  },
   botId: {
-    type: String,
-    required: true,
-    index: true, // For faster queries by botId
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Bot',
+    default: null
   },
-  content: {
-    type: String,
-    required: true,
-    trim: true, // Removes whitespace
-  },
-}, {
-  timestamps: true, // Adds createdAt and updatedAt fields
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
-
-// Index for efficient querying by botId
-ruleSchema.index({ botId: 1 });
 
 module.exports = mongoose.model('Rule', ruleSchema);
