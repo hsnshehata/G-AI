@@ -1,27 +1,24 @@
 export default function initRules() {
-  const section = document.createElement('section');
-  section.innerHTML = `
-    <h2>إدارة القواعد</h2>
-    <form id="rule-form">
-      <input type="text" id="ruleText" placeholder="نص القاعدة" required />
-      <select id="ruleType">
-        <option value="bot">خاصة بهذا البوت</option>
-        <option value="global">قاعدة عامة (للسوبر أدمن)</option>
-      </select>
-      <button type="submit">إضافة قاعدة</button>
-    </form>
-    <ul id="rulesList"></ul>
+  const content = document.getElementById('main-content');
+  content.innerHTML = `
+    <section>
+      <h2>إدارة القواعد</h2>
+      <form id="rule-form">
+        <input type="text" id="ruleText" placeholder="نص القاعدة" required />
+        <select id="ruleType">
+          <option value="bot">خاصة بهذا البوت</option>
+          <option value="global">قاعدة عامة (للسوبر أدمن)</option>
+        </select>
+        <button type="submit">إضافة قاعدة</button>
+      </form>
+      <ul id="rulesList"></ul>
+    </section>
   `;
-
-  const content = document.getElementById('dashboard-content');
-  content.innerHTML = ''; // مسح المحتوى الحالي
-  content.appendChild(section);
 
   const ruleForm = document.getElementById('rule-form');
   const ruleList = document.getElementById('rulesList');
-  const botId = localStorage.getItem('currentBotId'); // يتم تخزينه عند اختيار بوت
+  const botId = localStorage.getItem('currentBotId'); // يُحدد البوت النشط
 
-  // جلب القواعد
   async function loadRules() {
     const res = await fetch(`/rules?botId=${botId}`);
     const rules = await res.json();
@@ -41,7 +38,6 @@ export default function initRules() {
     });
   }
 
-  // إضافة قاعدة
   ruleForm.onsubmit = async (e) => {
     e.preventDefault();
     const text = document.getElementById('ruleText').value;
