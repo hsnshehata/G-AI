@@ -16,4 +16,5 @@ router.post('/resend/:id', resendChat);
 
 module.exports = router;
 
-router.post('/reply', replyToMessage);
+router.post('/reply', handleUserMessage); // ← المسار المهم
+
