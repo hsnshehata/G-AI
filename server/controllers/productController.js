@@ -27,3 +27,18 @@ exports.getProducts = async (req, res) => {
     res.status(500).json({ error: 'خطأ في السيرفر' });
   }
 };
+
+// حذف منتج
+exports.deleteProduct = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const product = await Product.findByIdAndDelete(productId);
+    if (!product) {
+      return res.status(404).json({ error: 'لم يتم العثور على المنتج' });
+    }
+    res.json({ message: 'تم الحذف بنجاح' });
+  } catch (err) {
+    console.error('خطأ في حذف المنتج:', err);
+    res.status(500).json({ error: 'خطأ في السيرفر' });
+  }
+};
