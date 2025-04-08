@@ -1,97 +1,56 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const loginBtn = document.getElementById("login-btn");
-  const logoutBtn = document.getElementById("logout-btn");
-  const loginSection = document.getElementById("login-section");
-  const dashboardSection = document.getElementById("dashboard-section");
-  const topTabs = document.querySelector(".top-tabs");
-  const bottomNav = document.querySelector(".bottom-nav");
-  const loginError = document.getElementById("login-error");
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة التحكم</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
 
-  // التحقق من وجود صلاحية محفوظة
-  const savedRole = localStorage.getItem("role");
-  if (savedRole) {
-    loginSection.style.display = "none";
-    dashboardSection.style.display = "block";
-    showTab(localStorage.getItem("currentTab") || "bots");
-  }
+  <!-- تسجيل الدخول -->
+  <section id="login-section">
+    <div class="login-box">
+      <h2>تسجيل الدخول</h2>
+      <input type="text" id="username" placeholder="اسم المستخدم" />
+      <input type="password" id="password" placeholder="كلمة المرور" />
+      <button id="login-btn">دخول</button>
+      <p id="login-error" class="error-msg"></p>
+    </div>
+  </section>
 
-  // تسجيل الدخول
-  loginBtn?.addEventListener("click", () => {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    if (!username || !password) {
-      loginError.textContent = "من فضلك أدخل البيانات كاملة";
-      return;
-    }
-    if (username === "hsn" && password === "662015") {
-      localStorage.setItem("role", "admin");
-    } else {
-      localStorage.setItem("role", "user");
-    }
-    localStorage.setItem("username", username);
-    loginSection.style.display = "none";
-    dashboardSection.style.display = "block";
-    showTab("bots");
-  });
+  <!-- لوحة التحكم بعد الدخول -->
+  <section id="dashboard-section" style="display: none;">
+    <header>
+      <h1>لوحة التحكم</h1>
+      <button id="logout-btn">تسجيل الخروج</button>
+    </header>
 
-  // تسجيل الخروج
-  logoutBtn.addEventListener("click", () => {
-    localStorage.clear();
-    location.reload();
-  });
+    <!-- التبويبات العلوية -->
+    <nav class="top-tabs">
+      <button class="tab-button" data-tab="bots">البوتات</button>
+      <button class="tab-button" data-tab="rules">القواعد</button>
+      <button class="tab-button" data-tab="chats">المحادثات</button>
+      <button class="tab-button" data-tab="stats">الإحصائيات</button>
+    </nav>
 
-  // إخفاء التبويبات العلوية عند التمرير
-  window.addEventListener("scroll", () => {
-    const currentScroll = window.pageYOffset;
-    topTabs.style.top = currentScroll > 10 ? "-60px" : "0";
-  });
+    <!-- محتوى التبويبات -->
+    <main id="main-content">
+      <div id="bots" class="tab-section">محتوى البوتات</div>
+      <div id="rules" class="tab-section">محتوى القواعد</div>
+      <div id="chats" class="tab-section">محتوى المحادثات</div>
+      <div id="stats" class="tab-section">محتوى الإحصائيات</div>
+    </main>
 
-  // التحكم في عرض التبويبات
-  const tabButtons = document.querySelectorAll("[data-tab]");
-  const tabContents = document.querySelectorAll(".tab-section");
+    <!-- التنقل السفلي -->
+    <footer class="bottom-nav">
+      <button class="tab-button" data-tab="bots">بوتاتي</button>
+      <button class="tab-button" data-tab="rules">القواعد</button>
+      <button class="tab-button" data-tab="chats">المحادثات</button>
+      <button class="tab-button" data-tab="stats">الإحصائيات</button>
+    </footer>
+  </section>
 
-  function hideAllTabs() {
-    tabContents.forEach(tab => {
-      tab.style.display = "none";
-    });
-  }
-
-  function showTab(tabId) {
-    hideAllTabs();
-    const activeTab = document.getElementById(tabId);
-    if (activeTab) {
-      activeTab.style.display = "block";
-    }
-    localStorage.setItem("currentTab", tabId);
-
-    if (tabId === "bots") {
-      import("./addBot.js").then((mod) => mod.initAddBot());
-    } else if (tabId === "rules") {
-      import("./rules.js").then((mod) => mod.initRules());
-    } else {
-      document.getElementById("main-content").innerHTML = `<p class="text">القسم "${tabId}" تحت التطوير.</p>`;
-    }
-
-    // تحديث حالة الأزرار
-    tabButtons.forEach(button => {
-      button.classList.remove("active");
-      if (button.getAttribute("data-tab") === tabId) {
-        button.classList.add("active");
-      }
-    });
-  }
-
-  // إضافة مستمعي الأحداث للأزرار
-  tabButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      const target = button.getAttribute("data-tab");
-      showTab(target);
-    });
-  });
-
-  // عرض التبويب الأول بشكل افتراضي
-  if (tabButtons.length > 0) {
-    const firstTab = tabButtons[0].getAttribute("data-tab");
-    showTab(firstTab);
-  }
-});
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
