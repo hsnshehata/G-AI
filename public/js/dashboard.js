@@ -29,6 +29,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const tabButtons = document.querySelectorAll("[data-tab]");
       const tabContents = document.querySelectorAll(".tab-section");
 
+      // التحقق من وجود العناصر الأساسية
+      if (!loginSection || !dashboardSection) {
+        console.error('Login section or dashboard section not found in the DOM');
+        return;
+      }
+
       // التحقق من وجود صلاحية محفوظة
       const savedRole = localStorage.getItem("role");
       const savedToken = localStorage.getItem("token");
@@ -87,20 +93,27 @@ document.addEventListener('DOMContentLoaded', () => {
       // دالة لإخفاء كل التبويبات
       function hideAllTabs() {
         tabContents.forEach(tab => {
-          tab.style.display = "none";
+          if (tab) {
+            tab.style.display = "none";
+          }
         });
       }
 
       // دالة لعرض تبويب معين
       function showTab(tabId) {
-        hideAllTabs();
+        // التحقق من وجود العنصر قبل محاولة إظهاره
         const activeTab = document.getElementById(tabId);
-        if (activeTab) {
-          activeTab.style.display = "block";
-        } else {
-          console.error(`Tab with ID ${tabId} not found`);
+        if (!activeTab) {
+          console.error(`Tab with ID ${tabId} not found in the DOM`);
+          const mainContent = document.getElementById("main-content");
+          if (mainContent) {
+            mainContent.innerHTML = `<p class="text">القسم "${tabId}" غير موجود.</p>`;
+          }
           return;
         }
+
+        hideAllTabs();
+        activeTab.style.display = "block";
         localStorage.setItem("currentTab", tabId);
 
         if (tabId === "bots") {
