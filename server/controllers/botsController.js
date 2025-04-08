@@ -25,20 +25,14 @@ const createBot = async (req, res) => {
 
 const listBots = async (req, res) => {
   try {
-    const userRole = req.user?.role;
-    const username = req.user?.username;
+    const { role, username } = req.user;
 
-    let bots;
-    if (userRole === 'admin') {
-      // إذا كان المستخدم أدمن، يتم جلب كل البوتات
-      bots = await Bot.find().sort({ createdAt: -1 });
-    } else {
-      // إذا كان مستخدم عادي، يتم جلب البوتات الخاصة به فقط
-      bots = await Bot.find({ username }).sort({ createdAt: -1 });
-    }
+    const bots = role === 'admin'
+      ? await Bot.find().sort({ createdAt: -1 })
+      : await Bot.find({ username }).sort({ createdAt: -1 });
+
     res.json(bots);
   } catch (error) {
-    console.error('خطأ في جلب البوتات:', error);
     res.status(500).json({ message: 'فشل في تحميل البوتات' });
   }
 };
