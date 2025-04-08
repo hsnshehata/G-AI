@@ -8,6 +8,8 @@ const {
   getBotById
 } = require('../controllers/botsController');
 
+console.log('🤖 DEBUG createBot:', typeof createBot); // يجب أن تطبع "function"
+
 // إنشاء بوت جديد
 router.post('/create', verifyToken, createBot);
 
