@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { getChats, deleteChat, resendChat } = require('../controllers/chatController'); // استيراد الدوال
+const { replyToMessage } = require('../controllers/chatController');
+
+
 
 // عرض المحادثات
 router.get('/', getChats);
@@ -12,3 +15,5 @@ router.delete('/:id', deleteChat);
 router.post('/resend/:id', resendChat);
 
 module.exports = router;
+
+router.post('/reply', replyToMessage);
