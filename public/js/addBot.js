@@ -4,6 +4,11 @@ function initAddBot() {
   const username = localStorage.getItem("username");
   const token = localStorage.getItem("token");
 
+  if (!content) {
+    console.error('Main content element not found');
+    return;
+  }
+
   content.innerHTML = `
     <button id="toggleFormBtn" class="toggle-form-btn">➕ إنشاء بوت جديد</button>
     <div id="createBotForm" class="create-bot-form" style="display: none;">
