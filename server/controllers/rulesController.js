@@ -6,8 +6,8 @@ exports.getRules = async (req, res) => {
     const { botId } = req.query;
     if (!botId) return res.status(400).json({ error: 'botId is required' });
 
-    const rules = await Rule.find({ pageId: botId });
-    res.json({ rules, pageId: botId });
+    const rules = await Rule.find({ botId });
+    res.json({ rules, botId });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch rules' });
@@ -17,20 +17,23 @@ exports.getRules = async (req, res) => {
 // إضافة قاعدة جديدة
 exports.addRule = async (req, res) => {
   try {
-    const { keyword, response, pageId, ruleType } = req.body;
+    const { text, type, botId } = req.body;
+
+    if (!text || !type) {
+      return res.status(400).json({ message: 'الرجاء إدخال جميع الحقول المطلوبة' });
+    }
 
     const newRule = new Rule({
-      keyword,
-      response,
-      pageId,
-      ruleType,
+      text,
+      type,
+      botId: botId || null, // لو مفيش botId، هيبقى null
     });
 
     await newRule.save();
-    res.json(newRule);
+    res.status(201).json({ message: 'تم حفظ القاعدة بنجاح', rule: newRule });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to add rule' });
+    console.error('خطأ في حفظ القاعدة:', err);
+    res.status(500).json({ error: 'فشل في حفظ القاعدة' });
   }
 };
 
