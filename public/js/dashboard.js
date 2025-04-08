@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (savedRole) {
     loginSection.style.display = "none";
     dashboardSection.style.display = "block";
-    handleTab(localStorage.getItem("currentTab") || "bots");
+    showTab(localStorage.getItem("currentTab") || "bots");
   }
 
   // تسجيل الدخول
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("username", username);
     loginSection.style.display = "none";
     dashboardSection.style.display = "block";
-    handleTab("bots");
+    showTab("bots");
   });
 
   // تسجيل الخروج
@@ -46,28 +46,52 @@ document.addEventListener("DOMContentLoaded", () => {
     topTabs.style.top = currentScroll > 10 ? "-60px" : "0";
   });
 
-  // التبديل بين التبويبات
-  document.querySelectorAll("[data-tab]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const tab = btn.getAttribute("data-tab");
-      handleTab(tab);
+  // التحكم في عرض التبويبات
+  const tabButtons = document.querySelectorAll("[data-tab]");
+  const tabContents = document.querySelectorAll(".tab-section");
+
+  function hideAllTabs() {
+    tabContents.forEach(tab => {
+      tab.style.display = "none";
+    });
+  }
+
+  function showTab(tabId) {
+    hideAllTabs();
+    const activeTab = document.getElementById(tabId);
+    if (activeTab) {
+      activeTab.style.display = "block";
+    }
+    localStorage.setItem("currentTab", tabId);
+
+    if (tabId === "bots") {
+      import("./addBot.js").then((mod) => mod.initAddBot());
+    } else if (tabId === "rules") {
+      import("./rules.js").then((mod) => mod.initRules());
+    } else {
+      document.getElementById("main-content").innerHTML = `<p class="text">القسم "${tabId}" تحت التطوير.</p>`;
+    }
+
+    // تحديث حالة الأزرار
+    tabButtons.forEach(button => {
+      button.classList.remove("active");
+      if (button.getAttribute("data-tab") === tabId) {
+        button.classList.add("active");
+      }
+    });
+  }
+
+  // إضافة مستمعي الأحداث للأزرار
+  tabButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const target = button.getAttribute("data-tab");
+      showTab(target);
     });
   });
 
-  // التحكم في عرض التبويبات
-  function handleTab(tab) {
-    document.querySelectorAll("[data-tab]").forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".tab-section").forEach((el) => (el.style.display = "none"));
-    localStorage.setItem("currentTab", tab);
-
-    if (tab === "bots") {
-      import("./addBot.js").then((mod) => mod.initAddBot());
-    } else if (tab === "rules") {
-      import("./rules.js").then((mod) => mod.initRules());
-    } else {
-      document.getElementById("main-content").innerHTML = `<p class="text">القسم "${tab}" تحت التطوير.</p>`;
-    }
-
-    document.querySelectorAll(`[data-tab="${tab}"]`).forEach((b) => b.classList.add("active"));
+  // عرض التبويب الأول بشكل افتراضي
+  if (tabButtons.length > 0) {
+    const firstTab = tabButtons[0].getAttribute("data-tab");
+    showTab(firstTab);
   }
 });
