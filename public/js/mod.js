@@ -1,7 +1,7 @@
 const mod = {
   initializeTabs: function () {
-    // هنا ممكن تضيف أي منطق لتهيئة التبويبات
     console.log('Tabs initialized successfully');
+    // هنا ممكن تضيف أي منطق إضافي لتهيئة التبويبات
   }
 };
 
