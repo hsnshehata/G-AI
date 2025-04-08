@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // تسجيل الدخول
-  loginBtn?.addEventListener("click", () => {
+  loginBtn?.addEventListener("click", async () => {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
     if (!username || !password) {
@@ -28,20 +28,31 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // محاكاة تسجيل الدخول (بدون توكن حقيقي دلوقتي)
-    let role = "user";
-    let token = "fake-jwt-token"; // توكن مؤقت، المفروض يتولد من السيرفر
-    if (username === "hsn" && password === "662015") {
-      role = "admin";
-      token = "fake-jwt-token-admin";
-    }
+    try {
+      // إرسال طلب تسجيل الدخول للسيرفر
+      const response = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
-    localStorage.setItem("role", role);
-    localStorage.setItem("username", username);
-    localStorage.setItem("token", token); // تخزين التوكن
-    loginSection.style.display = "none";
-    dashboardSection.style.display = "block";
-    showTab("bots");
+      const result = await response.json();
+      if (!response.ok) {
+        loginError.textContent = result.error || 'فشل في تسجيل الدخول';
+        return;
+      }
+
+      // تخزين البيانات في localStorage
+      localStorage.setItem("role", result.role);
+      localStorage.setItem("username", result.username);
+      localStorage.setItem("token", result.token);
+      loginSection.style.display = "none";
+      dashboardSection.style.display = "block";
+      showTab("bots");
+    } catch (err) {
+      loginError.textContent = 'حدث خطأ أثناء تسجيل الدخول';
+      console.error('خطأ في تسجيل الدخول:', err);
+    }
   });
 
   // تسجيل الخروج
