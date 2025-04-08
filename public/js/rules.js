@@ -51,18 +51,15 @@ function initRules() {
       });
       const faqs = await response.json();
       if (response.ok) {
-        faqList.innerHTML = ''; // تفريغ القايمة قبل الإضافة
+        faqList.innerHTML = '';
         faqs.forEach(faq => {
           const li = document.createElement('li');
           li.innerHTML = `<strong>${faq.question}</strong>: ${faq.answer}`;
-          
-          // إضافة زرار الحذف
           const deleteBtn = document.createElement('button');
           deleteBtn.textContent = 'حذف';
-          deleteBtn.className = 'btn btn-danger btn-sm ms-2'; // استايل زي أزرار الصفحة
+          deleteBtn.className = 'btn btn-danger btn-sm ms-2';
           deleteBtn.onclick = () => deleteFaq(faq._id);
           li.appendChild(deleteBtn);
-          
           faqList.appendChild(li);
         });
       } else {
@@ -81,18 +78,15 @@ function initRules() {
       });
       const products = await response.json();
       if (response.ok) {
-        productList.innerHTML = ''; // تفريغ القايمة قبل الإضافة
+        productList.innerHTML = '';
         products.forEach(product => {
           const li = document.createElement('li');
           li.innerHTML = `<strong>${product.name}</strong>: ${product.price} جنيه`;
-          
-          // إضافة زرار الحذف
           const deleteBtn = document.createElement('button');
           deleteBtn.textContent = 'حذف';
-          deleteBtn.className = 'btn btn-danger btn-sm ms-2'; // استايل زي أزرار الصفحة
+          deleteBtn.className = 'btn btn-danger btn-sm ms-2';
           deleteBtn.onclick = () => deleteProduct(product._id);
           li.appendChild(deleteBtn);
-          
           productList.appendChild(li);
         });
       } else {
@@ -111,18 +105,15 @@ function initRules() {
       });
       const storeLink = await response.json();
       if (response.ok) {
-        storeLinkDisplay.innerHTML = ''; // تفريغ العرض قبل الإضافة
+        storeLinkDisplay.innerHTML = '';
         if (storeLink.apiKey) {
           const div = document.createElement('div');
           div.innerHTML = `مفتاح API: ${storeLink.apiKey}`;
-          
-          // إضافة زرار الحذف
           const deleteBtn = document.createElement('button');
           deleteBtn.textContent = 'حذف';
-          deleteBtn.className = 'btn btn-danger btn-sm ms-2'; // استايل زي أزرار الصفحة
+          deleteBtn.className = 'btn btn-danger btn-sm ms-2';
           deleteBtn.onclick = () => deleteStoreLink(storeLink._id);
           div.appendChild(deleteBtn);
-          
           storeLinkDisplay.appendChild(div);
         }
       } else {
@@ -143,7 +134,7 @@ function initRules() {
       const result = await response.json();
       if (response.ok) {
         alert('تم حذف السؤال والإجابة بنجاح!');
-        fetchFaqs(); // إعادة جلب الأسئلة والأجوبة بعد الحذف
+        fetchFaqs();
       } else {
         alert('خطأ في حذف السؤال والإجابة: ' + result.error);
       }
@@ -163,7 +154,7 @@ function initRules() {
       const result = await response.json();
       if (response.ok) {
         alert('تم حذف المنتج بنجاح!');
-        fetchProducts(); // إعادة جلب المنتجات بعد الحذف
+        fetchProducts();
       } else {
         alert('خطأ في حذف المنتج: ' + result.error);
       }
@@ -183,7 +174,7 @@ function initRules() {
       const result = await response.json();
       if (response.ok) {
         alert('تم حذف ربط المتجر بنجاح!');
-        fetchStoreLink(); // إعادة جلب ربط المتجر بعد الحذف
+        fetchStoreLink();
       } else {
         alert('خطأ في حذف ربط المتجر: ' + result.error);
       }
