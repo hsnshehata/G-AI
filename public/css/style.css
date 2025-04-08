@@ -162,3 +162,86 @@ main#main-content {
   font-weight: bold;
   margin-top: 1rem;
 }
+
+/* جدول البوتات */
+.bots-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.bots-table th,
+.bots-table td {
+  padding: 1rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-light);
+}
+
+.bots-table th {
+  background-color: #2b2b2b;
+  color: var(--accent);
+}
+
+.bots-table tr:last-child td {
+  border-bottom: none;
+}
+
+.bots-table button {
+  background-color: var(--accent);
+  border: none;
+  padding: 0.4rem 1rem;
+  color: black;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.bots-table button:hover {
+  background-color: #ffc107;
+}
+
+/* فورم إنشاء بوت */
+.create-bot-form {
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 2rem;
+}
+
+.create-bot-form h3 {
+  margin-top: 0;
+  color: var(--accent);
+}
+
+.create-bot-form input {
+  width: 100%;
+  padding: 0.6rem;
+  margin: 0.5rem 0;
+  background: #2c2c2c;
+  border: 1px solid var(--border-color);
+  color: white;
+  border-radius: 8px;
+}
+
+.create-bot-form button {
+  width: 100%;
+  padding: 0.7rem;
+  margin-top: 1rem;
+  background: var(--accent);
+  color: black;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.create-bot-form button:hover {
+  background: #ffcc00;
+}
