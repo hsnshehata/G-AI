@@ -1,7 +1,7 @@
 export function initRules() {
   const content = document.getElementById('main-content');
   const userRole = localStorage.getItem("role"); // جلب الـ role من localStorage
-  const token = localStorage.getItem("token"); // جلب التوكن من localStorage (هنحتاجه لاحقاً)
+  const token = localStorage.getItem("token"); // جلب التوكن من localStorage
   const botId = localStorage.getItem("currentBotId"); // جلب معرف البوت المختار
 
   // تحديد إذا كان الزر والتبويب بتاع "قواعد عامة" هيظهر ولا لأ
@@ -142,7 +142,7 @@ export function initRules() {
         alert('تم حفظ القاعدة بنجاح!');
       } else {
         console.error('خطأ في حفظ القاعدة:', result);
-        alert('فشل في حفظ القاعدة: ' + (result.message || 'خطأ غير معروف'));
+        alert('فشل في حفظ القاعدة: ' + (result.error || 'خطأ غير معروف'));
       }
     } catch (error) {
       console.error('حدث خطأ أثناء حفظ القاعدة:', error);
