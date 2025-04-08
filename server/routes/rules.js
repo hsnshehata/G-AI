@@ -1,19 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const Rule = require('../models/Rule');
+const { verifyToken } = require('../middleware/auth');
 
 // حفظ قاعدة جديدة
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     const { text, type, botId } = req.body;
+
+    // التحقق من الحقول الأساسية
     if (!text || !type) {
       return res.status(400).json({ error: 'الرجاء إدخال جميع الحقول المطلوبة' });
+    }
+
+    // التحقق من botId عندما يكون النوع bot
+    if (type === 'bot' && !botId) {
+      return res.status(400).json({ error: 'botId مطلوب للقواعد الخاصة بالبوت' });
     }
 
     const rule = new Rule({
       text,
       type,
-      botId: type === 'bot' ? botId : undefined, // botId مطلوب فقط للقواعد الخاصة بالبوت
+      botId: type === 'bot' ? botId : undefined,
     });
 
     await rule.save();
@@ -25,13 +33,13 @@ router.post('/', async (req, res) => {
 });
 
 // جلب القواعد
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
   try {
     const { botId } = req.query;
     const rules = await Rule.find({
       $or: [
-        { type: 'general' }, // جلب القواعد العامة
-        { type: 'bot', botId }, // جلب القواعد الخاصة بالبوت
+        { type: 'general' },
+        { type: 'bot', botId },
       ],
     });
     res.json(rules);
