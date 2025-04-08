@@ -1,25 +1,29 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const loginSection = document.getElementById("loginSection");
-  const dashboardSection = document.getElementById("dashboardSection");
-  const logoutBtn = document.getElementById("logoutBtn");
+  const loginBtn = document.getElementById("login-btn");
+  const logoutBtn = document.getElementById("logout-btn");
+  const loginSection = document.getElementById("login-section");
+  const dashboardSection = document.getElementById("dashboard-section");
   const topTabs = document.querySelector(".top-tabs");
   const bottomNav = document.querySelector(".bottom-nav");
-  const createBotBtn = document.getElementById("createBotBtn");
-  const tabButtons = document.querySelectorAll("[data-tab]");
+  const loginError = document.getElementById("login-error");
 
-  // التحقق من تسجيل الدخول
+  // التحقق من وجود صلاحية محفوظة
   const savedRole = localStorage.getItem("role");
   if (savedRole) {
     loginSection.style.display = "none";
     dashboardSection.style.display = "block";
     handleTab(localStorage.getItem("currentTab") || "bots");
-    toggleCreateBotBtn(savedRole);
   }
 
-  document.getElementById("loginForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const username = document.getElementById("usernameInput").value;
-    const password = document.getElementById("passwordInput").value;
+  // تسجيل الدخول
+  loginBtn?.addEventListener("click", () => {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!username || !password) {
+      loginError.textContent = "من فضلك أدخل البيانات كاملة";
+      return;
+    }
 
     if (username === "hsn" && password === "662015") {
       localStorage.setItem("role", "admin");
@@ -27,54 +31,48 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("role", "user");
     }
 
+    localStorage.setItem("username", username);
+
     loginSection.style.display = "none";
     dashboardSection.style.display = "block";
     handleTab("bots");
-    toggleCreateBotBtn(localStorage.getItem("role"));
   });
 
+  // تسجيل الخروج
   logoutBtn.addEventListener("click", () => {
     localStorage.clear();
     location.reload();
   });
 
+  // إخفاء التبويبات العلوية عند التمرير
   window.addEventListener("scroll", () => {
     const currentScroll = window.pageYOffset;
     topTabs.style.top = currentScroll > 10 ? "-60px" : "0";
   });
 
-  tabButtons.forEach((btn) => {
+  // التبديل بين التبويبات
+  document.querySelectorAll("[data-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const tab = btn.getAttribute("data-tab");
       handleTab(tab);
     });
   });
 
+  // التحكم في عرض التبويبات
   function handleTab(tab) {
-    tabButtons.forEach((btn) => btn.classList.remove("active"));
-    document.querySelectorAll(".tab-section").forEach((el) => {
-      el.style.display = "none";
-    });
-
-    document.getElementById(tab + "Section").style.display = "block";
-    document
-      .querySelectorAll(`[data-tab="${tab}"]`)
-      .forEach((btn) => btn.classList.add("active"));
+    document.querySelectorAll("[data-tab]").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".tab-section").forEach((el) => (el.style.display = "none"));
 
     localStorage.setItem("currentTab", tab);
 
     if (tab === "bots") {
-      initAddBot(); // ستعرض البوتات حسب الدور بداخل addBot.js
+      import("./addBot.js").then((mod) => mod.initAddBot());
     } else if (tab === "rules") {
-      initRules();
-    }
-  }
-
-  function toggleCreateBotBtn(role) {
-    if (role === "admin") {
-      createBotBtn.style.display = "inline-block";
+      import("./rules.js").then((mod) => mod.initRules());
     } else {
-      createBotBtn.style.display = "none";
+      document.getElementById("main-content").innerHTML = `<p class="text">القسم "${tab}" تحت التطوير.</p>`;
     }
+
+    document.querySelectorAll(`[data-tab="${tab}"]`).forEach((b) => b.classList.add("active"));
   }
 });
