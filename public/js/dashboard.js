@@ -76,7 +76,3 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  // إضافة مستمعي الأحداث للأزرار
-::contentReference[oaicite:17]{index=17}
- 
