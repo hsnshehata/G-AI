@@ -28,7 +28,7 @@ export function initRules() {
   async function loadRules() {
     try {
       const res = await fetch(`/rules?botId=${botId}`);
-      const rules = await res.json();
+      const { rules } = await res.json(); // ✅ التعديل هنا
 
       ruleList.innerHTML = '';
 
