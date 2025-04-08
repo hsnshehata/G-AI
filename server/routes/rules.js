@@ -3,19 +3,15 @@ const router = express.Router();
 
 const {
   getRules,
-  createRule,
-  deleteRule,
-  updateRule // لو عندك تعديل قواعد
+  addRule,
+  deleteRule
 } = require('../controllers/rulesController');
 
-// جلب القواعد (الخاصة والعامة)
+// جلب القواعد (العامة + الخاصة)
 router.get('/', getRules);
 
-// إضافة قاعدة جديدة
+// إضافة قاعدة
 router.post('/', addRule);
-
-// تعديل قاعدة موجودة
-router.put('/:id', updateRule);
 
 // حذف قاعدة
 router.delete('/:id', deleteRule);
