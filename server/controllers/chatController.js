@@ -1,74 +1,64 @@
 const Chat = require('../models/Chat');
-const Activity = require('../models/Activity');
+const { loadRulesAndReply } = require('../services/botEngine');
 
-// 📥 عرض الرسائل مع فلترة حسب البوت، المستخدم أو التاريخ
-exports.getChats = async (req, res) => {
+// جلب الرسائل
+const getChats = async (req, res) => {
   try {
-    const { pageId, userId, from, to } = req.query;
+    const { botId, source } = req.query;
+    const filter = {};
+    if (botId) filter.botId = botId;
+    if (source) filter.source = source;
 
-    const query = {};
-    if (req.user.role !== 'superadmin') query.botId = req.user.pageId;
-    else if (pageId) query.botId = pageId;
-    if (userId) query.userId = userId;
-    if (from || to) {
-      query.timestamp = {};
-      if (from) query.timestamp.$gte = new Date(from);
-      if (to) query.timestamp.$lte = new Date(to);
-    }
-
-    const chats = await Chat.find(query).sort({ timestamp: -1 }).limit(200);
+    const chats = await Chat.find(filter).sort({ timestamp: -1 });
     res.json(chats);
   } catch (err) {
-    console.error('❌ Error loading chats:', err.message);
-    res.status(500).json({ error: 'Failed to load chats' });
+    res.status(500).json({ error: 'فشل في جلب المحادثات' });
   }
 };
 
-// 🗑️ حذف رسالة واحدة فقط
-exports.deleteChat = async (req, res) => {
+// حذف رسالة
+const deleteChat = async (req, res) => {
   try {
-    const { chatId } = req.params;
-    const chat = await Chat.findById(chatId);
-    if (!chat) return res.status(404).json({ error: 'Chat not found' });
-
-    // التحقق من الصلاحيات
-    if (req.user.role !== 'superadmin' && chat.botId !== req.user.pageId) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    await Chat.findByIdAndDelete(chatId);
-
-    await Activity.create({
-      user: req.user.username,
-      role: req.user.role,
-      botId: chat.botId,
-      action: 'Deleted Chat Message',
-      details: `Message: ${chat.message}, User: ${chat.userId}`,
-    });
-
+    await Chat.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (err) {
-    console.error('❌ Error deleting chat:', err.message);
-    res.status(500).json({ error: 'Failed to delete chat' });
+    res.status(500).json({ error: 'فشل في حذف الرسالة' });
   }
 };
 
-// ↩️ إرسال الرد مرة تانية يدويًا (مكان ما كنا هنوصله)
-exports.resendChat = async (req, res) => {
+// الرد على رسالة (جديدة)
+const replyToMessage = async (req, res) => {
   try {
-    const { chatId } = req.params;
-    const chat = await Chat.findById(chatId);
-    if (!chat) return res.status(404).json({ error: 'Chat not found' });
+    const { message, botId, userId, source } = req.body;
 
-    if (req.user.role !== 'superadmin' && chat.botId !== req.user.pageId) {
-      return res.status(403).json({ error: 'Unauthorized' });
+    if (!message || !botId || !userId || !source) {
+      return res.status(400).json({ error: 'بيانات ناقصة' });
     }
 
-    // هنا هيتم إرسال الرسالة من جديد، لكن محتاجين ربط مع نظام البوت سواء Facebook, WhatsApp, Web
-    // مؤقتًا نرجّع نفس الرسالة
-    res.json({ success: true, message: `Resend not yet implemented`, chat });
+    // جلب الرد من القواعد
+    const ruleReply = await loadRulesAndReply(message, botId);
+
+    // حفظ الرسالة
+    await Chat.create({
+      userId,
+      botId,
+      message,
+      source,
+      timestamp: new Date(),
+    });
+
+    res.json({
+      reply: ruleReply || null,
+      usedRule: !!ruleReply,
+    });
   } catch (err) {
-    console.error('❌ Error resending chat:', err.message);
-    res.status(500).json({ error: 'Failed to resend chat' });
+    console.error('Error in replyToMessage:', err.message);
+    res.status(500).json({ error: 'فشل في معالجة الرسالة' });
   }
+};
+
+module.exports = {
+  getChats,
+  deleteChat,
+  replyToMessage
 };
