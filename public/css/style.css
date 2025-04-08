@@ -97,13 +97,6 @@ header {
   font-weight: bold;
 }
 
-.bottom-nav img {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  margin-bottom: 4px;
-}
-
 /* المحتوى */
 main#main-content {
   padding: 1rem;
@@ -147,32 +140,6 @@ main#main-content {
 .error-msg {
   color: red;
   font-size: 0.9rem;
-}
-
-/* بطاقات */
-.card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-}
-
-.card h3 {
-  margin-top: 0;
-  color: var(--accent);
-}
-
-.card button {
-  background-color: var(--accent);
-  color: black;
-  border: none;
-  border-radius: 6px;
-  padding: 0.4rem 1rem;
-  cursor: pointer;
-  font-weight: bold;
-  margin-top: 1rem;
 }
 
 /* جدول البوتات */
@@ -277,30 +244,6 @@ main#main-content {
 
 .toggle-form-btn:hover {
   background-color: #ffcc00;
-}
-
-/* تصميم الأزرار (action-button) */
-button.action-button {
-  background-color: #ff9e00;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-button.action-button:hover {
-  background-color: #d77d00;
-}
-
-button.action-button:focus {
-  outline: none;
-}
-
-button.action-button:active {
-  background-color: #b66b00;
 }
 
 /* تحسين مظهر القوائم في تبويب القواعد */
