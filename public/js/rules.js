@@ -9,6 +9,8 @@ export function initRules() {
         <select id="ruleType">
           <option value="bot">خاصة بهذا البوت</option>
           <option value="global">قاعدة عامة (للسوبر أدمن)</option>
+          <option value="faq">س و ج</option>
+          <option value="product">منتجات وأسعار</option>
         </select>
         <button type="submit">إضافة قاعدة</button>
       </form>
@@ -66,7 +68,8 @@ export function initRules() {
       body: JSON.stringify({
         keyword,
         response,
-        pageId: type === 'bot' ? botId : 'global'
+        pageId: type === 'bot' ? botId : 'global',
+        ruleType: type
       })
     });
 
