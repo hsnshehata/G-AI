@@ -34,8 +34,11 @@ const authenticateToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // محاكاة المستخدم لأنك مش بتستخدم قاعدة بيانات حقيقية للمستخدمين
-    req.user = { id: decoded.id, username: decoded.username, role: decoded.role };
+    req.user = {
+      id: decoded.id,
+      username: decoded.username,
+      role: decoded.role || 'user',
+    };
     next();
   } catch (err) {
     console.error('خطأ في التحقق من التوكن:', err.message);
