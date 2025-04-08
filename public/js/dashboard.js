@@ -12,7 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // التحقق من وجود صلاحية محفوظة
   const savedRole = localStorage.getItem("role");
-  if (savedRole) {
+  const savedToken = localStorage.getItem("token");
+  if (savedRole && savedToken) {
     loginSection.style.display = "none";
     dashboardSection.style.display = "block";
     showTab(localStorage.getItem("currentTab") || "bots");
@@ -26,12 +27,18 @@ document.addEventListener("DOMContentLoaded", () => {
       loginError.textContent = "من فضلك أدخل البيانات كاملة";
       return;
     }
+
+    // محاكاة تسجيل الدخول (بدون توكن حقيقي دلوقتي)
+    let role = "user";
+    let token = "fake-jwt-token"; // توكن مؤقت، المفروض يتولد من السيرفر
     if (username === "hsn" && password === "662015") {
-      localStorage.setItem("role", "admin");
-    } else {
-      localStorage.setItem("role", "user");
+      role = "admin";
+      token = "fake-jwt-token-admin";
     }
+
+    localStorage.setItem("role", role);
     localStorage.setItem("username", username);
+    localStorage.setItem("token", token); // تخزين التوكن
     loginSection.style.display = "none";
     dashboardSection.style.display = "block";
     showTab("bots");
