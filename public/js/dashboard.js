@@ -3,8 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logout-btn");
   const loginSection = document.getElementById("login-section");
   const dashboardSection = document.getElementById("dashboard-section");
-  const tabButtons = document.querySelectorAll(".tab-button");
-  const tabContents = document.querySelectorAll(".tab-section");
+  const topTabs = document.querySelector(".top-tabs");
   const loginError = document.getElementById("login-error");
 
   // التحقق من وجود صلاحية محفوظة
@@ -40,7 +39,16 @@ document.addEventListener("DOMContentLoaded", () => {
     location.reload();
   });
 
+  // إخفاء التبويبات العلوية عند التمرير
+  window.addEventListener("scroll", () => {
+    const currentScroll = window.pageYOffset;
+    topTabs.style.top = currentScroll > 10 ? "-60px" : "0";
+  });
+
   // التحكم في عرض التبويبات
+  const tabButtons = document.querySelectorAll("[data-tab]");
+  const tabContents = document.querySelectorAll(".tab-section");
+
   function hideAllTabs() {
     tabContents.forEach(tab => {
       tab.style.display = "none";
@@ -55,17 +63,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     localStorage.setItem("currentTab", tabId);
 
-    // تحميل المحتوى الديناميكي بناءً على التبويب
-    switch (tabId) {
-      case "bots":
-        import("./addBot.js").then((mod) => mod.initAddBot());
-        break;
-      case "rules":
-        import("./rules.js").then((mod) => mod.initRules());
-        break;
-      // أضف حالات أخرى للتبويبات الجديدة هنا
-      default:
-        document.getElementById("main-content").innerHTML = `<p class="text">القسم "${tabId}" تحت التطوير.</p>`;
+    if (tabId === "bots") {
+      import("./addBot.js").then(mod => mod.initAddBot());
+    } else if (tabId === "rules") {
+      import("./rules.js").then(mod => mod.initRules());
+    } else {
+      document.getElementById("main-content").innerHTML = `<p class="text">القسم "${tabId}" تحت التطوير.</p>`;
     }
 
     // تحديث حالة الأزرار
@@ -76,3 +79,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // إضافة مستمعي الأحداث للأزرار
+  tabButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const target = button.getAttribute("data-tab");
+      showTab(target);
+    });
+  });
+
+  // عرض التبويب الأول بشكل افتراضي
+  if (tabButtons.length > 0) {
+    const firstTab = tabButtons[0].getAttribute("data-tab");
+    showTab(firstTab);
+  }
+});
