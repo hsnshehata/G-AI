@@ -1,4 +1,4 @@
-export default function initRules() {
+export function initRules() {
   const content = document.getElementById('main-content');
   content.innerHTML = `
     <section>
@@ -17,16 +17,15 @@ export default function initRules() {
 
   const ruleForm = document.getElementById('rule-form');
   const ruleList = document.getElementById('rulesList');
-  const botId = localStorage.getItem('currentBotId'); // يُحدد البوت النشط
+  const botId = localStorage.getItem('currentBotId');
 
   async function loadRules() {
     const res = await fetch(`/rules?botId=${botId}`);
     const rules = await res.json();
-
     ruleList.innerHTML = '';
     rules.forEach(rule => {
       const li = document.createElement('li');
-      li.textContent = `${rule.type === 'global' ? '🌍' : '🤖'} ${rule.text}`;
+      li.textContent = `${rule.text}`;
       const delBtn = document.createElement('button');
       delBtn.textContent = '🗑️';
       delBtn.onclick = async () => {
