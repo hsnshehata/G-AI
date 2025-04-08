@@ -1,7 +1,8 @@
-export function initAddBot() {
+function initAddBot() {
   const content = document.getElementById("main-content");
   const role = localStorage.getItem("role");
   const username = localStorage.getItem("username");
+  const token = localStorage.getItem("token"); // إضافة الـ token
 
   content.innerHTML = `
     <button id="toggleFormBtn" class="toggle-form-btn">➕ إنشاء بوت جديد</button>
@@ -72,14 +73,22 @@ export function initAddBot() {
 
     const res = await fetch("/bots/create", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // إضافة الـ token
+      },
       body: JSON.stringify(data),
     });
 
-    alert((await res.json()).message || "تم إنشاء البوت!");
-    form.reset();
-    formContainer.style.display = "none";
-    loadBots();
+    const result = await res.json();
+    if (res.ok) {
+      alert(result.message || "تم إنشاء البوت!");
+      form.reset();
+      formContainer.style.display = "none";
+      loadBots();
+    } else {
+      alert(result.error || "خطأ في إنشاء البوت!");
+    }
   });
 
   async function loadBots() {
@@ -87,8 +96,15 @@ export function initAddBot() {
     botsList.innerHTML = `<tr><td colspan="3">⏳ جاري التحميل...</td></tr>`;
 
     try {
-      const res = await fetch("/bots");
+      const res = await fetch("/bots", {
+        headers: {
+          Authorization: `Bearer ${token}`, // إضافة الـ token
+        },
+      });
       const bots = await res.json();
+      if (!res.ok) {
+        throw new Error(bots.error || "خطأ في جلب البوتات");
+      }
       const filtered = role === "admin" ? bots : bots.filter(b => b.username === username);
       botsList.innerHTML = "";
 
@@ -117,14 +133,23 @@ export function initAddBot() {
       document.querySelectorAll(".edit-btn").forEach((btn) => {
         btn.addEventListener("click", async () => {
           const id = btn.dataset.id;
-          const res = await fetch(`/bots/${id}`);
+          const res = await fetch(`/bots/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`, // إضافة الـ token
+            },
+          });
           const bot = await res.json();
-          openEditForm(bot);
+          if (res.ok) {
+            openEditForm(bot);
+          } else {
+            alert(bot.error || "خطأ في جلب بيانات البوت");
+          }
         });
       });
 
     } catch (err) {
       botsList.innerHTML = `<tr><td colspan="3">❌ خطأ في تحميل البوتات</td></tr>`;
+      console.error("خطأ في تحميل البوتات:", err);
     }
   }
 
@@ -156,13 +181,21 @@ export function initAddBot() {
 
       const res = await fetch(`/bots/${bot._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // إضافة الـ token
+        },
         body: JSON.stringify(updated),
       });
 
-      alert((await res.json()).message || "تم التحديث!");
-      document.getElementById("editBotForm").style.display = "none";
-      loadBots();
+      const result = await res.json();
+      if (res.ok) {
+        alert(result.message || "تم التحديث!");
+        document.getElementById("editBotForm").style.display = "none";
+        loadBots();
+      } else {
+        alert(result.error || "خطأ في تحديث البوت!");
+      }
     };
   }
 
