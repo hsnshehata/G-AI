@@ -41,4 +41,19 @@ const updateBot = async (req, res) => {
   }
 };
 
-module.exports = { createBot, listBots, updateBot };
+const getBotById = async (req, res) => {
+  try {
+    const bot = await Bot.findById(req.params.id);
+    if (!bot) return res.status(404).json({ message: 'البوت غير موجود' });
+    res.json(bot);
+  } catch (err) {
+    res.status(500).json({ message: 'فشل في جلب البوت' });
+  }
+};
+
+module.exports = {
+  createBot,
+  listBots,
+  updateBot,
+  getBotById
+};
