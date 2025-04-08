@@ -3,79 +3,134 @@ export function initRules() {
   content.innerHTML = `
     <section>
       <h2>إدارة القواعد</h2>
-      <form id="rule-form">
-        <input type="text" id="ruleKeyword" placeholder="كلمة مفتاحية" required />
-        <input type="text" id="ruleResponse" placeholder="الرد التلقائي" required />
-        <select id="ruleType">
-          <option value="bot">خاصة بهذا البوت</option>
-          <option value="global">قاعدة عامة (للسوبر أدمن)</option>
-          <option value="faq">س و ج</option>
-          <option value="product">منتجات وأسعار</option>
-        </select>
-        <button type="submit">إضافة قاعدة</button>
-      </form>
-      <ul id="rulesList"></ul>
+      <button id="generalRulesBtn">قواعد عامة (للسوبر أدمن)</button>
+      <button id="botSpecificRulesBtn">قواعد خاصة بهذا البوت</button>
+      <button id="faqRulesBtn">أسئلة وأجوبة</button>
+      <button id="productRulesBtn">منتجات وأسعار</button>
+      <button id="storeLinkBtn">ربط المتجر</button>
+      
+      <div id="generalRulesTab" style="display:none;">
+        <h3>قواعد عامة</h3>
+        <textarea id="generalRulesText" placeholder="أدخل القواعد العامة هنا..." rows="4" required></textarea>
+        <button id="saveGeneralRulesBtn">حفظ القواعد العامة</button>
+      </div>
+
+      <div id="botSpecificRulesTab" style="display:none;">
+        <h3>قواعد خاصة بالبوت</h3>
+        <textarea id="botSpecificRulesText" placeholder="أدخل القواعد الخاصة بالبوت هنا..." rows="4" required></textarea>
+        <button id="saveBotSpecificRulesBtn">حفظ القواعد الخاصة بالبوت</button>
+      </div>
+
+      <div id="faqRulesTab" style="display:none;">
+        <h3>أسئلة وأجوبة</h3>
+        <textarea id="faqRulesText" placeholder="أدخل الأسئلة والأجوبة هنا..." rows="4" required></textarea>
+        <button id="saveFaqRulesBtn">حفظ الأسئلة والأجوبة</button>
+      </div>
+
+      <div id="productRulesTab" style="display:none;">
+        <h3>منتجات وأسعار</h3>
+        <input type="text" id="productName" placeholder="اسم المنتج" required />
+        <input type="number" id="productPrice" placeholder="السعر" required />
+        <button id="saveProductBtn">حفظ المنتج والسعر</button>
+      </div>
+
+      <div id="storeLinkTab" style="display:none;">
+        <h3>ربط المتجر</h3>
+        <input type="text" id="storeApiKey" placeholder="مفتاح API للمتجر" required />
+        <button id="saveStoreLinkBtn">حفظ ربط المتجر</button>
+      </div>
     </section>
   `;
 
-  const ruleForm = document.getElementById('rule-form');
-  const ruleList = document.getElementById('rulesList');
-  const botId = localStorage.getItem('currentBotId');
+  // أزرار التبديل بين التبويبات
+  document.getElementById("generalRulesBtn").addEventListener("click", () => toggleTab('generalRules'));
+  document.getElementById("botSpecificRulesBtn").addEventListener("click", () => toggleTab('botSpecificRules'));
+  document.getElementById("faqRulesBtn").addEventListener("click", () => toggleTab('faqRules'));
+  document.getElementById("productRulesBtn").addEventListener("click", () => toggleTab('productRules'));
+  document.getElementById("storeLinkBtn").addEventListener("click", () => toggleTab('storeLink'));
 
-  if (!botId) {
-    content.innerHTML = '<p class="text">❗ من فضلك اختر بوت أولاً من قسم "بوتاتي".</p>';
-    return;
+  // دالة لتبديل التبويبات
+  function toggleTab(tabName) {
+    const tabs = ['generalRules', 'botSpecificRules', 'faqRules', 'productRules', 'storeLink'];
+    tabs.forEach(tab => {
+      const tabElement = document.getElementById(tab + 'Tab');
+      tabElement.style.display = tab === tabName ? 'block' : 'none';
+    });
   }
 
-  async function loadRules() {
+  // حفظ القواعد العامة
+  document.getElementById("saveGeneralRulesBtn").addEventListener("click", async () => {
+    const text = document.getElementById('generalRulesText').value;
+    await saveRule(text, 'general');
+  });
+
+  // حفظ القواعد الخاصة بالبوت
+  document.getElementById("saveBotSpecificRulesBtn").addEventListener("click", async () => {
+    const text = document.getElementById('botSpecificRulesText').value;
+    await saveRule(text, 'bot');
+  });
+
+  // حفظ الأسئلة والأجوبة
+  document.getElementById("saveFaqRulesBtn").addEventListener("click", async () => {
+    const text = document.getElementById('faqRulesText').value;
+    await saveRule(text, 'faq');
+  });
+
+  // حفظ المنتجات والأسعار
+  document.getElementById("saveProductBtn").addEventListener("click", async () => {
+    const name = document.getElementById('productName').value;
+    const price = document.getElementById('productPrice').value;
+    await saveProduct(name, price);
+  });
+
+  // ربط المتجر
+  document.getElementById("saveStoreLinkBtn").addEventListener("click", async () => {
+    const apiKey = document.getElementById('storeApiKey').value;
+    await linkStore(apiKey);
+  });
+
+  // دالة لحفظ القاعدة
+  async function saveRule(text, type) {
     try {
-      const res = await fetch(`/rules?botId=${botId}`);
-      const { rules } = await res.json();
-      ruleList.innerHTML = '';
-
-      if (!Array.isArray(rules)) {
-        ruleList.innerHTML = '<li>⚠️ لم يتم تحميل القواعد بشكل صحيح.</li>';
-        return;
-      }
-
-      rules.forEach(rule => {
-        const li = document.createElement('li');
-        li.textContent = `${rule.keyword} → ${rule.response}`;
-        const delBtn = document.createElement('button');
-        delBtn.textContent = '🗑️';
-        delBtn.onclick = async () => {
-          await fetch(`/rules/${rule._id}`, { method: 'DELETE' });
-          loadRules();
-        };
-        li.appendChild(delBtn);
-        ruleList.appendChild(li);
+      const response = await fetch('/rules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, type }),
       });
-    } catch (err) {
-      ruleList.innerHTML = '<li>⚠️ حدث خطأ أثناء تحميل القواعد.</li>';
-      console.error(err);
+      const result = await response.json();
+      console.log('قاعدة تم حفظها:', result);
+    } catch (error) {
+      console.error('حدث خطأ أثناء حفظ القاعدة:', error);
     }
   }
 
-  ruleForm.onsubmit = async (e) => {
-    e.preventDefault();
-    const keyword = document.getElementById('ruleKeyword').value;
-    const response = document.getElementById('ruleResponse').value;
-    const type = document.getElementById('ruleType').value;
+  // دالة لحفظ المنتجات
+  async function saveProduct(name, price) {
+    try {
+      const response = await fetch('/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, price }),
+      });
+      const result = await response.json();
+      console.log('منتج تم حفظه:', result);
+    } catch (error) {
+      console.error('حدث خطأ أثناء حفظ المنتج:', error);
+    }
+  }
 
-    await fetch('/rules', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        keyword,
-        response,
-        pageId: type === 'bot' ? botId : 'global',
-        ruleType: type
-      })
-    });
-
-    ruleForm.reset();
-    loadRules();
-  };
-
-  loadRules();
+  // دالة لربط المتجر
+  async function linkStore(apiKey) {
+    try {
+      const response = await fetch('/store-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey }),
+      });
+      const result = await response.json();
+      console.log('تم ربط المتجر:', result);
+    } catch (error) {
+      console.error('حدث خطأ أثناء ربط المتجر:', error);
+    }
+  }
 }
