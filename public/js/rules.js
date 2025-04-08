@@ -112,7 +112,7 @@ function initRules() {
       const storeLink = await response.json();
       if (response.ok) {
         storeLinkDisplay.innerHTML = ''; // تفريغ العرض قبل الإضافة
-        if (storeLink) {
+        if (storeLink.apiKey) {
           const div = document.createElement('div');
           div.innerHTML = `مفتاح API: ${storeLink.apiKey}`;
           
@@ -209,11 +209,7 @@ function initRules() {
       const result = await response.json();
       if (response.ok) {
         alert('تم حفظ القواعد بنجاح!');
-        // إعادة جلب البيانات بعد حفظ القواعد
         fetchRules();
-        fetchFaqs();
-        fetchProducts();
-        fetchStoreLink();
       } else {
         alert('خطأ في حفظ القواعد: ' + result.error);
       }
@@ -286,4 +282,31 @@ function initRules() {
     e.preventDefault();
     const apiKey = storeLinkInput.value;
     try {
-      const response = await fetch(`/store-link
+      const response = await fetch(`/store-link?botId=${botId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ apiKey }),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        alert('تم حفظ ربط المتجر بنجاح!');
+        storeLinkInput.value = '';
+        fetchStoreLink();
+      } else {
+        alert('خطأ في حفظ ربط المتجر: ' + result.error);
+      }
+    } catch (err) {
+      console.error('خطأ في حفظ ربط المتجر:', err);
+      alert('خطأ في السيرفر');
+    }
+  });
+
+  // جلب البيانات عند التحميل
+  fetchRules();
+  fetchFaqs();
+  fetchProducts();
+  fetchStoreLink();
+}
