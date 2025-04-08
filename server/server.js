@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path'); // إضافة path للتعامل مع المسارات
 const connectDB = require('./config/db');
 const Config = require('./models/Config');
 const OpenAI = require('openai');
@@ -78,6 +79,11 @@ const authenticateToken = async (req, res, next) => {
   app.use('/products', authenticateToken, productRoutes);  // المنتجات
   app.use('/store-link', authenticateToken, storeLinkRoutes); // ربط المتجر
   app.use('/ai', aiRoutes); // إضافة مسارات الذكاء الاصطناعي
+
+  // إرجاع index.html لأي طلب مش لـ API
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
 
   // تشغيل السيرفر
   app.listen(PORT, () => {
