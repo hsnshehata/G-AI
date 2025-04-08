@@ -5,10 +5,10 @@ function initRules() {
     return;
   }
 
-  const botId = new URLSearchParams(window.location.search).get('botId');
+  const botId = localStorage.getItem('currentBotId'); // جلب botId من localStorage
   if (!botId) {
-    alert('Bot ID is missing');
-    window.location.href = '/dashboard.html';
+    alert('Bot ID is missing. Please select a bot first.');
+    window.location.href = '/'; // Redirect للصفحة الرئيسية بدل /dashboard.html
     return;
   }
 
@@ -314,3 +314,6 @@ function initRules() {
   fetchProducts();
   fetchStoreLink();
 }
+
+  }
+});
