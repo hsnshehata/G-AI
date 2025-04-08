@@ -14,6 +14,7 @@ console.log('  createBot:', typeof createBot);
 console.log('  listBots:', typeof listBots);
 console.log('  updateBot:', typeof updateBot);
 console.log('  getBotById:', typeof getBotById);
+console.log('🛡️ verifyToken:', typeof verifyToken);
 
 // إنشاء بوت جديد
 router.post('/create', verifyToken, createBot);
