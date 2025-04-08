@@ -19,20 +19,16 @@ document.addEventListener("DOMContentLoaded", () => {
   loginBtn?.addEventListener("click", () => {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
-
     if (!username || !password) {
       loginError.textContent = "من فضلك أدخل البيانات كاملة";
       return;
     }
-
     if (username === "hsn" && password === "662015") {
       localStorage.setItem("role", "admin");
     } else {
       localStorage.setItem("role", "user");
     }
-
     localStorage.setItem("username", username);
-
     loginSection.style.display = "none";
     dashboardSection.style.display = "block";
     handleTab("bots");
@@ -62,7 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleTab(tab) {
     document.querySelectorAll("[data-tab]").forEach((b) => b.classList.remove("active"));
     document.querySelectorAll(".tab-section").forEach((el) => (el.style.display = "none"));
-
     localStorage.setItem("currentTab", tab);
 
     if (tab === "bots") {
