@@ -1,4 +1,4 @@
-export default function initRules() {
+export function initRules() {
   const content = document.getElementById('main-content');
   content.innerHTML = `
     <section>
