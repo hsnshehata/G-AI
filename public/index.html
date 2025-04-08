@@ -41,7 +41,9 @@
 
     <!-- محتوى التبويبات -->
     <main id="main-content">
-      <div id="bots" class="tab-section">محتوى البوتات</div>
+      <div id="bots" class="tab-section" style="display: none;">
+        <!-- محتوى البوتات هيتحط هنا ديناميكيًا بواسطة addBot.js -->
+      </div>
       <div id="rules" class="tab-section" style="display: none;">
         <h2>القواعد</h2>
         <form id="rules-form">
@@ -72,9 +74,15 @@
         </form>
         <div id="store-link-display"></div>
       </div>
-      <div id="faq" class="tab-section">محتوى س و ج</div>
-      <div id="products" class="tab-section">محتوى المنتجات والأسعار</div>
-      <div id="store" class="tab-section">محتوى ربط المتجر</div>
+      <div id="faq" class="tab-section" style="display: none;">
+        <p class="text">القسم "س و ج" تحت التطوير.</p>
+      </div>
+      <div id="products" class="tab-section" style="display: none;">
+        <p class="text">القسم "المنتجات والأسعار" تحت التطوير.</p>
+      </div>
+      <div id="store" class="tab-section" style="display: none;">
+        <p class="text">القسم "ربط المتجر" تحت التطوير.</p>
+      </div>
     </main>
 
     <!-- التنقل السفلي -->
