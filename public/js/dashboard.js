@@ -59,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           try {
-            // إرسال طلب تسجيل الدخول للسيرفر
             const response = await fetch('/auth/login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -72,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
               return;
             }
 
-            // تخزين البيانات في localStorage
             localStorage.setItem("role", result.role);
             localStorage.setItem("username", result.username);
             localStorage.setItem("token", result.token);
