@@ -2,7 +2,7 @@ function initAddBot() {
   const content = document.getElementById("main-content");
   const role = localStorage.getItem("role");
   const username = localStorage.getItem("username");
-  const token = localStorage.getItem("token"); // إضافة الـ token
+  const token = localStorage.getItem("token");
 
   content.innerHTML = `
     <button id="toggleFormBtn" class="toggle-form-btn">➕ إنشاء بوت جديد</button>
@@ -75,7 +75,7 @@ function initAddBot() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // إضافة الـ token
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
@@ -98,7 +98,7 @@ function initAddBot() {
     try {
       const res = await fetch("/bots", {
         headers: {
-          Authorization: `Bearer ${token}`, // إضافة الـ token
+          Authorization: `Bearer ${token}`,
         },
       });
       const bots = await res.json();
@@ -129,13 +129,12 @@ function initAddBot() {
         }
       });
 
-      // تفعيل أزرار التعديل
       document.querySelectorAll(".edit-btn").forEach((btn) => {
         btn.addEventListener("click", async () => {
           const id = btn.dataset.id;
           const res = await fetch(`/bots/${id}`, {
             headers: {
-              Authorization: `Bearer ${token}`, // إضافة الـ token
+              Authorization: `Bearer ${token}`,
             },
           });
           const bot = await res.json();
@@ -183,7 +182,7 @@ function initAddBot() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // إضافة الـ token
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(updated),
       });
