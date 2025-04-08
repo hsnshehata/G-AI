@@ -24,10 +24,24 @@ const createBot = async (req, res) => {
 
     await bot.save();
     res.status(201).json({ message: 'تم إنشاء البوت بنجاح', bot });
+
   } catch (error) {
     console.error('خطأ أثناء إنشاء البوت:', error);
     res.status(500).json({ message: 'حدث خطأ في السيرفر' });
   }
 };
 
-module.exports = { createBot };
+const listBots = async (req, res) => {
+  try {
+    const bots = await Bot.find().sort({ createdAt: -1 }); // أحدث البوتات أولاً
+    res.json(bots);
+  } catch (error) {
+    console.error('خطأ أثناء جلب البوتات:', error);
+    res.status(500).json({ message: 'فشل في تحميل البوتات' });
+  }
+};
+
+module.exports = {
+  createBot,
+  listBots
+};
