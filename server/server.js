@@ -21,6 +21,7 @@ const rulesRoutes = require('./routes/rules');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.use('/webhook', require('./routes/facebook'));
 
 // Middleware
 app.use(express.json());
