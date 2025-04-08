@@ -1,4 +1,4 @@
-export function initRules() {
+export default function initRules() {
   const content = document.getElementById('main-content');
   content.innerHTML = `
     <section>
@@ -28,8 +28,7 @@ export function initRules() {
   async function loadRules() {
     try {
       const res = await fetch(`/rules?botId=${botId}`);
-      const { rules } = await res.json(); // ✅ التعديل هنا
-
+      const { rules } = await res.json();
       ruleList.innerHTML = '';
 
       if (!Array.isArray(rules)) {
@@ -57,11 +56,9 @@ export function initRules() {
 
   ruleForm.onsubmit = async (e) => {
     e.preventDefault();
-    const keyword = document.getElementById('ruleKeyword').value.trim();
-    const response = document.getElementById('ruleResponse').value.trim();
+    const keyword = document.getElementById('ruleKeyword').value;
+    const response = document.getElementById('ruleResponse').value;
     const type = document.getElementById('ruleType').value;
-
-    if (!keyword || !response) return alert('❗ من فضلك املأ جميع الحقول');
 
     await fetch('/rules', {
       method: 'POST',
