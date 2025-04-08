@@ -250,3 +250,27 @@ main#main-content {
   background-color: #1f3d1f !important;
   font-weight: bold;
 }
+
+/* تصميم الأزرار (action-button) */
+button.action-button {
+  background-color: #ff9e00; /* لون الخلفية */
+  color: white; /* لون النص */
+  padding: 10px 20px; /* حواف الأزرار */
+  border: none; /* إزالة الإطار */
+  border-radius: 5px; /* تدوير الحواف */
+  cursor: pointer; /* تغيير المؤشر عند التمرير */
+  font-size: 14px; /* حجم الخط */
+  transition: background-color 0.3s; /* تأثير التغيير على اللون */
+}
+
+button.action-button:hover {
+  background-color: #d77d00; /* لون الخلفية عند التمرير */
+}
+
+button.action-button:focus {
+  outline: none; /* إزالة الحدود عند التحديد */
+}
+
+button.action-button:active {
+  background-color: #b66b00; /* لون الخلفية عند الضغط */
+}
