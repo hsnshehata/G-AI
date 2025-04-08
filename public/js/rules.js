@@ -1,44 +1,46 @@
 export function initRules() {
   const content = document.getElementById('main-content');
   content.innerHTML = `
-    <section>
+    <section class="card">
       <h2>إدارة القواعد</h2>
-      <button id="generalRulesBtn">قواعد عامة (للسوبر أدمن)</button>
-      <button id="botSpecificRulesBtn">قواعد خاصة بهذا البوت</button>
-      <button id="faqRulesBtn">أسئلة وأجوبة</button>
-      <button id="productRulesBtn">منتجات وأسعار</button>
-      <button id="storeLinkBtn">ربط المتجر</button>
+      <div class="top-tabs">
+        <button class="tab-button" id="generalRulesBtn">قواعد عامة (للسوبر أدمن)</button>
+        <button class="tab-button" id="botSpecificRulesBtn">قواعد خاصة بهذا البوت</button>
+        <button class="tab-button" id="faqRulesBtn">أسئلة وأجوبة</button>
+        <button class="tab-button" id="productRulesBtn">منتجات وأسعار</button>
+        <button class="tab-button" id="storeLinkBtn">ربط المتجر</button>
+      </div>
       
-      <div id="generalRulesTab" style="display:none;">
+      <div id="generalRulesTab" class="tab-section" style="display:none;">
         <h3>قواعد عامة</h3>
-        <textarea id="generalRulesText" placeholder="أدخل القواعد العامة هنا..." rows="4" required></textarea>
-        <button id="saveGeneralRulesBtn">حفظ القواعد العامة</button>
+        <textarea id="generalRulesText" class="create-bot-form input" placeholder="أدخل القواعد العامة هنا..." rows="4" required></textarea>
+        <button id="saveGeneralRulesBtn" class="action-button">حفظ القواعد العامة</button>
       </div>
 
-      <div id="botSpecificRulesTab" style="display:none;">
+      <div id="botSpecificRulesTab" class="tab-section" style="display:none;">
         <h3>قواعد خاصة بالبوت</h3>
-        <textarea id="botSpecificRulesText" placeholder="أدخل القواعد الخاصة بالبوت هنا..." rows="4" required></textarea>
-        <button id="saveBotSpecificRulesBtn">حفظ القواعد الخاصة بالبوت</button>
+        <textarea id="botSpecificRulesText" class="create-bot-form input" placeholder="أدخل القواعد الخاصة بالبوت هنا..." rows="4" required></textarea>
+        <button id="saveBotSpecificRulesBtn" class="action-button">حفظ القواعد الخاصة بالبوت</button>
       </div>
 
-      <div id="faqRulesTab" style="display:none;">
+      <div id="faqRulesTab" class="tab-section" style="display:none;">
         <h3>أسئلة وأجوبة</h3>
-        <input type="text" id="faqQuestion" placeholder="أدخل السؤال هنا..." required />
-        <input type="text" id="faqAnswer" placeholder="أدخل الإجابة هنا..." required />
-        <button id="saveFaqRulesBtn">حفظ الأسئلة والأجوبة</button>
+        <input type="text" id="faqQuestion" class="create-bot-form input" placeholder="أدخل السؤال هنا..." required />
+        <input type="text" id="faqAnswer" class="create-bot-form input" placeholder="أدخل الإجابة هنا..." required />
+        <button id="saveFaqRulesBtn" class="action-button">حفظ الأسئلة والأجوبة</button>
       </div>
 
-      <div id="productRulesTab" style="display:none;">
+      <div id="productRulesTab" class="tab-section" style="display:none;">
         <h3>منتجات وأسعار</h3>
-        <input type="text" id="productName" placeholder="اسم المنتج" required />
-        <input type="number" id="productPrice" placeholder="السعر" required />
-        <button id="saveProductBtn">حفظ المنتج والسعر</button>
+        <input type="text" id="productName" class="create-bot-form input" placeholder="اسم المنتج" required />
+        <input type="number" id="productPrice" class="create-bot-form input" placeholder="السعر" required />
+        <button id="saveProductBtn" class="action-button">حفظ المنتج والسعر</button>
       </div>
 
-      <div id="storeLinkTab" style="display:none;">
+      <div id="storeLinkTab" class="tab-section" style="display:none;">
         <h3>ربط المتجر</h3>
-        <input type="text" id="storeApiKey" placeholder="مفتاح API للمتجر" required />
-        <button id="saveStoreLinkBtn">حفظ ربط المتجر</button>
+        <input type="text" id="storeApiKey" class="create-bot-form input" placeholder="مفتاح API للمتجر" required />
+        <button id="saveStoreLinkBtn" class="action-button">حفظ ربط المتجر</button>
       </div>
     </section>
   `;
@@ -56,6 +58,15 @@ export function initRules() {
     tabs.forEach(tab => {
       const tabElement = document.getElementById(tab + 'Tab');
       tabElement.style.display = tab === tabName ? 'block' : 'none';
+    });
+
+    // تحديث حالة الأزرار
+    const tabButtons = document.querySelectorAll(".tab-button");
+    tabButtons.forEach(button => {
+      button.classList.remove("active");
+      if (button.id === `${tabName}Btn`) {
+        button.classList.add("active");
+      }
     });
   }
 
@@ -150,4 +161,7 @@ export function initRules() {
       console.error('حدث خطأ أثناء ربط المتجر:', error);
     }
   }
+
+  // تعيين التبويب الافتراضي عند التحميل
+  toggleTab('generalRules');
 }
