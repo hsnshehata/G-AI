@@ -27,3 +27,18 @@ exports.getFaqs = async (req, res) => {
     res.status(500).json({ error: 'خطأ في السيرفر' });
   }
 };
+
+// حذف سؤال وإجابة
+exports.deleteFaq = async (req, res) => {
+  try {
+    const faqId = req.params.id;
+    const faq = await Faq.findByIdAndDelete(faqId);
+    if (!faq) {
+      return res.status(404).json({ error: 'لم يتم العثور على السؤال والإجابة' });
+    }
+    res.json({ message: 'تم الحذف بنجاح' });
+  } catch (err) {
+    console.error('خطأ في حذف السؤال والإجابة:', err);
+    res.status(500).json({ error: 'خطأ في السيرفر' });
+  }
+};
