@@ -4,7 +4,8 @@ export function initRules() {
     <section>
       <h2>إدارة القواعد</h2>
       <form id="rule-form">
-        <input type="text" id="ruleText" placeholder="نص القاعدة" required />
+        <input type="text" id="ruleKeyword" placeholder="كلمة مفتاحية" required />
+        <input type="text" id="ruleResponse" placeholder="الرد التلقائي" required />
         <select id="ruleType">
           <option value="bot">خاصة بهذا البوت</option>
           <option value="global">قاعدة عامة (للسوبر أدمن)</option>
@@ -38,7 +39,7 @@ export function initRules() {
 
       rules.forEach(rule => {
         const li = document.createElement('li');
-        li.textContent = rule.text;
+        li.textContent = `${rule.keyword} → ${rule.response}`;
         const delBtn = document.createElement('button');
         delBtn.textContent = '🗑️';
         delBtn.onclick = async () => {
@@ -56,16 +57,19 @@ export function initRules() {
 
   ruleForm.onsubmit = async (e) => {
     e.preventDefault();
-    const text = document.getElementById('ruleText').value;
+    const keyword = document.getElementById('ruleKeyword').value.trim();
+    const response = document.getElementById('ruleResponse').value.trim();
     const type = document.getElementById('ruleType').value;
+
+    if (!keyword || !response) return alert('❗ من فضلك املأ جميع الحقول');
 
     await fetch('/rules', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        text,
-        type,
-        botId: type === 'bot' ? botId : undefined
+        keyword,
+        response,
+        pageId: type === 'bot' ? botId : 'global'
       })
     });
 
