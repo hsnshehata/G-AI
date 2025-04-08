@@ -33,11 +33,12 @@ const authenticateToken = async (req, res, next) => {
   if (!token) return res.status(401).json({ error: 'No token provided' });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-    req.user = await User.findById(decoded.id);
-    if (!req.user) return res.status(404).json({ error: 'User not found' });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // محاكاة المستخدم لأنك مش بتستخدم قاعدة بيانات حقيقية للمستخدمين
+    req.user = { id: decoded.id, username: decoded.username, role: decoded.role };
     next();
   } catch (err) {
+    console.error('خطأ في التحقق من التوكن:', err.message);
     res.status(403).json({ error: 'Invalid token' });
   }
 };
