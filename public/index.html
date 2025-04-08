@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>لوحة التحكم</title>
-  <!-- إضافة Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/style.css" />
-  <!-- إضافة favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 <body>
@@ -23,14 +21,14 @@
     </div>
   </section>
 
-  <!-- لوحة التحكم بعد تسجيل الدخول -->
+  <!-- لوحة التحكم -->
   <section id="dashboard-section" style="display: none;">
     <header>
       <h1>لوحة التحكم</h1>
       <button id="logout-btn">تسجيل الخروج</button>
     </header>
 
-    <!-- التبويبات العلوية -->
+    <!-- التبويبات -->
     <nav class="top-tabs">
       <button class="tab-button" data-tab="bots">البوتات</button>
       <button class="tab-button" data-tab="rules">القواعد</button>
@@ -39,19 +37,22 @@
       <button class="tab-button" data-tab="store">ربط المتجر</button>
     </nav>
 
-    <!-- محتوى التبويبات -->
     <main id="main-content">
-      <div id="bots" class="tab-section" style="display: none;">
-        <!-- محتوى البوتات هيتحط هنا ديناميكيًا بواسطة addBot.js -->
-      </div>
-      <div id="rules" class="tab-section" style="display: none;">
+      <!-- تبويب البوتات -->
+      <section id="bots" class="tab-section" style="display: none;">
+        <h2>البوتات</h2>
+        <div id="bots-container"></div>
+      </section>
+
+      <!-- تبويب القواعد -->
+      <section id="rules" class="tab-section" style="display: none;">
         <h2>القواعد</h2>
         <form id="rules-form">
           <textarea id="rules-input" placeholder="أدخل القواعد هنا"></textarea>
           <button type="submit" class="btn btn-primary">حفظ القواعد</button>
         </form>
 
-        <h2>الأسئلة والأجوبة</h2>
+        <h3>الأسئلة والأجوبة</h3>
         <form id="faq-form">
           <input type="text" id="faq-question" placeholder="السؤال" required />
           <input type="text" id="faq-answer" placeholder="الإجابة" required />
@@ -59,7 +60,7 @@
         </form>
         <ul id="faq-list"></ul>
 
-        <h2>المنتجات والأسعار</h2>
+        <h3>المنتجات والأسعار</h3>
         <form id="product-form">
           <input type="text" id="product-name" placeholder="اسم المنتج" required />
           <input type="number" id="product-price" placeholder="السعر" required />
@@ -67,35 +68,41 @@
         </form>
         <ul id="product-list"></ul>
 
-        <h2>ربط المتجر</h2>
+        <h3>ربط المتجر</h3>
         <form id="store-link-form">
           <input type="text" id="store-link-input" placeholder="مفتاح API للمتجر" required />
           <button type="submit" class="btn btn-primary">ربط المتجر</button>
         </form>
         <div id="store-link-display"></div>
-      </div>
-      <div id="faq" class="tab-section" style="display: none;">
-        <p class="text">القسم "س و ج" تحت التطوير.</p>
-      </div>
-      <div id="products" class="tab-section" style="display: none;">
-        <p class="text">القسم "المنتجات والأسعار" تحت التطوير.</p>
-      </div>
-      <div id="store" class="tab-section" style="display: none;">
-        <p class="text">القسم "ربط المتجر" تحت التطوير.</p>
-      </div>
+      </section>
+
+      <!-- تبويبات إضافية -->
+      <section id="faq" class="tab-section" style="display: none;">
+        <h2>س و ج</h2>
+        <p class="text">القسم تحت التطوير.</p>
+      </section>
+
+      <section id="products" class="tab-section" style="display: none;">
+        <h2>المنتجات والأسعار</h2>
+        <p class="text">القسم تحت التطوير.</p>
+      </section>
+
+      <section id="store" class="tab-section" style="display: none;">
+        <h2>ربط المتجر</h2>
+        <p class="text">القسم تحت التطوير.</p>
+      </section>
     </main>
 
-    <!-- التنقل السفلي -->
+    <!-- التبويبات السفلية -->
     <footer class="bottom-nav">
       <button class="tab-button" data-tab="bots">بوتاتي</button>
       <button class="tab-button" data-tab="rules">القواعد</button>
       <button class="tab-button" data-tab="faq">س و ج</button>
-      <button class="tab-button" data-tab="products">المنتجات والأسعار</button>
-      <button class="tab-button" data-tab="store">ربط المتجر</button>
+      <button class="tab-button" data-tab="products">المنتجات</button>
+      <button class="tab-button" data-tab="store">المتجر</button>
     </footer>
   </section>
 
-  <!-- تحميل dashboard.js -->
   <script src="js/dashboard.js"></script>
 </body>
 </html>
