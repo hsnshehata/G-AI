@@ -7,6 +7,7 @@ const User = require('./models/User');
 const Chat = require('./models/Chat');
 const { initializeWhatsAppClient } = require('./services/whatsapp');
 const aiRoutes = require('./routes/ai');
+const bcrypt = require('bcryptjs'); // إضافة bcrypt لتشفير الباسورد
 
 // مسارات المشروع
 const botRoutes = require('./routes/bots');
@@ -50,6 +51,34 @@ const authenticateToken = async (req, res, next) => {
 (async () => {
   // الاتصال بقاعدة البيانات
   await connectDB();
+
+  // إنشاء المستخدم "gharam" تلقائياً (مرة واحدة فقط)
+  try {
+    const username = 'gharam';
+    const password = '662015';
+    const role = 'admin';
+
+    // التحقق إذا كان المستخدم موجود بالفعل
+    const existingUser = await User.findOne({ username });
+    if (!existingUser) {
+      // تشفير كلمة المرور
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // إنشاء المستخدم
+      const user = new User({
+        username,
+        password: hashedPassword,
+        role,
+      });
+
+      await user.save();
+      console.log('تم إنشاء المستخدم بنجاح:', user);
+    } else {
+      console.log('المستخدم موجود بالفعل:', existingUser);
+    }
+  } catch (err) {
+    console.error('خطأ في إنشاء المستخدم:', err);
+  }
 
   // تحميل إعدادات Config إلى process.env
   const configs = await Config.find();
