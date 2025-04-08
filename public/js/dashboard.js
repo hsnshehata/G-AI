@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // تهيئة التبويبات
-  mod.initializeTabs();  const loginBtn = document.getElementById("login-btn");
+  mod.initializeTabs();
+  const loginBtn = document.getElementById("login-btn");
   const logoutBtn = document.getElementById("logout-btn");
   const loginSection = document.getElementById("login-section");
   const dashboardSection = document.getElementById("dashboard-section");
@@ -81,6 +82,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // دالة لتحميل ملف JavaScript ديناميكيًا
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
   // دالة لعرض تبويب معين
   function showTab(tabId) {
     hideAllTabs();
@@ -91,9 +103,25 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem("currentTab", tabId);
 
     if (tabId === "bots") {
-      import("./addBot.js").then(mod => mod.initAddBot());
+      loadScript('/js/addBot.js')
+        .then(() => {
+          if (typeof initAddBot === 'function') {
+            initAddBot();
+          } else {
+            console.error('initAddBot is not defined in addBot.js');
+          }
+        })
+        .catch(err => console.error('Error loading addBot.js:', err));
     } else if (tabId === "rules") {
-      import("./rules.js").then(mod => mod.initRules());
+      loadScript('/js/rules.js')
+        .then(() => {
+          if (typeof initRules === 'function') {
+            initRules();
+          } else {
+            console.error('initRules is not defined in rules.js');
+          }
+        })
+        .catch(err => console.error('Error loading rules.js:', err));
     } else {
       document.getElementById("main-content").innerHTML = `<p class="text">القسم "${tabId}" تحت التطوير.</p>`;
     }
