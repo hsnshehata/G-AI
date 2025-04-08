@@ -17,6 +17,9 @@ const whatsappRoutes = require('./routes/whatsapp');
 const configRoutes = require('./routes/config');
 const authRoutes = require('./routes/auth');
 const rulesRoutes = require('./routes/rules');
+const faqRoutes = require('./routes/faq'); // إضافة مسار الأسئلة والأجوبة
+const productRoutes = require('./routes/products'); // إضافة مسار المنتجات
+const storeLinkRoutes = require('./routes/storeLink'); // إضافة مسار ربط المتجر
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -70,7 +73,10 @@ const authenticateToken = async (req, res, next) => {
   app.use('/stats', authenticateToken, statRoutes);  // الإحصائيات
   app.use('/whatsapp', authenticateToken, whatsappRoutes); // واتساب
   app.use('/config', authenticateToken, configRoutes);     // الإعدادات
-  app.use('/rules', authenticateToken, rulesRoutes);       // القواعد (محمية دلوقتي)
+  app.use('/rules', authenticateToken, rulesRoutes);       // القواعد
+  app.use('/faq', authenticateToken, faqRoutes);           // الأسئلة والأجوبة
+  app.use('/products', authenticateToken, productRoutes);  // المنتجات
+  app.use('/store-link', authenticateToken, storeLinkRoutes); // ربط المتجر
   app.use('/ai', aiRoutes); // إضافة مسارات الذكاء الاصطناعي
 
   // تشغيل السيرفر
