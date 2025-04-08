@@ -5,10 +5,10 @@ function initRules() {
     return;
   }
 
-  const botId = localStorage.getItem('currentBotId'); // جلب botId من localStorage
+  const botId = localStorage.getItem('currentBotId');
   if (!botId) {
     alert('Bot ID is missing. Please select a bot first.');
-    window.location.href = '/'; // Redirect للصفحة الرئيسية بدل /dashboard.html
+    window.location.href = '/';
     return;
   }
 
@@ -286,34 +286,4 @@ function initRules() {
     e.preventDefault();
     const apiKey = storeLinkInput.value;
     try {
-      const response = await fetch(`/store-link?botId=${botId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ apiKey }),
-      });
-      const result = await response.json();
-      if (response.ok) {
-        alert('تم ربط المتجر بنجاح!');
-        storeLinkInput.value = '';
-        fetchStoreLink();
-      } else {
-        alert('خطأ في ربط المتجر: ' + result.error);
-      }
-    } catch (err) {
-      console.error('خطأ في ربط المتجر:', err);
-      alert('خطأ في السيرفر');
-    }
-  });
-
-  // جلب البيانات عند تحميل الصفحة
-  fetchRules();
-  fetchFaqs();
-  fetchProducts();
-  fetchStoreLink();
-}
-
-  }
-});
+      const response = await fetch(`/store-link
