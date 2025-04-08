@@ -1,22 +1,35 @@
 export function initRules() {
   const content = document.getElementById('main-content');
+  const userRole = localStorage.getItem("role"); // جلب الـ role من localStorage
+
+  // تحديد إذا كان الزر والتبويب بتاع "قواعد عامة" هيظهر ولا لأ
+  const isSuperAdmin = userRole === "admin";
+  const generalRulesButton = isSuperAdmin
+    ? '<button class="tab-button" id="generalRulesBtn">قواعد عامة (للسوبر أدمن)</button>'
+    : '';
+  const generalRulesTab = isSuperAdmin
+    ? `
+      <div id="generalRulesTab" class="tab-section" style="display:none;">
+        <h3>قواعد عامة</h3>
+        <textarea id="generalRulesText" class="create-bot-form input" placeholder="أدخل القواعد العامة هنا..." rows="4" required></textarea>
+        <button id="saveGeneralRulesBtn" class="action-button">حفظ القواعد العامة</button>
+      </div>
+    `
+    : '';
+
+  // بناء الـ HTML بناءً على الـ role
   content.innerHTML = `
     <section class="card">
       <h2>إدارة القواعد</h2>
       <div class="top-tabs">
-        <button class="tab-button" id="generalRulesBtn">قواعد عامة (للسوبر أدمن)</button>
+        ${generalRulesButton}
         <button class="tab-button" id="botSpecificRulesBtn">قواعد خاصة بهذا البوت</button>
         <button class="tab-button" id="faqRulesBtn">أسئلة وأجوبة</button>
         <button class="tab-button" id="productRulesBtn">منتجات وأسعار</button>
         <button class="tab-button" id="storeLinkBtn">ربط المتجر</button>
       </div>
       
-      <div id="generalRulesTab" class="tab-section" style="display:none;">
-        <h3>قواعد عامة</h3>
-        <textarea id="generalRulesText" class="create-bot-form input" placeholder="أدخل القواعد العامة هنا..." rows="4" required></textarea>
-        <button id="saveGeneralRulesBtn" class="action-button">حفظ القواعد العامة</button>
-      </div>
-
+      ${generalRulesTab}
       <div id="botSpecificRulesTab" class="tab-section" style="display:none;">
         <h3>قواعد خاصة بالبوت</h3>
         <textarea id="botSpecificRulesText" class="create-bot-form input" placeholder="أدخل القواعد الخاصة بالبوت هنا..." rows="4" required></textarea>
@@ -46,7 +59,9 @@ export function initRules() {
   `;
 
   // أزرار التبديل بين التبويبات
-  document.getElementById("generalRulesBtn").addEventListener("click", () => toggleTab('generalRules'));
+  if (isSuperAdmin) {
+    document.getElementById("generalRulesBtn").addEventListener("click", () => toggleTab('generalRules'));
+  }
   document.getElementById("botSpecificRulesBtn").addEventListener("click", () => toggleTab('botSpecificRules'));
   document.getElementById("faqRulesBtn").addEventListener("click", () => toggleTab('faqRules'));
   document.getElementById("productRulesBtn").addEventListener("click", () => toggleTab('productRules'));
@@ -54,10 +69,14 @@ export function initRules() {
 
   // دالة لتبديل التبويبات
   function toggleTab(tabName) {
-    const tabs = ['generalRules', 'botSpecificRules', 'faqRules', 'productRules', 'storeLink'];
+    const tabs = isSuperAdmin
+      ? ['generalRules', 'botSpecificRules', 'faqRules', 'productRules', 'storeLink']
+      : ['botSpecificRules', 'faqRules', 'productRules', 'storeLink'];
     tabs.forEach(tab => {
       const tabElement = document.getElementById(tab + 'Tab');
-      tabElement.style.display = tab === tabName ? 'block' : 'none';
+      if (tabElement) { // التأكد من وجود العنصر قبل محاولة تعديله
+        tabElement.style.display = tab === tabName ? 'block' : 'none';
+      }
     });
 
     // تحديث حالة الأزرار
@@ -70,11 +89,13 @@ export function initRules() {
     });
   }
 
-  // حفظ القواعد العامة
-  document.getElementById("saveGeneralRulesBtn").addEventListener("click", async () => {
-    const text = document.getElementById('generalRulesText').value;
-    await saveRule(text, 'general');
-  });
+  // حفظ القواعد العامة (للسوبر أدمن فقط)
+  if (isSuperAdmin) {
+    document.getElementById("saveGeneralRulesBtn").addEventListener("click", async () => {
+      const text = document.getElementById('generalRulesText').value;
+      await saveRule(text, 'general');
+    });
+  }
 
   // حفظ القواعد الخاصة بالبوت
   document.getElementById("saveBotSpecificRulesBtn").addEventListener("click", async () => {
@@ -163,5 +184,5 @@ export function initRules() {
   }
 
   // تعيين التبويب الافتراضي عند التحميل
-  toggleTab('generalRules');
+  toggleTab('botSpecificRules'); // تبويب افتراضي لكل المستخدمين
 }
