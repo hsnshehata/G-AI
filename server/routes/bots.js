@@ -8,18 +8,17 @@ const {
   getBotById
 } = require('../controllers/botsController');
 
-console.log('🤖 DEBUG createBot:', typeof createBot); // يجب أن تطبع "function"
+// ✅ لازم هنا بعد الـ require
+console.log('🤖 DEBUG');
+console.log('  createBot:', typeof createBot);
+console.log('  listBots:', typeof listBots);
+console.log('  updateBot:', typeof updateBot);
+console.log('  getBotById:', typeof getBotById);
 
 // إنشاء بوت جديد
 router.post('/create', verifyToken, createBot);
-
-// جلب قائمة البوتات
 router.get('/', verifyToken, listBots);
-
-// جلب بوت محدد بناءً على المعرف
 router.get('/:id', verifyToken, getBotById);
-
-// تحديث بوت محدد
 router.put('/:id', verifyToken, updateBot);
 
 module.exports = router;
