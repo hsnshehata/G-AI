@@ -1,5 +1,12 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const loginBtn = document.getElementById("login-btn");
+document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  // تهيئة التبويبات
+  mod.initializeTabs();  const loginBtn = document.getElementById("login-btn");
   const logoutBtn = document.getElementById("logout-btn");
   const loginSection = document.getElementById("login-section");
   const dashboardSection = document.getElementById("dashboard-section");
