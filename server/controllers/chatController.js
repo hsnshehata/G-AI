@@ -1,7 +1,9 @@
 const Chat = require('../models/Chat');
 const axios = require('axios');
+const Bot = require('../models/Bot');
 const { fetchBotRules, matchRule, getGPTReply } = require('../services/botEngine');
 
+// ✅ عرض المحادثات
 const getChats = async (req, res) => {
   try {
     const { botId, source } = req.query;
@@ -16,6 +18,7 @@ const getChats = async (req, res) => {
   }
 };
 
+// ✅ حذف محادثة
 const deleteChat = async (req, res) => {
   try {
     await Chat.findByIdAndDelete(req.params.id);
@@ -25,18 +28,23 @@ const deleteChat = async (req, res) => {
   }
 };
 
-// ✅ أهم دالة: الرد المتكامل
+// ✅ إعادة إرسال (غير مفعل بعد)
+const resendChat = async (req, res) => {
+  res.json({ message: 'قريبًا...' });
+};
+
+// ✅ الدالة الأساسية للرد الذكي
 const handleUserMessage = async (req, res) => {
   try {
     const { message, botId, userId, source, type, mediaUrl } = req.body;
 
     if (!botId || !userId || !source) {
-      return res.status(400).json({ error: 'البيانات غير مكتملة' });
+      return res.status(400).json({ error: 'البيانات ناقصة' });
     }
 
     let finalReply = '';
 
-    // 1. لو الرسالة صوت
+    // ✅ الرد على الصوت
     if (type === 'voice' && mediaUrl) {
       try {
         const lemonRes = await axios.post('https://api.lemonfox.ai/transcribe', {
@@ -46,20 +54,19 @@ const handleUserMessage = async (req, res) => {
         });
 
         const transcribedText = lemonRes.data.text;
-        finalReply = `🗣️ الرسالة الصوتية تم تحويلها: ${transcribedText}`;
+        finalReply = `🗣️ تم تحويل الصوت: ${transcribedText}`;
       } catch (err) {
-        console.error('🎤 خطأ في تحليل الصوت:', err.message);
-        finalReply = '⚠️ لم أتمكن من فهم الرسالة الصوتية.';
+        console.error('🎤 خطأ في تحويل الصوت:', err.message);
+        finalReply = '⚠️ لم أتمكن من فهم الصوت.';
       }
     }
 
-    // 2. لو صورة
+    // ✅ الرد على الصور
     else if (type === 'image' && mediaUrl) {
-      finalReply = `🖼️ استلمت الصورة. (تحليل الصور غير مفعل بعد)`;
-      // يمكنك لاحقًا ربطها بخدمة رؤية مثل Gemini أو OpenAI Vision
+      finalReply = `🖼️ تم استلام الصورة. (تحليل الصور غير مفعل بعد)`;
     }
 
-    // 3. نص عادي
+    // ✅ الرسائل النصية
     else if (message) {
       const rules = await fetchBotRules(botId);
       const matchedRule = matchRule(rules, message);
@@ -67,14 +74,13 @@ const handleUserMessage = async (req, res) => {
       if (matchedRule) {
         finalReply = matchedRule.response;
       } else {
-        // جلب مفتاح البوت (لو موجود)
-        const botRes = await axios.get(`${process.env.SERVER_URL || 'http://localhost:3000'}/bots/${botId}`);
-        const bot = botRes.data;
-
-        finalReply = await getGPTReply(message, bot.openaiKey);
+        const bot = await Bot.findById(botId);
+        const botKey = bot?.openaiKey || process.env.OPENAI_API_KEY;
+        finalReply = await getGPTReply(message, botKey);
       }
     }
 
+    // ✅ حفظ الرسالة
     await Chat.create({
       userId,
       botId,
@@ -84,17 +90,18 @@ const handleUserMessage = async (req, res) => {
     });
 
     res.json({
-      reply: finalReply || '❓ لم أستطع الرد على رسالتك.',
+      reply: finalReply || '❓ لم أتمكن من الرد.',
       usedAI: !finalReply.startsWith('🗣️') && !finalReply.startsWith('🖼️'),
     });
   } catch (err) {
     console.error('❌ handleUserMessage:', err.message);
-    res.status(500).json({ error: 'حدث خطأ أثناء الرد على الرسالة' });
+    res.status(500).json({ error: 'حدث خطأ أثناء الرد' });
   }
 };
 
 module.exports = {
   getChats,
   deleteChat,
-  handleUserMessage
+  resendChat,
+  handleUserMessage // ← لازم تكون مصدّرة صح
 };
