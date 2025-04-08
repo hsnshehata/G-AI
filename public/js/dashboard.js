@@ -6,6 +6,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const topTabs = document.querySelector(".top-tabs");
   const loginError = document.getElementById("login-error");
 
+  // تعريف المتغيرات قبل الدوال
+  const tabButtons = document.querySelectorAll("[data-tab]");
+  const tabContents = document.querySelectorAll(".tab-section");
+
   // التحقق من وجود صلاحية محفوظة
   const savedRole = localStorage.getItem("role");
   if (savedRole) {
@@ -45,16 +49,14 @@ document.addEventListener("DOMContentLoaded", () => {
     topTabs.style.top = currentScroll > 10 ? "-60px" : "0";
   });
 
-  // التحكم في عرض التبويبات
-  const tabButtons = document.querySelectorAll("[data-tab]");
-  const tabContents = document.querySelectorAll(".tab-section");
-
+  // دالة لإخفاء كل التبويبات
   function hideAllTabs() {
     tabContents.forEach(tab => {
       tab.style.display = "none";
     });
   }
 
+  // دالة لعرض تبويب معين
   function showTab(tabId) {
     hideAllTabs();
     const activeTab = document.getElementById(tabId);
