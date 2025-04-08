@@ -3,13 +3,12 @@ const router = express.Router();
 
 const {
   createBot,
-  listBots
+  listBots,
+  updateBot
 } = require('../controllers/botsController');
 
-// مسار إنشاء بوت جديد
 router.post('/create', createBot);
-
-// مسار جلب كل البوتات (جديد)
 router.get('/', listBots);
+router.put('/:id', updateBot);
 
 module.exports = router;
