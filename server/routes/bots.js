@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
+const { verifyToken } = require('../middleware/auth');
 const {
   createBot,
   listBots,
@@ -8,9 +8,16 @@ const {
   getBotById
 } = require('../controllers/botsController');
 
-router.post('/create', createBot);
-router.get('/', listBots);
-router.get('/:id', getBotById); // ← ده المسار الجديد
-router.put('/:id', updateBot);
+// إنشاء بوت جديد
+router.post('/create', verifyToken, createBot);
+
+// جلب قائمة البوتات
+router.get('/', verifyToken, listBots);
+
+// جلب بوت محدد بناءً على المعرف
+router.get('/:id', verifyToken, getBotById);
+
+// تحديث بوت محدد
+router.put('/:id', verifyToken, updateBot);
 
 module.exports = router;
