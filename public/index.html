@@ -7,6 +7,8 @@
   <!-- إضافة Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/style.css" />
+  <!-- إضافة favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 <body>
 
@@ -40,7 +42,36 @@
     <!-- محتوى التبويبات -->
     <main id="main-content">
       <div id="bots" class="tab-section">محتوى البوتات</div>
-      <div id="rules" class="tab-section">محتوى القواعد</div>
+      <div id="rules" class="tab-section" style="display: none;">
+        <h2>القواعد</h2>
+        <form id="rules-form">
+          <textarea id="rules-input" placeholder="أدخل القواعد هنا"></textarea>
+          <button type="submit" class="btn btn-primary">حفظ القواعد</button>
+        </form>
+
+        <h2>الأسئلة والأجوبة</h2>
+        <form id="faq-form">
+          <input type="text" id="faq-question" placeholder="السؤال" required />
+          <input type="text" id="faq-answer" placeholder="الإجابة" required />
+          <button type="submit" class="btn btn-primary">إضافة سؤال وإجابة</button>
+        </form>
+        <ul id="faq-list"></ul>
+
+        <h2>المنتجات والأسعار</h2>
+        <form id="product-form">
+          <input type="text" id="product-name" placeholder="اسم المنتج" required />
+          <input type="number" id="product-price" placeholder="السعر" required />
+          <button type="submit" class="btn btn-primary">إضافة منتج</button>
+        </form>
+        <ul id="product-list"></ul>
+
+        <h2>ربط المتجر</h2>
+        <form id="store-link-form">
+          <input type="text" id="store-link-input" placeholder="مفتاح API للمتجر" required />
+          <button type="submit" class="btn btn-primary">ربط المتجر</button>
+        </form>
+        <div id="store-link-display"></div>
+      </div>
       <div id="faq" class="tab-section">محتوى س و ج</div>
       <div id="products" class="tab-section">محتوى المنتجات والأسعار</div>
       <div id="store" class="tab-section">محتوى ربط المتجر</div>
@@ -56,8 +87,7 @@
     </footer>
   </section>
 
-  <!-- إضافة mod.js وإزالة type="module" من dashboard.js -->
-  <script src="js/mod.js"></script>
+  <!-- تحميل dashboard.js فقط (mod.js بيتحمل ديناميكيًا في dashboard.js) -->
   <script src="js/dashboard.js"></script>
 </body>
 </html>
