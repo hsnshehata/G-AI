@@ -1,10 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    window.location.href = '/login.html';
-    return;
-  }
-
   // دالة لتحميل ملف JavaScript ديناميكيًا
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -16,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // تحميل mod.js قبل استدعاء initializeTabs
+  // تحميل mod.js
   loadScript('/js/mod.js')
     .then(() => {
       if (typeof mod !== 'undefined' && typeof mod.initializeTabs === 'function') {
@@ -25,15 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('mod.initializeTabs is not defined in mod.js');
       }
 
-      // باقي الكود بعد تحميل mod.js
+      // تعريف العناصر
       const loginBtn = document.getElementById("login-btn");
       const logoutBtn = document.getElementById("logout-btn");
       const loginSection = document.getElementById("login-section");
       const dashboardSection = document.getElementById("dashboard-section");
       const topTabs = document.querySelector(".top-tabs");
       const loginError = document.getElementById("login-error");
-
-      // تعريف المتغيرات قبل الدوال
       const tabButtons = document.querySelectorAll("[data-tab]");
       const tabContents = document.querySelectorAll(".tab-section");
 
@@ -41,64 +33,56 @@ document.addEventListener('DOMContentLoaded', () => {
       const savedRole = localStorage.getItem("role");
       const savedToken = localStorage.getItem("token");
       if (savedRole && savedToken) {
-        if (loginSection) loginSection.style.display = "none";
-        if (dashboardSection) dashboardSection.style.display = "block";
+        loginSection.style.display = "none";
+        dashboardSection.style.display = "block";
         showTab(localStorage.getItem("currentTab") || "bots");
       }
 
       // تسجيل الدخول
-      if (loginBtn) {
-        loginBtn.addEventListener("click", async () => {
-          const usernameInput = document.getElementById("username");
-          const passwordInput = document.getElementById("password");
-          const username = usernameInput ? usernameInput.value.trim() : '';
-          const password = passwordInput ? passwordInput.value.trim() : '';
-          if (!username || !password) {
-            if (loginError) loginError.textContent = "من فضلك أدخل البيانات كاملة";
+      loginBtn.addEventListener("click", async () => {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+        if (!username || !password) {
+          loginError.textContent = "من فضلك أدخل البيانات كاملة";
+          return;
+        }
+
+        try {
+          const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            loginError.textContent = result.error || 'فشل في تسجيل الدخول';
             return;
           }
 
-          try {
-            const response = await fetch('/auth/login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, password }),
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-              if (loginError) loginError.textContent = result.error || 'فشل في تسجيل الدخول';
-              return;
-            }
-
-            localStorage.setItem("role", result.role);
-            localStorage.setItem("username", result.username);
-            localStorage.setItem("token", result.token);
-            if (loginSection) loginSection.style.display = "none";
-            if (dashboardSection) dashboardSection.style.display = "block";
-            showTab("bots");
-          } catch (err) {
-            if (loginError) loginError.textContent = 'حدث خطأ أثناء تسجيل الدخول';
-            console.error('خطأ في تسجيل الدخول:', err);
-          }
-        });
-      }
+          localStorage.setItem("role", result.role);
+          localStorage.setItem("username", result.username);
+          localStorage.setItem("token", result.token);
+          loginSection.style.display = "none";
+          dashboardSection.style.display = "block";
+          showTab("bots");
+        } catch (err) {
+          loginError.textContent = 'حدث خطأ أثناء تسجيل الدخول';
+          console.error('خطأ في تسجيل الدخول:', err);
+        }
+      });
 
       // تسجيل الخروج
-      if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-          localStorage.clear();
-          location.reload();
-        });
-      }
+      logoutBtn.addEventListener("click", () => {
+        localStorage.clear();
+        location.reload();
+      });
 
       // إخفاء التبويبات العلوية عند التمرير
-      if (topTabs) {
-        window.addEventListener("scroll", () => {
-          const currentScroll = window.pageYOffset;
-          topTabs.style.top = currentScroll > 10 ? "-60px" : "0";
-        });
-      }
+      window.addEventListener("scroll", () => {
+        const currentScroll = window.pageYOffset;
+        topTabs.style.top = currentScroll > 10 ? "-60px" : "0";
+      });
 
       // دالة لإخفاء كل التبويبات
       function hideAllTabs() {
@@ -115,10 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
           activeTab.style.display = "block";
         } else {
           console.error(`Tab with ID ${tabId} not found`);
-          const mainContent = document.getElementById("main-content");
-          if (mainContent) {
-            mainContent.innerHTML = `<p class="text">القسم "${tabId}" غير موجود.</p>`;
-          }
           return;
         }
         localStorage.setItem("currentTab", tabId);
@@ -143,11 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
               }
             })
             .catch(err => console.error('Error loading rules.js:', err));
-        } else {
-          const mainContent = document.getElementById("main-content");
-          if (mainContent) {
-            mainContent.innerHTML = `<p class="text">القسم "${tabId}" تحت التطوير.</p>`;
-          }
         }
 
         // تحديث حالة الأزرار
@@ -168,10 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // عرض التبويب الأول بشكل افتراضي
-      if (tabButtons.length > 0) {
-        const firstTab = tabButtons[0].getAttribute("data-tab");
-        showTab(firstTab);
-      }
+      showTab("bots");
     })
     .catch(err => console.error('Error loading mod.js:', err));
 });
