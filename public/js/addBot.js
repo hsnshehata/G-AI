@@ -107,9 +107,8 @@ function initAddBot() {
         },
       });
       const bots = await res.json();
-      if (!res.ok) {
-        throw new Error(bots.error || "خطأ في جلب البوتات");
-      }
+      if (!res.ok) throw new Error(bots.error || "خطأ في جلب البوتات");
+
       const filtered = role === "admin" ? bots : bots.filter(b => b.username === username);
       botsList.innerHTML = "";
 
