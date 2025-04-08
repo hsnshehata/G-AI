@@ -23,7 +23,8 @@ export function initRules() {
 
       <div id="faqRulesTab" style="display:none;">
         <h3>أسئلة وأجوبة</h3>
-        <textarea id="faqRulesText" placeholder="أدخل الأسئلة والأجوبة هنا..." rows="4" required></textarea>
+        <input type="text" id="faqQuestion" placeholder="أدخل السؤال هنا..." required />
+        <input type="text" id="faqAnswer" placeholder="أدخل الإجابة هنا..." required />
         <button id="saveFaqRulesBtn">حفظ الأسئلة والأجوبة</button>
       </div>
 
@@ -72,8 +73,9 @@ export function initRules() {
 
   // حفظ الأسئلة والأجوبة
   document.getElementById("saveFaqRulesBtn").addEventListener("click", async () => {
-    const text = document.getElementById('faqRulesText').value;
-    await saveRule(text, 'faq');
+    const question = document.getElementById('faqQuestion').value;
+    const answer = document.getElementById('faqAnswer').value;
+    await saveFaq(question, answer);
   });
 
   // حفظ المنتجات والأسعار
@@ -101,6 +103,21 @@ export function initRules() {
       console.log('قاعدة تم حفظها:', result);
     } catch (error) {
       console.error('حدث خطأ أثناء حفظ القاعدة:', error);
+    }
+  }
+
+  // دالة لحفظ الأسئلة والأجوبة
+  async function saveFaq(question, answer) {
+    try {
+      const response = await fetch('/faq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, answer }),
+      });
+      const result = await response.json();
+      console.log('تم حفظ السؤال والإجابة:', result);
+    } catch (error) {
+      console.error('حدث خطأ أثناء حفظ السؤال والإجابة:', error);
     }
   }
 
