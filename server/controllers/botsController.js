@@ -1,6 +1,5 @@
 const Bot = require('../models/Bot');
 
-// إنشاء بوت جديد
 const createBot = async (req, res) => {
   try {
     const { name, username, password, fbToken, pageId, openaiKey } = req.body;
@@ -16,7 +15,6 @@ const createBot = async (req, res) => {
 
     const bot = new Bot({ name, username, password, fbToken, pageId, openaiKey });
     await bot.save();
-
     res.status(201).json({ message: 'تم إنشاء البوت بنجاح', bot });
 
   } catch (err) {
@@ -25,7 +23,6 @@ const createBot = async (req, res) => {
   }
 };
 
-// جلب كل البوتات (حسب الصلاحية)
 const listBots = async (req, res) => {
   try {
     const { role, username } = req.user;
@@ -35,14 +32,12 @@ const listBots = async (req, res) => {
       : await Bot.find({ username }).sort({ createdAt: -1 });
 
     res.json(bots);
-
   } catch (err) {
     console.error('❌ خطأ في جلب البوتات:', err);
     res.status(500).json({ error: 'فشل في تحميل البوتات' });
   }
 };
 
-// جلب بوت معين بالتفصيل
 const getBotById = async (req, res) => {
   try {
     const bot = await Bot.findById(req.params.id);
@@ -56,7 +51,6 @@ const getBotById = async (req, res) => {
   }
 };
 
-// تحديث بيانات بوت
 const updateBot = async (req, res) => {
   try {
     const bot = await Bot.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -71,7 +65,6 @@ const updateBot = async (req, res) => {
   }
 };
 
-// ✅ التصدير النهائي
 module.exports = {
   createBot,
   listBots,
