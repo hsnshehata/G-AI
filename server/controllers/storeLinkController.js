@@ -33,3 +33,18 @@ exports.getStoreLink = async (req, res) => {
     res.status(500).json({ error: 'خطأ في السيرفر' });
   }
 };
+
+// حذف ربط المتجر
+exports.deleteStoreLink = async (req, res) => {
+  try {
+    const storeLinkId = req.params.id;
+    const storeLink = await StoreLink.findByIdAndDelete(storeLinkId);
+    if (!storeLink) {
+      return res.status(404).json({ error: 'لم يتم العثور على ربط المتجر' });
+    }
+    res.json({ message: 'تم الحذف بنجاح' });
+  } catch (err) {
+    console.error('خطأ في حذف ربط المتجر:', err);
+    res.status(500).json({ error: 'خطأ في السيرفر' });
+  }
+};
