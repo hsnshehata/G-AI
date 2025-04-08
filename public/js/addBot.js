@@ -69,12 +69,14 @@ export function initAddBot() {
       pageId: pageIdInput.value.trim() || null,
       openaiKey: document.getElementById("openAiKey").value.trim() || null,
     };
+
     const res = await fetch("/bots/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    alert((await res.json()).message || "تم!");
+
+    alert((await res.json()).message || "تم إنشاء البوت!");
     form.reset();
     formContainer.style.display = "none";
     loadBots();
@@ -87,15 +89,9 @@ export function initAddBot() {
     try {
       const res = await fetch("/bots");
       const bots = await res.json();
-
       const filtered = role === "admin" ? bots : bots.filter(b => b.username === username);
-
-      if (filtered.length === 0) {
-        botsList.innerHTML = `<tr><td colspan="3">🚫 لا توجد بوتات</td></tr>`;
-        return;
-      }
-
       botsList.innerHTML = "";
+
       let selectedId = localStorage.getItem("currentBotId");
 
       filtered.forEach((bot, index) => {
@@ -108,15 +104,25 @@ export function initAddBot() {
           <td>${bot.username}</td>
           <td>
             <button onclick="selectBot('${bot._id}', '${bot.name}')">اختيار</button>
-            ${role === "admin" ? `<button onclick="editBot(${encodeURIComponent(JSON.stringify(bot))})">تعديل</button>` : ""}
+            ${role === "admin" ? `<button class="edit-btn" data-id="${bot._id}">تعديل</button>` : ""}
           </td>`;
         botsList.appendChild(tr);
 
-        // اختيار أول بوت تلقائيًا
         if (!selectedId && index === 0) {
           selectBot(bot._id, bot.name);
         }
       });
+
+      // تفعيل أزرار التعديل
+      document.querySelectorAll(".edit-btn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.dataset.id;
+          const res = await fetch(`/bots/${id}`);
+          const bot = await res.json();
+          openEditForm(bot);
+        });
+      });
+
     } catch (err) {
       botsList.innerHTML = `<tr><td colspan="3">❌ خطأ في تحميل البوتات</td></tr>`;
     }
@@ -125,11 +131,10 @@ export function initAddBot() {
   window.selectBot = (id, name) => {
     localStorage.setItem("currentBotId", id);
     localStorage.setItem("currentBotName", name);
-    initAddBot(); // إعادة تحميل لتحديث التحديد
+    initAddBot();
   };
 
-  window.editBot = (raw) => {
-    const bot = JSON.parse(decodeURIComponent(raw));
+  function openEditForm(bot) {
     document.getElementById("editBotForm").style.display = "block";
     document.getElementById("editName").value = bot.name;
     document.getElementById("editUsername").value = bot.username;
@@ -159,7 +164,7 @@ export function initAddBot() {
       document.getElementById("editBotForm").style.display = "none";
       loadBots();
     };
-  };
+  }
 
   loadBots();
 }
