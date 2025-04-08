@@ -245,3 +245,8 @@ main#main-content {
 .create-bot-form button:hover {
   background: #ffcc00;
 }
+
+.selected-bot-row {
+  background-color: #1f3d1f !important;
+  font-weight: bold;
+}
