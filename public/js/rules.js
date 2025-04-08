@@ -1,6 +1,8 @@
 export function initRules() {
   const content = document.getElementById('main-content');
   const userRole = localStorage.getItem("role"); // جلب الـ role من localStorage
+  const token = localStorage.getItem("token"); // جلب التوكن من localStorage (هنحتاجه لاحقاً)
+  const botId = localStorage.getItem("currentBotId"); // جلب معرف البوت المختار
 
   // تحديد إذا كان الزر والتبويب بتاع "قواعد عامة" هيظهر ولا لأ
   const isSuperAdmin = userRole === "admin";
@@ -93,57 +95,70 @@ export function initRules() {
   if (isSuperAdmin) {
     document.getElementById("saveGeneralRulesBtn").addEventListener("click", async () => {
       const text = document.getElementById('generalRulesText').value;
-      await saveRule(text, 'general');
+      await saveRule(text, 'general', botId, token);
     });
   }
 
   // حفظ القواعد الخاصة بالبوت
   document.getElementById("saveBotSpecificRulesBtn").addEventListener("click", async () => {
     const text = document.getElementById('botSpecificRulesText').value;
-    await saveRule(text, 'bot');
+    await saveRule(text, 'bot', botId, token);
   });
 
   // حفظ الأسئلة والأجوبة
   document.getElementById("saveFaqRulesBtn").addEventListener("click", async () => {
     const question = document.getElementById('faqQuestion').value;
     const answer = document.getElementById('faqAnswer').value;
-    await saveFaq(question, answer);
+    await saveFaq(question, answer, token);
   });
 
   // حفظ المنتجات والأسعار
   document.getElementById("saveProductBtn").addEventListener("click", async () => {
     const name = document.getElementById('productName').value;
     const price = document.getElementById('productPrice').value;
-    await saveProduct(name, price);
+    await saveProduct(name, price, token);
   });
 
   // ربط المتجر
   document.getElementById("saveStoreLinkBtn").addEventListener("click", async () => {
     const apiKey = document.getElementById('storeApiKey').value;
-    await linkStore(apiKey);
+    await linkStore(apiKey, token);
   });
 
   // دالة لحفظ القاعدة
-  async function saveRule(text, type) {
+  async function saveRule(text, type, botId, token) {
     try {
       const response = await fetch('/rules', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, type }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // إضافة التوكن في الـ headers
+        },
+        body: JSON.stringify({ text, type, botId }),
       });
       const result = await response.json();
-      console.log('قاعدة تم حفظها:', result);
+      if (response.ok) {
+        console.log('قاعدة تم حفظها:', result);
+        alert('تم حفظ القاعدة بنجاح!');
+      } else {
+        console.error('خطأ في حفظ القاعدة:', result);
+        alert('فشل في حفظ القاعدة: ' + (result.message || 'خطأ غير معروف'));
+      }
     } catch (error) {
       console.error('حدث خطأ أثناء حفظ القاعدة:', error);
+      alert('حدث خطأ أثناء حفظ القاعدة');
     }
   }
 
   // دالة لحفظ الأسئلة والأجوبة
-  async function saveFaq(question, answer) {
+  async function saveFaq(question, answer, token) {
     try {
       const response = await fetch('/faq', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ question, answer }),
       });
       const result = await response.json();
@@ -154,11 +169,14 @@ export function initRules() {
   }
 
   // دالة لحفظ المنتجات
-  async function saveProduct(name, price) {
+  async function saveProduct(name, price, token) {
     try {
       const response = await fetch('/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ name, price }),
       });
       const result = await response.json();
@@ -169,11 +187,14 @@ export function initRules() {
   }
 
   // دالة لربط المتجر
-  async function linkStore(apiKey) {
+  async function linkStore(apiKey, token) {
     try {
       const response = await fetch('/store-link', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ apiKey }),
       });
       const result = await response.json();
