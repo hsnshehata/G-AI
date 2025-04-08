@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Rule = require('../models/Rule');
-const { verifyToken } = require('../middleware/auth');
+const verifyToken = require('../middleware/auth');
 
 // حفظ قاعدة جديدة
 router.post('/', verifyToken, async (req, res) => {
