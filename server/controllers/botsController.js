@@ -13,35 +13,32 @@ const createBot = async (req, res) => {
       return res.status(409).json({ message: 'اسم المستخدم مستخدم بالفعل' });
     }
 
-    const bot = new Bot({
-      name,
-      username,
-      password,
-      fbToken: fbToken || null,
-      pageId: fbToken ? pageId : null,
-      openaiKey: openaiKey || null,
-    });
-
+    const bot = new Bot({ name, username, password, fbToken, pageId, openaiKey });
     await bot.save();
-    res.status(201).json({ message: 'تم إنشاء البوت بنجاح', bot });
 
+    res.status(201).json({ message: 'تم إنشاء البوت بنجاح', bot });
   } catch (error) {
-    console.error('خطأ أثناء إنشاء البوت:', error);
-    res.status(500).json({ message: 'حدث خطأ في السيرفر' });
+    console.error(error);
+    res.status(500).json({ message: 'خطأ في السيرفر' });
   }
 };
 
 const listBots = async (req, res) => {
   try {
-    const bots = await Bot.find().sort({ createdAt: -1 }); // أحدث البوتات أولاً
+    const bots = await Bot.find().sort({ createdAt: -1 });
     res.json(bots);
   } catch (error) {
-    console.error('خطأ أثناء جلب البوتات:', error);
     res.status(500).json({ message: 'فشل في تحميل البوتات' });
   }
 };
 
-module.exports = {
-  createBot,
-  listBots
+const updateBot = async (req, res) => {
+  try {
+    const bot = await Bot.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ message: 'تم تحديث البوت بنجاح', bot });
+  } catch (error) {
+    res.status(500).json({ message: 'فشل في تحديث البوت' });
+  }
 };
+
+module.exports = { createBot, listBots, updateBot };
