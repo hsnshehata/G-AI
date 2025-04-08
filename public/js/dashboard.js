@@ -89,8 +89,14 @@ document.addEventListener('DOMContentLoaded', () => {
       loginSection.style.display = "none";
       dashboardSection.style.display = "block";
 
-      const lastTab = localStorage.getItem("currentTab") || "bots";
-      if (document.getElementById(lastTab)) showTab(lastTab);
+const lastTab = localStorage.getItem("currentTab") || "bots";
+setTimeout(() => {
+  if (document.getElementById(lastTab)) {
+    showTab(lastTab);
+  } else {
+    console.warn(`التبويب "${lastTab}" غير موجود حاليًا`);
+  }
+}, 100); // ندي فرصة لعناصر DOM تظهر
 
     } catch (err) {
       loginError.textContent = "حدث خطأ أثناء تسجيل الدخول";
