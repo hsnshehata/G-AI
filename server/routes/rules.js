@@ -12,7 +12,7 @@ const {
 router.get('/', getRules);
 
 // إضافة قاعدة جديدة
-router.post('/', createRule);
+router.post('/', addRule);
 
 // تعديل قاعدة موجودة
 router.put('/:id', updateRule);
