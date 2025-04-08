@@ -84,6 +84,20 @@ const authenticateToken = async (req, res, next) => {
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
+const path = require('path');
+
+try {
+  const controller = require(path.join(__dirname, 'controllers', 'botsController.js'));
+
+  console.log('✅ ملف botsController.js تم استيراده بنجاح');
+  console.log('🔍 createBot:', typeof controller.createBot);
+  console.log('🔍 listBots:', typeof controller.listBots);
+  console.log('🔍 getBotById:', typeof controller.getBotById);
+  console.log('🔍 updateBot:', typeof controller.updateBot);
+} catch (err) {
+  console.error('❌ فشل تحميل ملف botsController.js');
+  console.error(err.message);
+}
 
   // تشغيل السيرفر
   app.listen(PORT, () => {
