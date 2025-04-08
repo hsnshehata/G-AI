@@ -1,5 +1,6 @@
+// server/server.js
 const express = require('express');
-const path = require('path'); // إضافة path للتعامل مع المسارات
+const path = require('path');
 const connectDB = require('./config/db');
 const Config = require('./models/Config');
 const OpenAI = require('openai');
@@ -7,7 +8,6 @@ const jwt = require('jsonwebtoken');
 const User = require('./models/User');
 const Chat = require('./models/Chat');
 const { initializeWhatsAppClient } = require('./services/whatsapp');
-const aiRoutes = require('./routes/ai');
 
 // مسارات المشروع
 const botRoutes = require('./routes/bots');
@@ -18,18 +18,22 @@ const whatsappRoutes = require('./routes/whatsapp');
 const configRoutes = require('./routes/config');
 const authRoutes = require('./routes/auth');
 const rulesRoutes = require('./routes/rules');
-const faqRoutes = require('./routes/faq'); // إضافة مسار الأسئلة والأجوبة
-const productRoutes = require('./routes/products'); // إضافة مسار المنتجات
-const storeLinkRoutes = require('./routes/storeLink'); // إضافة مسار ربط المتجر
+const faqRoutes = require('./routes/faq');
+const productRoutes = require('./routes/products');
+const storeLinkRoutes = require('./routes/storeLink');
+const aiRoutes = require('./routes/ai');
+const facebookRoutes = require('./routes/facebook');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.use('/webhook', require('./routes/facebook'));
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+// Webhook لفيسبوك
+app.use('/webhook', facebookRoutes);
 
 // التحقق من التوكن
 const authenticateToken = async (req, res, next) => {
@@ -62,42 +66,42 @@ const authenticateToken = async (req, res, next) => {
   });
 
   // تهيئة OpenAI
-  const openai = new OpenAI({
-    apiKey: process.env.API_KEY,
-  });
+  const openai = new OpenAI({ apiKey: process.env.API_KEY });
 
-  // المسارات
-  app.use('/auth', authRoutes);                      // تسجيل الدخول
-  app.use('/bots', botRoutes);                       // إنشاء وإدارة البوتات
-  app.use('/chats', authenticateToken, chatRoutes);  // المحادثات
-  app.use('/ratings', authenticateToken, ratingRoutes); // التقييمات
-  app.use('/stats', authenticateToken, statRoutes);  // الإحصائيات
-  app.use('/whatsapp', authenticateToken, whatsappRoutes); // واتساب
-  app.use('/config', authenticateToken, configRoutes);     // الإعدادات
-  app.use('/rules', authenticateToken, rulesRoutes);       // القواعد
-  app.use('/faq', authenticateToken, faqRoutes);           // الأسئلة والأجوبة
-  app.use('/products', authenticateToken, productRoutes);  // المنتجات
-  app.use('/store-link', authenticateToken, storeLinkRoutes); // ربط المتجر
-  app.use('/ai', aiRoutes); // إضافة مسارات الذكاء الاصطناعي
+  // ربط المسارات
+  app.use('/auth', authRoutes);
+  app.use('/bots', botRoutes);
+  app.use('/chats', authenticateToken, chatRoutes);
+  app.use('/ratings', authenticateToken, ratingRoutes);
+  app.use('/stats', authenticateToken, statRoutes);
+  app.use('/whatsapp', authenticateToken, whatsappRoutes);
+  app.use('/config', authenticateToken, configRoutes);
+  app.use('/rules', authenticateToken, rulesRoutes);
+  app.use('/faq', authenticateToken, faqRoutes);
+  app.use('/products', authenticateToken, productRoutes);
+  app.use('/store-link', authenticateToken, storeLinkRoutes);
+  app.use('/ai', aiRoutes);
 
-  // إرجاع index.html لأي طلب مش لـ API
+  // ✅ كود تشخيص botsController.js لو فيه مشكلة في الاستيراد
+  if (process.env.DEBUG === 'true') {
+    try {
+      const controller = require(path.join(__dirname, 'controllers', 'botsController.js'));
+
+      console.log('✅ ملف botsController.js تم استيراده بنجاح');
+      console.log('🔍 createBot:', typeof controller.createBot);
+      console.log('🔍 listBots:', typeof controller.listBots);
+      console.log('🔍 getBotById:', typeof controller.getBotById);
+      console.log('🔍 updateBot:', typeof controller.updateBot);
+    } catch (err) {
+      console.error('❌ فشل تحميل ملف botsController.js');
+      console.error(err.message);
+    }
+  }
+
+  // إرجاع index.html لأي طلب غير معروف
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
-const path = require('path');
-
-try {
-  const controller = require(path.join(__dirname, 'controllers', 'botsController.js'));
-
-  console.log('✅ ملف botsController.js تم استيراده بنجاح');
-  console.log('🔍 createBot:', typeof controller.createBot);
-  console.log('🔍 listBots:', typeof controller.listBots);
-  console.log('🔍 getBotById:', typeof controller.getBotById);
-  console.log('🔍 updateBot:', typeof controller.updateBot);
-} catch (err) {
-  console.error('❌ فشل تحميل ملف botsController.js');
-  console.error(err.message);
-}
 
   // تشغيل السيرفر
   app.listen(PORT, () => {
