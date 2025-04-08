@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { createBot } = require('../controllers/botsController');
 
-// المسار المفتوح بدون توكن
+const {
+  createBot,
+  listBots
+} = require('../controllers/botsController');
+
+// مسار إنشاء بوت جديد
 router.post('/create', createBot);
 
-// هنا ممكن تضيف حماية لباقي المسارات بعدين
-// router.use(authenticateToken);
-// router.get('/list', listBots); ...
+// مسار جلب كل البوتات (جديد)
+router.get('/', listBots);
 
 module.exports = router;
