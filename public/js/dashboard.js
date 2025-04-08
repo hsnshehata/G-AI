@@ -1,102 +1,80 @@
-import initAddBot from './addBot.js';
-import initRules from './rules.js';
+document.addEventListener("DOMContentLoaded", () => {
+  const loginSection = document.getElementById("loginSection");
+  const dashboardSection = document.getElementById("dashboardSection");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const topTabs = document.querySelector(".top-tabs");
+  const bottomNav = document.querySelector(".bottom-nav");
+  const createBotBtn = document.getElementById("createBotBtn");
+  const tabButtons = document.querySelectorAll("[data-tab]");
 
-const loginSection = document.getElementById('login-section');
-const dashboardSection = document.getElementById('dashboard-section');
-const loginBtn = document.getElementById('login-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const errorMsg = document.getElementById('login-error');
-const mainContent = document.getElementById('main-content');
-const topTabs = document.querySelector('.top-tabs');
-
-// بيانات دخول السوبر أدمن
-const ADMIN_USERNAME = "hsn";
-const ADMIN_PASSWORD = "662015";
-
-// مراقبة السكرول لإخفاء التبويبات العلوية
-let lastScrollY = window.scrollY;
-window.addEventListener('scroll', () => {
-  const currentScroll = window.scrollY;
-  if (currentScroll > lastScrollY) {
-    topTabs.classList.add('hidden'); // لأعلى = اختفاء
-  } else {
-    topTabs.classList.remove('hidden'); // لأسفل = ظهور
-  }
-  lastScrollY = currentScroll;
-});
-
-// تشغيل أولي
-document.addEventListener('DOMContentLoaded', () => {
-  if (localStorage.getItem("loggedIn") === "true") {
-    showDashboard();
-    const defaultTab = localStorage.getItem("selectedTab") || "bots";
-    switchTab(defaultTab);
+  // التحقق من تسجيل الدخول
+  const savedRole = localStorage.getItem("role");
+  if (savedRole) {
+    loginSection.style.display = "none";
+    dashboardSection.style.display = "block";
+    handleTab(localStorage.getItem("currentTab") || "bots");
+    toggleCreateBotBtn(savedRole);
   }
 
-  loginBtn?.addEventListener('click', handleLogin);
-  logoutBtn?.addEventListener('click', handleLogout);
+  document.getElementById("loginForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const username = document.getElementById("usernameInput").value;
+    const password = document.getElementById("passwordInput").value;
 
-  document.querySelectorAll('[data-tab]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tab = btn.dataset.tab;
-      localStorage.setItem('selectedTab', tab);
-      switchTab(tab);
+    if (username === "hsn" && password === "662015") {
+      localStorage.setItem("role", "admin");
+    } else {
+      localStorage.setItem("role", "user");
+    }
+
+    loginSection.style.display = "none";
+    dashboardSection.style.display = "block";
+    handleTab("bots");
+    toggleCreateBotBtn(localStorage.getItem("role"));
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.clear();
+    location.reload();
+  });
+
+  window.addEventListener("scroll", () => {
+    const currentScroll = window.pageYOffset;
+    topTabs.style.top = currentScroll > 10 ? "-60px" : "0";
+  });
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tab = btn.getAttribute("data-tab");
+      handleTab(tab);
     });
   });
-});
 
-// تسجيل الدخول
-function handleLogin() {
-  const user = document.getElementById('username').value;
-  const pass = document.getElementById('password').value;
+  function handleTab(tab) {
+    tabButtons.forEach((btn) => btn.classList.remove("active"));
+    document.querySelectorAll(".tab-section").forEach((el) => {
+      el.style.display = "none";
+    });
 
-  if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
-    localStorage.setItem('loggedIn', 'true');
-    showDashboard();
-    switchTab('bots');
-  } else {
-    errorMsg.textContent = "بيانات الدخول غير صحيحة!";
-  }
-}
+    document.getElementById(tab + "Section").style.display = "block";
+    document
+      .querySelectorAll(`[data-tab="${tab}"]`)
+      .forEach((btn) => btn.classList.add("active"));
 
-// تسجيل الخروج
-function handleLogout() {
-  localStorage.removeItem('loggedIn');
-  localStorage.removeItem('selectedTab');
-  location.reload();
-}
+    localStorage.setItem("currentTab", tab);
 
-// عرض الداشبورد
-function showDashboard() {
-  loginSection.style.display = "none";
-  dashboardSection.style.display = "block";
-  errorMsg.textContent = "";
-}
-
-// التبديل بين التبويبات
-function switchTab(tab) {
-  // تفعيل الزر النشط
-  document.querySelectorAll('[data-tab]').forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.dataset.tab === tab) btn.classList.add('active');
-  });
-
-  // تحميل القسم
-  mainContent.innerHTML = '<p style="text-align:center;">جارٍ التحميل...</p>';
-  switch (tab) {
-    case 'bots':
-      initAddBot();
-      break;
-    case 'rules':
+    if (tab === "bots") {
+      initAddBot(); // ستعرض البوتات حسب الدور بداخل addBot.js
+    } else if (tab === "rules") {
       initRules();
-      break;
-    case 'chats':
-      mainContent.innerHTML = "<p style='text-align:center;'>قسم المحادثات قادم قريبًا 💬</p>";
-      break;
-    case 'stats':
-      mainContent.innerHTML = "<p style='text-align:center;'>قسم الإحصائيات قيد الإنشاء 📊</p>";
-      break;
-    default:
-      mainContent.innerHTML = "<p style='text-align:center;'>قسم غير معروف 🤔</p>";
+    }
   }
-}
+
+  function toggleCreateBotBtn(role) {
+    if (role === "admin") {
+      createBotBtn.style.display = "inline-block";
+    } else {
+      createBotBtn.style.display = "none";
+    }
+  }
+});
