@@ -19,22 +19,39 @@ export function initRules() {
   const ruleList = document.getElementById('rulesList');
   const botId = localStorage.getItem('currentBotId');
 
+  if (!botId) {
+    content.innerHTML = '<p class="text">❗ من فضلك اختر بوت أولاً من قسم "بوتاتي".</p>';
+    return;
+  }
+
   async function loadRules() {
-    const res = await fetch(`/rules?botId=${botId}`);
-    const rules = await res.json();
-    ruleList.innerHTML = '';
-    rules.forEach(rule => {
-      const li = document.createElement('li');
-      li.textContent = `${rule.text}`;
-      const delBtn = document.createElement('button');
-      delBtn.textContent = '🗑️';
-      delBtn.onclick = async () => {
-        await fetch(`/rules/${rule._id}`, { method: 'DELETE' });
-        loadRules();
-      };
-      li.appendChild(delBtn);
-      ruleList.appendChild(li);
-    });
+    try {
+      const res = await fetch(`/rules?botId=${botId}`);
+      const rules = await res.json();
+
+      ruleList.innerHTML = '';
+
+      if (!Array.isArray(rules)) {
+        ruleList.innerHTML = '<li>⚠️ لم يتم تحميل القواعد بشكل صحيح.</li>';
+        return;
+      }
+
+      rules.forEach(rule => {
+        const li = document.createElement('li');
+        li.textContent = rule.text;
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '🗑️';
+        delBtn.onclick = async () => {
+          await fetch(`/rules/${rule._id}`, { method: 'DELETE' });
+          loadRules();
+        };
+        li.appendChild(delBtn);
+        ruleList.appendChild(li);
+      });
+    } catch (err) {
+      ruleList.innerHTML = '<li>⚠️ حدث خطأ أثناء تحميل القواعد.</li>';
+      console.error(err);
+    }
   }
 
   ruleForm.onsubmit = async (e) => {
