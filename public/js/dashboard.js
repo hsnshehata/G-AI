@@ -17,11 +17,17 @@ function logout() {
 }
 
 function switchTab(tabId) {
+  // إخفاء كل التبويبات
   document.querySelectorAll('.tab-section').forEach(sec => sec.style.display = 'none');
   document.getElementById(tabId).style.display = 'block';
 
+  // إزالة التحديد من كل الأزرار
   document.querySelectorAll('.dashboard-nav button').forEach(btn => btn.classList.remove('active-tab'));
-  event.target.classList.add('active-tab');
 
+  // ✅ إضافة التحديد للزر المناسب بدل استخدام event
+  const activeBtn = document.querySelector(`[onclick="switchTab('${tabId}')"]`);
+  if (activeBtn) activeBtn.classList.add('active-tab');
+
+  // استدعاء دوال التبويبات
   if (tabId === 'bots') loadBotsTab();
 }
