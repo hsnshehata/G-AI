@@ -1,6 +1,7 @@
+// نحافظ على تعريف token و role في ملف واحد فقط (هنا مثلاً)
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
-const selectedBotId = localStorage.getItem('selectedBotId'); // افتراض وجوده بعد اختيار البوت
+const selectedBotId = localStorage.getItem('selectedBotId');
 
 // تبويبات القواعد
 function switchRulesTab(tab) {
@@ -22,7 +23,7 @@ function loadRulesTab() {
   loadTextRules();
 }
 
-// تحميل القواعد النصية من الباك
+// تحميل القواعد النصية
 async function loadTextRules() {
   const listContainer = document.getElementById('textRulesList');
   listContainer.innerHTML = '...جارٍ التحميل';
@@ -112,3 +113,5 @@ async function deleteRule(id, type) {
 
 // تحميل التبويب عند التبديل
 window.loadRulesTab = loadRulesTab;
+window.saveTextRules = saveTextRules;
+window.switchRulesTab = switchRulesTab;
