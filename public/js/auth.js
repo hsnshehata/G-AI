@@ -15,7 +15,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
     if (res.ok && data.token) {
       localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.role); // admin أو user
+      localStorage.setItem('role', data.role);
       window.location.href = 'dashboard.html';
     } else {
       document.getElementById('loginError').textContent = data.message || 'فشل تسجيل الدخول';
