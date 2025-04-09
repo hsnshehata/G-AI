@@ -13,7 +13,7 @@ document.getElementById('facebookApiKey').addEventListener('input', e => {
 // تحميل البوتات
 async function fetchBots() {
   try {
-    const res = await fetch('/api/bots/create', {
+    const res = await fetch('/api/bots', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
@@ -28,7 +28,7 @@ async function fetchBots() {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${bot.name}</td>
-        <td>${bot.username}</td>
+        <td>${bot.username || '—'}</td>
         <td><button onclick="alert('قريبًا: التحكم في البوت')">⚙️</button></td>
       `;
       botsTable.appendChild(row);
@@ -38,22 +38,42 @@ async function fetchBots() {
   }
 }
 
-// إنشاء بوت جديد
+// إرسال طلب إنشاء بوت
 createBotForm?.addEventListener('submit', async e => {
   e.preventDefault();
 
+  const botName = document.getElementById('botName').value.trim();
+  const existingUsername = document.getElementById('existingUsersSelect').value;
+  const newUsername = document.getElementById('newUsername').value.trim();
+  const newPassword = document.getElementById('newPassword').value;
+  const openaiKey = document.getElementById('openaiKey').value.trim();
+  const facebookApiKey = document.getElementById('facebookApiKey').value.trim();
+  const pageId = document.getElementById('pageId').value.trim();
+
+  let usernameToSend = '';
+  let passwordToSend = '';
+
+  if (existingUsername) {
+    usernameToSend = existingUsername;
+  } else if (newUsername && newPassword) {
+    usernameToSend = newUsername;
+    passwordToSend = newPassword;
+  } else {
+    createBotError.textContent = 'يجب اختيار مستخدم موجود أو إدخال اسم مستخدم وكلمة مرور جديدة.';
+    return;
+  }
+
   const body = {
-    name: document.getElementById('botName').value.trim(),
-    existingUsername: document.getElementById('existingUsersSelect').value,
-    newUsername: document.getElementById('newUsername').value.trim(),
-    newPassword: document.getElementById('newPassword').value,
-    openaiKey: document.getElementById('openaiKey').value.trim(),
-    facebookApiKey: document.getElementById('facebookApiKey').value.trim(),
-    pageId: document.getElementById('pageId').value.trim()
+    name: botName,
+    username: usernameToSend,
+    password: passwordToSend,
+    openaiKey,
+    fbToken: facebookApiKey,
+    pageId
   };
 
   try {
-    const res = await fetch('/api/bots', {
+    const res = await fetch('/api/bots/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -70,10 +90,10 @@ createBotForm?.addEventListener('submit', async e => {
       createBotForm.reset();
       document.getElementById('pageIdContainer').style.display = 'none';
     } else {
-      createBotError.textContent = result.message || 'فشل في إنشاء البوت';
+      createBotError.textContent = result.error || 'فشل في إنشاء البوت';
     }
   } catch (err) {
-    createBotError.textContent = 'خطأ في الاتصال بالسيرفر';
+    createBotError.textContent = 'حدث خطأ في الاتصال بالسيرفر';
   }
 });
 
