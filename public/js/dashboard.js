@@ -1,9 +1,7 @@
-// تعريف global مرة واحدة فقط
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 let selectedBotId = localStorage.getItem('selectedBotId') || null;
 
-// التنقل بين التبويبات
 function switchTab(tab) {
   document.querySelectorAll('.tab-section').forEach(section => {
     section.style.display = section.id === tab ? 'block' : 'none';
@@ -12,16 +10,13 @@ function switchTab(tab) {
   document.querySelectorAll('.dashboard-nav button').forEach(btn => btn.classList.remove('active-tab'));
   document.querySelector(`.dashboard-nav button[onclick="switchTab('${tab}')"]`)?.classList.add('active-tab');
 
-  if (tab === 'bots') loadBotsTab?.();
-  if (tab === 'rules') loadRulesTab?.();
+  if (tab === 'bots' && typeof loadBotsTab === 'function') loadBotsTab();
+  if (tab === 'rules' && typeof loadRulesTab === 'function') loadRulesTab();
 }
 
-// تسجيل الخروج
 function logout() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('role');
-  localStorage.removeItem('selectedBotId');
-  window.location.href = 'index.html';
+  localStorage.clear();
+  window.location.href = '/';
 }
 
 window.switchTab = switchTab;
