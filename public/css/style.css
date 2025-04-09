@@ -1,146 +1,114 @@
 body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f5f5f5;
   margin: 0;
-  font-family: 'Cairo', sans-serif;
-  background-color: #121212;
-  color: #f1f1f1;
+  padding: 0;
   direction: rtl;
 }
 
-/* =================== Header =================== */
 .dashboard-header {
-  background-color: #1e1e1e;
-  padding: 15px 20px;
+  background-color: #6c5ce7;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .dashboard-header h1 {
   margin: 0;
-  font-size: 20px;
-  color: #f5a623;
+  font-size: 1.5rem;
 }
 
 .dashboard-header button {
-  background: #ff4c4c;
+  background-color: #d63031;
   border: none;
+  color: white;
   padding: 8px 16px;
   border-radius: 8px;
-  color: white;
   cursor: pointer;
+  font-weight: bold;
 }
 
-/* =================== Navigation =================== */
 .dashboard-nav {
-  background-color: #2a2a2a;
-  padding: 10px;
   display: flex;
   justify-content: center;
-  gap: 10px;
+  background-color: #dfe6e9;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
 }
 
 .dashboard-nav button {
-  background: #444;
-  color: #fff;
-  border: none;
+  margin: 0 10px;
   padding: 10px 20px;
-  border-radius: 8px;
+  border: none;
+  background-color: transparent;
   cursor: pointer;
-  transition: background 0.3s;
+  font-weight: bold;
+  color: #2d3436;
+  border-radius: 8px;
 }
 
-.dashboard-nav .active-tab {
-  background-color: #f5a623;
-  color: #000;
+.dashboard-nav button.active-tab {
+  background-color: #6c5ce7;
+  color: white;
 }
 
-/* =================== Main Content =================== */
 .dashboard-content {
-  padding: 30px 20px;
-  max-width: 1200px;
-  margin: auto;
+  padding: 20px;
 }
 
 .tab-section {
   display: none;
 }
 
-.tab-section.active {
-  display: block;
-}
-
-/* =================== Tables =================== */
-table {
+#botsTable {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
-  background-color: #1f1f1f;
-  border-radius: 12px;
-  overflow: hidden;
 }
 
-th, td {
-  padding: 12px 16px;
-  text-align: right;
-  border-bottom: 1px solid #333;
-}
-
-th {
-  background-color: #292929;
-  color: #f5a623;
-}
-
-tr:hover {
-  background-color: #2e2e2e;
-}
-
-tr.selected {
-  background-color: #2e2e2e !important;
-}
-
-/* =================== Forms =================== */
-input, select {
-  width: 100%;
+#botsTable th, #botsTable td {
+  border: 1px solid #ccc;
   padding: 10px;
-  margin-bottom: 12px;
-  border: none;
-  border-radius: 8px;
-  background-color: #2e2e2e;
-  color: white;
-}
-
-button[type="submit"] {
-  background-color: #f5a623;
-  color: #000;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-button[type="submit"]:hover {
-  background-color: #ffb347;
-}
-
-/* =================== Error Message =================== */
-.error {
-  color: #ff6b6b;
   text-align: center;
 }
 
-/* =================== Responsive =================== */
-@media (max-width: 768px) {
-  .dashboard-nav {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-  }
+#botsTable tr.selected {
+  background-color: #ffeaa7;
+}
 
-  .dashboard-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+form input, form select, textarea {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+form button {
+  background-color: #00b894;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.success {
+  color: green;
+  font-weight: bold;
+  margin-top: 10px;
 }
