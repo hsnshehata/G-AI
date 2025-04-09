@@ -13,7 +13,7 @@ document.getElementById('facebookApiKey').addEventListener('input', e => {
 // تحميل البوتات
 async function fetchBots() {
   try {
-    const res = await fetch('/api/bots', {
+    const res = await fetch('/api/bots/create', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
