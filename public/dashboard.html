@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة التحكم</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="dashboard-header">
+    <h1>لوحة التحكم</h1>
+    <button onclick="logout()">تسجيل الخروج</button>
+  </header>
+
+  <nav class="dashboard-nav">
+    <button class="active-tab">البوتات</button>
+    <button>القواعد</button>
+    <button>س و ج</button>
+    <button>المنتجات والأسعار</button>
+    <button>ربط المتجر</button>
+  </nav>
+
+  <main class="dashboard-content" id="bots-section">
+    <div id="createBotContainer" style="display: none;">
+      <h2>إنشاء بوت جديد</h2>
+      <form id="createBotForm">
+        <input type="text" id="botName" placeholder="اسم البوت" required />
+
+        <label>ربط باسم مستخدم:</label>
+        <select id="existingUsersSelect">
+          <option value="">اختر مستخدم موجود</option>
+        </select>
+        <p>أو إنشاء مستخدم جديد:</p>
+        <input type="text" id="newUsername" placeholder="اسم مستخدم جديد" />
+        <input type="password" id="newPassword" placeholder="كلمة المرور" />
+
+        <input type="text" id="openaiKey" placeholder="OpenAI API Key (اختياري)" />
+        <input type="text" id="facebookApiKey" placeholder="Facebook API Key (اختياري)" />
+
+        <div id="pageIdContainer" style="display: none;">
+          <input type="text" id="pageId" placeholder="معرّف صفحة فيسبوك" />
+        </div>
+
+        <button type="submit">إنشاء</button>
+        <p class="error" id="createBotError"></p>
+      </form>
+    </div>
+
+    <div class="bots-list">
+      <h2>البوتات الخاصة بك</h2>
+      <table id="botsTable">
+        <thead>
+          <tr>
+            <th>اسم البوت</th>
+            <th>اسم المستخدم</th>
+            <th>تحكم</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="3">جاري التحميل...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="js/dashboard.js"></script>
+  <script src="js/bots.js"></script>
+</body>
+</html>
