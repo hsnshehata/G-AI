@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn(`Tab with ID ${tabId} not found in the DOM`);
       const mainContent = document.getElementById("main-content");
       if (mainContent) {
-        mainContent.innerHTML = `<p class="text">القسم "${tabId}" غير موجود.</p>`;
+        mainContent.innerHTML = `<p class="text">القسم \"${tabId}\" غير موجود.</p>`;
       }
       return;
     }
@@ -89,14 +89,14 @@ document.addEventListener('DOMContentLoaded', () => {
       loginSection.style.display = "none";
       dashboardSection.style.display = "block";
 
-const lastTab = localStorage.getItem("currentTab") || "bots";
-setTimeout(() => {
-  if (document.getElementById(lastTab)) {
-    showTab(lastTab);
-  } else {
-    console.warn(`التبويب "${lastTab}" غير موجود حاليًا`);
-  }
-}, 100); // ندي فرصة لعناصر DOM تظهر
+      const lastTab = localStorage.getItem("currentTab") || "bots";
+      setTimeout(() => {
+        if (document.getElementById(lastTab)) {
+          showTab(lastTab);
+        } else {
+          console.warn(`التبويب \"${lastTab}\" غير موجود حاليًا`);
+        }
+      }, 100);
 
     } catch (err) {
       loginError.textContent = "حدث خطأ أثناء تسجيل الدخول";
