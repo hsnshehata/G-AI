@@ -2,11 +2,13 @@ const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 const botsTable = document.querySelector('#botsTable tbody');
 const createBotError = document.getElementById('createBotError');
+let editingBotId = null;
 
 // إظهار النموذج عند الضغط على الزر
 document.getElementById('showBotForm')?.addEventListener('click', () => {
   const form = document.getElementById('createBotForm');
   form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  resetForm(); // كل مرة بنفتحه نرجع الوضع الطبيعي
 });
 
 // إظهار حقل معرف الصفحة عند إدخال Facebook API Key
@@ -23,6 +25,7 @@ async function loadUsersList() {
 
     const users = await res.json();
     const select = document.getElementById('existingUsersSelect');
+    select.innerHTML = '<option value="">اختر مستخدم موجود</option>';
 
     users.forEach(user => {
       const option = document.createElement('option');
@@ -56,13 +59,12 @@ async function fetchBots() {
         <td>${bot.name}</td>
         <td>${bot.username || 'غير معروف'}</td>
         <td>
-          <button onclick="editBot('${bot._id}')">✏️</button>
+          <button onclick="editBot('${bot._id}', '${bot.name}', '${bot.username}')">✏️</button>
           <button onclick="deleteBot('${bot._id}')">🗑️</button>
         </td>
       `;
 
       row.style.cursor = 'pointer';
-
       row.addEventListener('click', () => {
         document.querySelectorAll('#botsTable tr').forEach(r => r.classList.remove('selected'));
         row.classList.add('selected');
@@ -75,7 +77,7 @@ async function fetchBots() {
   }
 }
 
-// إرسال البيانات لإنشاء بوت جديد
+// إرسال البيانات (إنشاء أو تعديل)
 document.getElementById('createBotForm')?.addEventListener('submit', async e => {
   e.preventDefault();
 
@@ -109,9 +111,12 @@ document.getElementById('createBotForm')?.addEventListener('submit', async e => 
     pageId
   };
 
+  const url = editingBotId ? `/api/bots/${editingBotId}` : '/api/bots/create';
+  const method = editingBotId ? 'PUT' : 'POST';
+
   try {
-    const res = await fetch('/api/bots/create', {
-      method: 'POST',
+    const res = await fetch(url, {
+      method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
@@ -122,20 +127,17 @@ document.getElementById('createBotForm')?.addEventListener('submit', async e => 
     const result = await res.json();
 
     if (res.ok) {
-      createBotError.textContent = '';
-      document.getElementById('createBotForm').reset();
-      document.getElementById('createBotForm').style.display = 'none';
-      document.getElementById('pageIdContainer').style.display = 'none';
-      fetchBots(); // إعادة تحميل البوتات
+      resetForm();
+      fetchBots();
     } else {
-      createBotError.textContent = result.error || 'فشل في إنشاء البوت';
+      createBotError.textContent = result.error || 'فشل في إرسال البيانات';
     }
   } catch (err) {
     createBotError.textContent = 'حدث خطأ أثناء إرسال البيانات';
   }
 });
 
-// تحميل البوتات + إظهار الزر فقط إذا كان أدمن
+// تهيئة التبويب
 function loadBotsTab() {
   if (role === 'admin') {
     document.getElementById('createBotContainer').style.display = 'block';
@@ -149,13 +151,38 @@ function loadBotsTab() {
 
 window.loadBotsTab = loadBotsTab;
 
-// placeholder لتعديل وحذف البوت
-function editBot(botId) {
-  alert('تعديل البوت قادم... ID: ' + botId);
+// تفعيل زر تعديل البوت
+function editBot(botId, botName, username) {
+  editingBotId = botId;
+
+  document.getElementById('botName').value = botName;
+  document.getElementById('existingUsersSelect').value = username;
+  document.getElementById('createBotForm').style.display = 'block';
+  document.querySelector('#createBotForm button[type="submit"]').textContent = 'تحديث';
 }
 
+// تفعيل زر حذف البوت
 function deleteBot(botId) {
-  if (confirm('هل أنت متأكد أنك تريد حذف هذا البوت؟')) {
-    alert('الحذف سيتم تنفيذه لاحقًا... ID: ' + botId);
-  }
+  if (!confirm('هل تريد حذف هذا البوت نهائيًا؟')) return;
+
+  fetch(`/api/bots/${botId}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+    .then(res => res.json())
+    .then(() => fetchBots())
+    .catch(err => {
+      console.error('خطأ أثناء الحذف:', err);
+      alert('فشل في الحذف');
+    });
+}
+
+// إعادة تعيين النموذج
+function resetForm() {
+  document.getElementById('createBotForm').reset();
+  document.getElementById('createBotForm').style.display = 'none';
+  document.getElementById('pageIdContainer').style.display = 'none';
+  document.querySelector('#createBotForm button[type="submit"]').textContent = 'إنشاء';
+  editingBotId = null;
+  createBotError.textContent = '';
 }
