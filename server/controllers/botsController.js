@@ -1,11 +1,12 @@
 const Bot = require('../models/Bot');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto'); // لتوليد pageId عشوائي
 
 const createBot = async (req, res) => {
   let { name, username, password, fbToken, pageId, openaiKey } = req.body;
 
-  // ✅ تصحيح قيمة pageId لو كانت null أو string فاضي
+  // لو pageId فاضي، نخليه undefined عشان نتحكم فيه
   if (!pageId || pageId === 'null' || pageId.trim() === '') {
     pageId = undefined;
   }
@@ -22,21 +23,26 @@ const createBot = async (req, res) => {
       if (!password) return res.status(400).json({ error: 'كلمة المرور مطلوبة' });
 
       const hashedPass = await bcrypt.hash(password, 10);
-      const newUserData = { username, password: hashedPass };
 
-      if (pageId) {
-        newUserData.pageId = pageId;
-      }
+      // ✅ توليد pageId مؤقت عشوائي
+      const fakePageId = pageId || crypto.randomUUID();
+
+      const newUserData = {
+        username,
+        password: hashedPass,
+        pageId: fakePageId
+      };
 
       user = new User(newUserData);
       await user.save();
     }
 
+    // إعداد بيانات البوت
     const newBotData = {
       name,
       userId: user._id,
-      fbToken,
-      openaiKey
+      fbToken: fbToken || null,
+      openaiKey: openaiKey || null
     };
 
     if (pageId) {
@@ -47,6 +53,7 @@ const createBot = async (req, res) => {
     await newBot.save();
 
     res.status(201).json(newBot);
+
   } catch (err) {
     console.error('خطأ في إنشاء البوت:', err);
     res.status(500).json({ error: 'فشل في إنشاء البوت' });
