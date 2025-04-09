@@ -1,15 +1,6 @@
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 
-const botsTable = document.querySelector('#botsTable tbody');
-const createBotForm = document.getElementById('createBotForm');
-const createBotError = document.getElementById('createBotError');
-
-// عرض معرف الصفحة عند إدخال Facebook API Key
-document.getElementById('facebookApiKey').addEventListener('input', e => {
-  document.getElementById('pageIdContainer').style.display = e.target.value.trim() ? 'block' : 'none';
-});
-
 // تحميل البوتات
 async function fetchBots() {
   try {
@@ -18,7 +9,9 @@ async function fetchBots() {
     });
     const data = await res.json();
 
+    const botsTable = document.querySelector('#botsTable tbody');
     botsTable.innerHTML = '';
+
     if (data.length === 0) {
       botsTable.innerHTML = '<tr><td colspan="3">لا توجد بوتات بعد</td></tr>';
       return;
@@ -34,12 +27,38 @@ async function fetchBots() {
       botsTable.appendChild(row);
     });
   } catch (err) {
-    botsTable.innerHTML = '<tr><td colspan="3">خطأ في تحميل البوتات ❌</td></tr>';
+    console.error('فشل تحميل البوتات:', err);
   }
 }
 
-// إرسال طلب إنشاء بوت
-createBotForm?.addEventListener('submit', async e => {
+// تحميل المستخدمين لقائمة الاختيار
+async function loadUsersList() {
+  try {
+    const res = await fetch('/api/users', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const users = await res.json();
+    const select = document.getElementById('existingUsersSelect');
+
+    users.forEach(user => {
+      const option = document.createElement('option');
+      option.value = user.username;
+      option.textContent = user.username;
+      select.appendChild(option);
+    });
+  } catch (err) {
+    console.error('فشل تحميل المستخدمين:', err);
+  }
+}
+
+// عند إدخال Facebook API Key → أظهر حقل Page ID
+document.getElementById('facebookApiKey')?.addEventListener('input', e => {
+  document.getElementById('pageIdContainer').style.display = e.target.value.trim() ? 'block' : 'none';
+});
+
+// إنشاء بوت جديد
+document.getElementById('createBotForm')?.addEventListener('submit', async e => {
   e.preventDefault();
 
   const botName = document.getElementById('botName').value.trim();
@@ -49,6 +68,7 @@ createBotForm?.addEventListener('submit', async e => {
   const openaiKey = document.getElementById('openaiKey').value.trim();
   const facebookApiKey = document.getElementById('facebookApiKey').value.trim();
   const pageId = document.getElementById('pageId').value.trim();
+  const errorEl = document.getElementById('createBotError');
 
   let usernameToSend = '';
   let passwordToSend = '';
@@ -59,7 +79,7 @@ createBotForm?.addEventListener('submit', async e => {
     usernameToSend = newUsername;
     passwordToSend = newPassword;
   } else {
-    createBotError.textContent = 'يجب اختيار مستخدم موجود أو إدخال اسم مستخدم وكلمة مرور جديدة.';
+    errorEl.textContent = 'اختر مستخدم أو أنشئ واحدًا جديدًا';
     return;
   }
 
@@ -85,16 +105,25 @@ createBotForm?.addEventListener('submit', async e => {
     const result = await res.json();
 
     if (res.ok) {
-      createBotError.textContent = '';
-      fetchBots(); // تحديث الجدول
-      createBotForm.reset();
+      errorEl.textContent = '';
+      document.getElementById('createBotForm').reset();
       document.getElementById('pageIdContainer').style.display = 'none';
+      fetchBots(); // تحديث
     } else {
-      createBotError.textContent = result.error || 'فشل في إنشاء البوت';
+      errorEl.textContent = result.error || 'فشل في إنشاء البوت';
     }
   } catch (err) {
-    createBotError.textContent = 'حدث خطأ في الاتصال بالسيرفر';
+    errorEl.textContent = 'حدث خطأ أثناء إرسال البيانات';
   }
 });
 
-fetchBots();
+function initBotsTab() {
+  if (role === 'admin') {
+    document.getElementById('createBotContainer').style.display = 'block';
+    loadUsersList();
+  }
+  fetchBots();
+}
+
+// استدعاء داخل dashboard.js عند التبويب
+window.loadBotsTab = initBotsTab;
