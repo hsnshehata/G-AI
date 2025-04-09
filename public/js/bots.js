@@ -1,17 +1,18 @@
 const botsTable = document.querySelector('#botsTable tbody');
 const createBotError = document.getElementById('createBotError');
 
-// إظهار النموذج
+// زرار إظهار النموذج
 document.getElementById('showBotForm')?.addEventListener('click', () => {
   const form = document.getElementById('createBotForm');
   form.style.display = form.style.display === 'none' ? 'block' : 'none';
 });
 
+// إظهار خانة الـ Page ID عند إدخال Facebook API Key
 document.getElementById('facebookApiKey')?.addEventListener('input', e => {
   document.getElementById('pageIdContainer').style.display = e.target.value.trim() ? 'block' : 'none';
 });
 
-// تحميل المستخدمين
+// تحميل المستخدمين لاستخدامهم في الربط
 async function loadUsersList() {
   try {
     const res = await fetch('/api/users', {
@@ -19,6 +20,7 @@ async function loadUsersList() {
     });
     const users = await res.json();
     const select = document.getElementById('existingUsersSelect');
+    select.innerHTML = '<option value="">اختر مستخدم موجود</option>';
 
     users.forEach(user => {
       const option = document.createElement('option');
@@ -31,7 +33,7 @@ async function loadUsersList() {
   }
 }
 
-// تحميل البوتات
+// تحميل البوتات وعرضها
 async function fetchBots() {
   try {
     const res = await fetch('/api/bots', {
@@ -56,8 +58,8 @@ async function fetchBots() {
           <button onclick="deleteBot('${bot._id}')">🗑️</button>
         </td>
       `;
-      row.style.cursor = 'pointer';
 
+      row.style.cursor = 'pointer';
       row.addEventListener('click', () => {
         document.querySelectorAll('#botsTable tr').forEach(r => r.classList.remove('selected'));
         row.classList.add('selected');
@@ -69,6 +71,7 @@ async function fetchBots() {
     });
   } catch (err) {
     botsTable.innerHTML = '<tr><td colspan="3">حدث خطأ أثناء تحميل البوتات ❌</td></tr>';
+    console.error(err);
   }
 }
 
@@ -121,25 +124,30 @@ document.getElementById('createBotForm')?.addEventListener('submit', async e => 
     if (res.ok) {
       createBotError.textContent = '';
       document.getElementById('createBotForm').reset();
+      document.getElementById('createBotForm').style.display = 'none';
+      document.getElementById('pageIdContainer').style.display = 'none';
       fetchBots();
     } else {
-      createBotError.textContent = result.error || 'فشل إنشاء البوت';
+      createBotError.textContent = result.error || 'فشل في إنشاء البوت';
     }
   } catch (err) {
-    createBotError.textContent = 'حدث خطأ أثناء الإرسال';
+    createBotError.textContent = 'حدث خطأ أثناء إرسال البيانات';
+    console.error(err);
   }
 });
 
+// الدوال التفاعلية
 function editBot(botId) {
-  alert(`تعديل قادم للبوت ID: ${botId}`);
+  alert('تعديل البوت قادم... ID: ' + botId);
 }
 
 function deleteBot(botId) {
-  if (confirm('هل تريد حذف البوت؟')) {
-    alert(`الحذف قادم للبوت ID: ${botId}`);
+  if (confirm('هل أنت متأكد أنك تريد حذف هذا البوت؟')) {
+    alert('الحذف سيتم تنفيذه لاحقًا... ID: ' + botId);
   }
 }
 
+// تحميل تبويب البوتات
 function loadBotsTab() {
   if (role === 'admin') {
     document.getElementById('createBotContainer').style.display = 'block';
