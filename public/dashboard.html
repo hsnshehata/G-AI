@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>لوحة التحكم - G-AI</title>
+  <title>G-AI | لوحة التحكم</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -15,36 +15,70 @@
 
   <nav class="dashboard-nav">
     <button class="active-tab" onclick="switchTab('bots')">البوتات</button>
-    <button onclick="switchTab('rules')">القواعد</button> <!-- ✅ تبويب جديد -->
+    <button onclick="switchTab('rules')">القواعد النصية</button>
   </nav>
 
   <main class="dashboard-content">
-    <!-- ✅ تبويب البوتات (بدون تغيير) -->
+
+    <!-- تبويب البوتات -->
     <section id="bots" class="tab-section">
-      <!-- ... نفس المحتوى اللي راجعناه قبل كده ... -->
+      <div id="createBotContainer" style="display: none;">
+        <button id="showBotForm">+ إنشاء بوت جديد</button>
+
+        <form id="createBotForm" style="display: none; margin-top: 20px;">
+          <input type="text" id="botName" placeholder="اسم البوت" required />
+          
+          <label>ربط باسم مستخدم:</label>
+          <select id="existingUsersSelect">
+            <option value="">اختر مستخدم موجود</option>
+          </select>
+
+          <p>أو إنشاء مستخدم جديد:</p>
+          <input type="text" id="newUsername" placeholder="اسم مستخدم جديد" />
+          <input type="password" id="newPassword" placeholder="كلمة المرور" />
+
+          <input type="text" id="openaiKey" placeholder="OpenAI API Key (اختياري)" />
+          <input type="text" id="facebookApiKey" placeholder="Facebook API Key (اختياري)" />
+
+          <div id="pageIdContainer" style="display: none;">
+            <input type="text" id="pageId" placeholder="معرّف صفحة فيسبوك" />
+          </div>
+
+          <button type="submit">إنشاء</button>
+          <p class="error" id="createBotError"></p>
+        </form>
+      </div>
+
+      <div class="bots-list">
+        <h2>البوتات الخاصة بك</h2>
+        <table id="botsTable">
+          <thead>
+            <tr>
+              <th>اسم البوت</th>
+              <th>اسم المستخدم</th>
+              <th>تحكم</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="3">جاري التحميل...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
-    <!-- ✅ تبويب القواعد -->
+    <!-- تبويب القواعد -->
     <section id="rules" class="tab-section" style="display: none;">
-      <div class="rules-tabs">
-        <button class="active-subtab" onclick="switchRulesTab('text')">قواعد نصية</button>
-        <!-- هنضيف الباقي لاحقًا -->
-      </div>
-
-      <div id="rulesContent">
-        <!-- المحتوى الديناميكي لكل تبويب هيتم تحميله هنا -->
-        <div id="rules-text-tab" class="rules-tab-content">
-          <h2>قواعد نصية</h2>
-          <textarea id="textRulesInput" placeholder="اكتب كل قاعدة في سطر منفصل..." rows="6" style="width: 100%;"></textarea>
-          <button onclick="saveTextRules()">💾 حفظ القواعد</button>
-          <div id="textRulesList"></div>
-        </div>
-      </div>
+      <h2>القواعد النصية للبوت المحدد</h2>
+      <textarea id="textRules" rows="10" style="width: 100%; margin-bottom: 10px;" placeholder="اكتب كل قاعدة في سطر منفصل..."></textarea>
+      <button id="saveTextRules" onclick="saveTextRules()">💾 حفظ القواعد</button>
+      <p class="error" id="rulesError"></p>
+      <p class="success" id="rulesSuccess"></p>
     </section>
+
   </main>
 
   <script src="js/dashboard.js"></script>
   <script src="js/bots.js"></script>
-  <script src="js/rules.js"></script> <!-- ✅ سكريبت القواعد الجديد -->
+  <script src="js/rules.js"></script>
 </body>
 </html>
