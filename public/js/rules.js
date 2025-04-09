@@ -1,5 +1,4 @@
-// نحافظ على تعريف token و role في ملف واحد فقط (هنا مثلاً)
-const selectedBotId = localStorage.getItem('selectedBotId');
+// لاحظ: بدون تعريف token أو role هنا
 
 // تبويبات القواعد
 function switchRulesTab(tab) {
