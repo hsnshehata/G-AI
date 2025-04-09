@@ -21,7 +21,51 @@
   </nav>
 
   <main class="dashboard-content">
-    <section id="bots" class="tab-section">جارٍ تحميل البوتات...</section>
+    <section id="bots" class="tab-section">
+      <!-- إضافة نموذج إنشاء البوت -->
+      <div id="createBotContainer" style="display: none;">
+        <h2>إنشاء بوت جديد</h2>
+        <form id="createBotForm">
+          <input type="text" id="botName" placeholder="اسم البوت" required />
+
+          <label>ربط باسم مستخدم:</label>
+          <select id="existingUsersSelect">
+            <option value="">اختر مستخدم موجود</option>
+          </select>
+
+          <p>أو إنشاء مستخدم جديد:</p>
+          <input type="text" id="newUsername" placeholder="اسم مستخدم جديد" />
+          <input type="password" id="newPassword" placeholder="كلمة المرور" />
+
+          <input type="text" id="openaiKey" placeholder="OpenAI API Key (اختياري)" />
+          <input type="text" id="facebookApiKey" placeholder="Facebook API Key (اختياري)" />
+
+          <div id="pageIdContainer" style="display: none;">
+            <input type="text" id="pageId" placeholder="معرّف صفحة فيسبوك" />
+          </div>
+
+          <button type="submit">إنشاء</button>
+          <p class="error" id="createBotError"></p>
+        </form>
+      </div>
+
+      <!-- قائمة البوتات -->
+      <div class="bots-list">
+        <h2>البوتات الخاصة بك</h2>
+        <table id="botsTable">
+          <thead>
+            <tr>
+              <th>اسم البوت</th>
+              <th>اسم المستخدم</th>
+              <th>تحكم</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="3">جاري التحميل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <section id="rules" class="tab-section" style="display:none;">القواعد هنا</section>
     <section id="stats" class="tab-section" style="display:none;">الإحصائيات هنا</section>
     <section id="faq" class="tab-section" style="display:none;">الأسئلة الشائعة هنا</section>
