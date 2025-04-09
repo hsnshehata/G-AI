@@ -1,6 +1,4 @@
 // نحافظ على تعريف token و role في ملف واحد فقط (هنا مثلاً)
-const token = localStorage.getItem('token');
-const role = localStorage.getItem('role');
 const selectedBotId = localStorage.getItem('selectedBotId');
 
 // تبويبات القواعد
