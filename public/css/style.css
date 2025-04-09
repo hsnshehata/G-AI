@@ -54,3 +54,56 @@ button:hover {
   color: #ff6b6b;
   text-align: center;
 }
+
+.dashboard-header {
+  background-color: #1e1e1e;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 20px;
+  color: #f5a623;
+}
+
+.dashboard-header button {
+  background: #ff4c4c;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.dashboard-nav {
+  background-color: #2a2a2a;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.dashboard-nav button {
+  background: #444;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dashboard-nav .active-tab {
+  background-color: #f5a623;
+  color: #000;
+}
+
+.dashboard-content {
+  padding: 20px;
+}
+
+.tab-section {
+  display: none;
+}
