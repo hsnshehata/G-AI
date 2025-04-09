@@ -1,73 +1,51 @@
-const Bot = require('../models/Bot');
-
 const createBot = async (req, res) => {
   try {
     const { name, username, password, fbToken, pageId, openaiKey } = req.body;
 
-    if (!name || !username || !password) {
-      return res.status(400).json({ error: 'يرجى إدخال جميع الحقول المطلوبة' });
+    if (!name || !username) {
+      return res.status(400).json({ error: 'اسم البوت واسم المستخدم مطلوبان' });
     }
 
-    const exists = await Bot.findOne({ username });
-    if (exists) {
-      return res.status(409).json({ error: 'اسم المستخدم موجود بالفعل' });
+    const existingUser = await User.findOne({ username });
+
+    let userId;
+
+    if (existingUser) {
+      const botExists = await Bot.findOne({ userId: existingUser._id });
+
+      if (botExists) {
+        return res.status(409).json({ error: 'يوجد بالفعل بوت مربوط بهذا المستخدم' });
+      }
+
+      userId = existingUser._id;
+    } else {
+      if (!password) {
+        return res.status(400).json({ error: 'كلمة المرور مطلوبة لإنشاء مستخدم جديد' });
+      }
+
+      const newUser = new User({
+        username,
+        password: await bcrypt.hash(password, 10),
+        role: 'user'
+      });
+
+      await newUser.save();
+      userId = newUser._id;
     }
 
-    const bot = new Bot({ name, username, password, fbToken, pageId, openaiKey });
-    await bot.save();
-    res.status(201).json({ message: 'تم إنشاء البوت بنجاح', bot });
+    const newBot = new Bot({
+      name,
+      userId,
+      fbToken,
+      pageId,
+      openaiKey
+    });
 
-  } catch (err) {
-    console.error('❌ خطأ في إنشاء البوت:', err);
-    res.status(500).json({ error: 'فشل في إنشاء البوت' });
+    await newBot.save();
+
+    res.status(201).json(newBot);
+  } catch (error) {
+    console.error('Error creating bot:', error);
+    res.status(500).json({ error: 'حدث خطأ أثناء إنشاء البوت' });
   }
-};
-
-const listBots = async (req, res) => {
-  try {
-    const { role, username } = req.user;
-
-    const bots = role === 'admin'
-      ? await Bot.find().sort({ createdAt: -1 })
-      : await Bot.find({ username }).sort({ createdAt: -1 });
-
-    res.json(bots);
-  } catch (err) {
-    console.error('❌ خطأ في جلب البوتات:', err);
-    res.status(500).json({ error: 'فشل في تحميل البوتات' });
-  }
-};
-
-const getBotById = async (req, res) => {
-  try {
-    const bot = await Bot.findById(req.params.id);
-    if (!bot) {
-      return res.status(404).json({ error: 'البوت غير موجود' });
-    }
-    res.json(bot);
-  } catch (err) {
-    console.error('❌ خطأ في جلب بيانات البوت:', err);
-    res.status(500).json({ error: 'فشل في جلب بيانات البوت' });
-  }
-};
-
-const updateBot = async (req, res) => {
-  try {
-    const bot = await Bot.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!bot) {
-      return res.status(404).json({ error: 'البوت غير موجود' });
-    }
-
-    res.json({ message: 'تم التحديث بنجاح', bot });
-  } catch (err) {
-    console.error('❌ خطأ في تحديث البوت:', err);
-    res.status(500).json({ error: 'فشل في تحديث البوت' });
-  }
-};
-
-module.exports = {
-  createBot,
-  listBots,
-  getBotById,
-  updateBot
 };
