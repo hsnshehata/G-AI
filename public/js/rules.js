@@ -1,114 +1,72 @@
-// لاحظ: بدون تعريف token أو role هنا
+const rulesTextarea = document.getElementById('textRules');
+const saveBtn = document.getElementById('saveTextRules');
+const rulesError = document.getElementById('rulesError');
+const rulesSuccess = document.getElementById('rulesSuccess');
 
-// تبويبات القواعد
-function switchRulesTab(tab) {
-  document.querySelectorAll('.rules-tab-content').forEach(el => el.style.display = 'none');
-  document.getElementById(`rules-${tab}-tab`).style.display = 'block';
-
-  document.querySelectorAll('.rules-tabs button').forEach(btn => btn.classList.remove('active-subtab'));
-  document.querySelector(`.rules-tabs button[onclick="switchRulesTab('${tab}')"]`)?.classList.add('active-subtab');
-}
-
-// تحميل تبويب القواعد عند الفتح
-function loadRulesTab() {
-  if (!selectedBotId) {
-    document.getElementById('rulesContent').innerHTML = '<p>يرجى اختيار بوت لعرض القواعد الخاصة به.</p>';
+async function loadRulesTab() {
+  const botId = localStorage.getItem('selectedBotId');
+  if (!botId) {
+    rulesError.textContent = 'يرجى تحديد بوت أولاً.';
+    rulesTextarea.value = '';
     return;
   }
 
-  switchRulesTab('text');
-  loadTextRules();
-}
-
-// تحميل القواعد النصية
-async function loadTextRules() {
-  const listContainer = document.getElementById('textRulesList');
-  listContainer.innerHTML = '...جارٍ التحميل';
-
   try {
-    const res = await fetch(`/api/rules?botId=${selectedBotId}&type=text`, {
+    const res = await fetch(`/api/rules/text/${botId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    const rules = await res.json();
-    listContainer.innerHTML = '';
+    const result = await res.json();
 
-    if (!rules.length) {
-      listContainer.innerHTML = '<p>لا توجد قواعد نصية حالياً.</p>';
-      return;
+    if (res.ok) {
+      rulesTextarea.value = result.rules || '';
+      rulesError.textContent = '';
+    } else {
+      rulesTextarea.value = '';
+      rulesError.textContent = result.error || 'فشل تحميل القواعد.';
     }
-
-    const ul = document.createElement('ul');
-    rules.forEach(rule => {
-      const li = document.createElement('li');
-      li.textContent = rule.text;
-      const del = document.createElement('button');
-      del.textContent = '🗑️';
-      del.style.marginRight = '10px';
-      del.onclick = () => deleteRule(rule._id, 'text');
-      li.appendChild(del);
-      ul.appendChild(li);
-    });
-
-    listContainer.appendChild(ul);
   } catch (err) {
-    listContainer.innerHTML = '<p>حدث خطأ أثناء تحميل القواعد النصية ❌</p>';
+    rulesTextarea.value = '';
+    rulesError.textContent = 'خطأ في الاتصال بالسيرفر.';
     console.error(err);
   }
 }
 
-// حفظ القواعد النصية الجديدة
 async function saveTextRules() {
-  const textarea = document.getElementById('textRulesInput');
-  const lines = textarea.value.split('\n').map(line => line.trim()).filter(Boolean);
+  const botId = localStorage.getItem('selectedBotId');
+  const rules = rulesTextarea.value.trim();
 
-  if (!lines.length) return alert('يرجى إدخال قاعدة واحدة على الأقل');
-
-  try {
-    const savePromises = lines.map(text =>
-      fetch('/api/rules', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          type: 'text',
-          botId: selectedBotId,
-          text
-        })
-      })
-    );
-
-    await Promise.all(savePromises);
-    textarea.value = '';
-    loadTextRules();
-  } catch (err) {
-    alert('حدث خطأ أثناء حفظ القواعد');
-    console.error(err);
+  if (!botId) {
+    rulesError.textContent = 'لا يوجد بوت محدد.';
+    return;
   }
-}
-
-// حذف قاعدة
-async function deleteRule(id, type) {
-  if (!confirm('هل تريد حذف هذه القاعدة؟')) return;
 
   try {
-    await fetch(`/api/rules/${id}`, {
-      method: 'DELETE',
+    const res = await fetch(`/api/rules/text/${botId}`, {
+      method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
-      }
+      },
+      body: JSON.stringify({ rules })
     });
 
-    if (type === 'text') loadTextRules();
+    const result = await res.json();
+
+    if (res.ok) {
+      rulesSuccess.textContent = '✅ تم حفظ القواعد بنجاح';
+      rulesError.textContent = '';
+      setTimeout(() => {
+        rulesSuccess.textContent = '';
+      }, 3000);
+    } else {
+      rulesError.textContent = result.error || 'فشل حفظ القواعد.';
+    }
   } catch (err) {
-    alert('حدث خطأ أثناء الحذف');
+    rulesError.textContent = 'حدث خطأ أثناء الحفظ.';
     console.error(err);
   }
 }
 
-// تحميل التبويب عند التبديل
 window.loadRulesTab = loadRulesTab;
 window.saveTextRules = saveTextRules;
-window.switchRulesTab = switchRulesTab;
