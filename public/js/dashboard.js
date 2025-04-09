@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const dashboardSection = document.getElementById("dashboard-section");
   const topTabs = document.querySelector(".top-tabs");
   const loginError = document.getElementById("login-error");
-  const tabButtons = document.querySelectorAll("[data-tab]");
   const tabContents = document.querySelectorAll(".tab-section");
 
   if (!loginSection || !dashboardSection) {
@@ -35,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn(`Tab with ID ${tabId} not found in the DOM`);
       const mainContent = document.getElementById("main-content");
       if (mainContent) {
-        mainContent.innerHTML = `<p class="text">القسم \"${tabId}\" غير موجود.</p>`;
+        mainContent.innerHTML = `<p class="text">القسم "${tabId}" غير موجود.</p>`;
       }
       return;
     }
@@ -54,9 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    tabButtons.forEach(button => {
-      button.classList.remove("active");
-      if (button.dataset.tab === tabId) button.classList.add("active");
+    // تفعيل الزر النشط
+    const allButtons = document.querySelectorAll("[data-tab]");
+    allButtons.forEach(button => {
+      button.classList.toggle("active", button.dataset.tab === tabId);
     });
   }
 
@@ -90,43 +90,42 @@ document.addEventListener('DOMContentLoaded', () => {
       dashboardSection.style.display = "block";
 
       const lastTab = localStorage.getItem("currentTab") || "bots";
-      setTimeout(() => {
-        if (document.getElementById(lastTab)) {
-          showTab(lastTab);
-        } else {
-          console.warn(`التبويب \"${lastTab}\" غير موجود حاليًا`);
-        }
-      }, 100);
+      setTimeout(() => showTab(lastTab), 100);
 
     } catch (err) {
+      console.error(err);
       loginError.textContent = "حدث خطأ أثناء تسجيل الدخول";
     }
   });
 
+  // تسجيل الخروج
   logoutBtn.addEventListener("click", () => {
     localStorage.clear();
     location.reload();
   });
 
+  // إخفاء التبويبات عند التمرير
   window.addEventListener("scroll", () => {
     const currentScroll = window.pageYOffset;
     topTabs.style.top = currentScroll > 10 ? "-60px" : "0";
   });
 
-  tabButtons.forEach(button => {
-    button.addEventListener("click", () => {
+  // التعامل مع جميع أزرار التبويبات (أعلى وأسفل)
+  document.addEventListener("click", (e) => {
+    const button = e.target.closest("[data-tab]");
+    if (button) {
       const target = button.dataset.tab;
       showTab(target);
-    });
+    }
   });
 
-  // تحقق من دخول محفوظ
+  // تحقق من وجود دخول محفوظ
   const savedRole = localStorage.getItem("role");
   const savedToken = localStorage.getItem("token");
   if (savedRole && savedToken) {
     loginSection.style.display = "none";
     dashboardSection.style.display = "block";
     const lastTab = localStorage.getItem("currentTab") || "bots";
-    if (document.getElementById(lastTab)) showTab(lastTab);
+    showTab(lastTab);
   }
 });
