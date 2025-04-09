@@ -1,6 +1,12 @@
 window.addEventListener('DOMContentLoaded', () => {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
+  const selectedBotId = localStorage.getItem('selectedBotId');
+
+  // نعرّفهم بشكل عام على window علشان باقي الملفات تشوفهم
+  window.token = token;
+  window.role = role;
+  window.selectedBotId = selectedBotId;
 
   if (!token) {
     window.location.href = 'index.html';
