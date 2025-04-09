@@ -1,1 +1,21 @@
-
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تسجيل الدخول - G-AI</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="login-container">
+    <h1>تسجيل الدخول إلى G-AI</h1>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="اسم المستخدم" required />
+      <input type="password" id="password" placeholder="كلمة المرور" required />
+      <button type="submit">دخول</button>
+      <p id="loginError" class="error"></p>
+    </form>
+  </div>
+  <script src="js/auth.js"></script>
+</body>
+</html>
