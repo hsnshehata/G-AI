@@ -3,7 +3,12 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
 const createBot = async (req, res) => {
-  const { name, username, password, fbToken, pageId, openaiKey } = req.body;
+  let { name, username, password, fbToken, pageId, openaiKey } = req.body;
+
+  // ✅ تصحيح قيمة pageId لو كانت null أو string فاضي
+  if (!pageId || pageId === 'null' || pageId.trim() === '') {
+    pageId = undefined;
+  }
 
   try {
     let user = await User.findOne({ username });
@@ -15,10 +20,10 @@ const createBot = async (req, res) => {
       }
     } else {
       if (!password) return res.status(400).json({ error: 'كلمة المرور مطلوبة' });
+
       const hashedPass = await bcrypt.hash(password, 10);
       const newUserData = { username, password: hashedPass };
 
-      // ✅ إضافة pageId فقط لو تم إرساله
       if (pageId) {
         newUserData.pageId = pageId;
       }
@@ -27,7 +32,6 @@ const createBot = async (req, res) => {
       await user.save();
     }
 
-    // إعداد بيانات البوت
     const newBotData = {
       name,
       userId: user._id,
@@ -43,7 +47,6 @@ const createBot = async (req, res) => {
     await newBot.save();
 
     res.status(201).json(newBot);
-
   } catch (err) {
     console.error('خطأ في إنشاء البوت:', err);
     res.status(500).json({ error: 'فشل في إنشاء البوت' });
