@@ -1,27 +1,41 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
+
 const connectDB = require('./db');
 
+// استدعاء الراوتات
 const authRoutes = require('./routes/auth');
 const botRoutes = require('./routes/bots');
 const userRoutes = require('./routes/users');
 
+// تحميل المتغيرات من .env
 dotenv.config();
+
+// إنشاء السيرفر
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// الاتصال بقاعدة البيانات
+connectDB();
+
+// ميدل وير
 app.use(cors());
 app.use(express.json());
 
-connectDB();
+// 📂 ملفات الواجهة
+app.use(express.static(path.join(__dirname, '../public')));
 
+// 🔐 الراوتات الخاصة بالـ API
 app.use('/api/login', authRoutes);
 app.use('/api/bots', botRoutes);
 app.use('/api/users', userRoutes);
 
-app.get('/', (req, res) => {
-  res.send('🚀 G-AI Server is running...');
+// 🏠 أي مسار غير معروف → يرجّع صفحة تسجيل الدخول
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-app.listen(PORT, () => console.log(`✅ Server listening on port ${PORT}`));
+// 🚀 تشغيل السيرفر
+app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
