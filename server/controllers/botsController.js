@@ -38,6 +38,7 @@ const createBot = async (req, res) => {
     const newBotData = {
       name,
       userId: user._id,
+      username: user.username, // ✅ مهم جدًا عشان ما يبقاش null
       fbToken: fbToken || null,
       openaiKey: openaiKey || null
     };
