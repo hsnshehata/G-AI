@@ -1,5 +1,7 @@
 const botsTable = document.querySelector('#botsTable tbody');
 const createBotError = document.getElementById('createBotError');
+let botsList = [];
+let editingBotId = null;
 
 // زرار إظهار النموذج
 document.getElementById('showBotForm')?.addEventListener('click', () => {
@@ -12,7 +14,7 @@ document.getElementById('facebookApiKey')?.addEventListener('input', e => {
   document.getElementById('pageIdContainer').style.display = e.target.value.trim() ? 'block' : 'none';
 });
 
-// تحميل المستخدمين لاستخدامهم في الربط
+// تحميل المستخدمين
 async function loadUsersList() {
   try {
     const res = await fetch('/api/users', {
@@ -33,7 +35,7 @@ async function loadUsersList() {
   }
 }
 
-// تحميل البوتات وعرضها
+// تحميل البوتات
 async function fetchBots() {
   try {
     const res = await fetch('/api/bots', {
@@ -41,6 +43,7 @@ async function fetchBots() {
     });
 
     const bots = await res.json();
+    botsList = bots;
     botsTable.innerHTML = '';
 
     if (!bots.length) {
@@ -75,7 +78,7 @@ async function fetchBots() {
   }
 }
 
-// إنشاء بوت جديد
+// إرسال البيانات لإنشاء أو تعديل بوت
 document.getElementById('createBotForm')?.addEventListener('submit', async e => {
   e.preventDefault();
 
@@ -109,9 +112,12 @@ document.getElementById('createBotForm')?.addEventListener('submit', async e => 
     pageId
   };
 
+  const url = editingBotId ? `/api/bots/${editingBotId}` : '/api/bots/create';
+  const method = editingBotId ? 'PUT' : 'POST';
+
   try {
-    const res = await fetch('/api/bots/create', {
-      method: 'POST',
+    const res = await fetch(url, {
+      method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
@@ -126,9 +132,11 @@ document.getElementById('createBotForm')?.addEventListener('submit', async e => 
       document.getElementById('createBotForm').reset();
       document.getElementById('createBotForm').style.display = 'none';
       document.getElementById('pageIdContainer').style.display = 'none';
+      document.getElementById('showBotForm').textContent = '+ إنشاء بوت جديد';
+      editingBotId = null;
       fetchBots();
     } else {
-      createBotError.textContent = result.error || 'فشل في إنشاء البوت';
+      createBotError.textContent = result.error || 'فشل في حفظ التعديلات';
     }
   } catch (err) {
     createBotError.textContent = 'حدث خطأ أثناء إرسال البيانات';
@@ -136,14 +144,47 @@ document.getElementById('createBotForm')?.addEventListener('submit', async e => 
   }
 });
 
-// الدوال التفاعلية
+// تعبئة النموذج للتعديل
 function editBot(botId) {
-  alert('تعديل البوت قادم... ID: ' + botId);
+  const bot = botsList.find(b => b._id === botId);
+  if (!bot) return;
+
+  editingBotId = botId;
+  document.getElementById('botName').value = bot.name || '';
+  document.getElementById('existingUsersSelect').value = bot.username || '';
+  document.getElementById('newUsername').value = '';
+  document.getElementById('newPassword').value = '';
+  document.getElementById('openaiKey').value = bot.openaiKey || '';
+  document.getElementById('facebookApiKey').value = bot.fbToken || '';
+  document.getElementById('pageId').value = bot.pageId || '';
+  document.getElementById('pageIdContainer').style.display = bot.fbToken ? 'block' : 'none';
+
+  document.getElementById('createBotForm').style.display = 'block';
+  document.getElementById('showBotForm').textContent = 'تعديل البوت';
 }
 
-function deleteBot(botId) {
-  if (confirm('هل أنت متأكد أنك تريد حذف هذا البوت؟')) {
-    alert('الحذف سيتم تنفيذه لاحقًا... ID: ' + botId);
+// حذف البوت فعليًا
+async function deleteBot(botId) {
+  if (!confirm('هل أنت متأكد أنك تريد حذف هذا البوت؟')) return;
+
+  try {
+    const res = await fetch(`/api/bots/${botId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      fetchBots(); // إعادة تحميل القائمة بعد الحذف
+    } else {
+      alert(result.error || 'فشل في حذف البوت.');
+    }
+  } catch (err) {
+    console.error('خطأ أثناء الحذف:', err);
+    alert('حدث خطأ أثناء الحذف.');
   }
 }
 
