@@ -1,12 +1,12 @@
 const Bot = require('../models/Bot');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto'); // لتوليد pageId عشوائي
+const crypto = require('crypto');
 
+// إنشاء بوت جديد
 const createBot = async (req, res) => {
   let { name, username, password, fbToken, pageId, openaiKey } = req.body;
 
-  // لو pageId فاضي، نخليه undefined عشان نتحكم فيه
   if (!pageId || pageId === 'null' || pageId.trim() === '') {
     pageId = undefined;
   }
@@ -23,8 +23,6 @@ const createBot = async (req, res) => {
       if (!password) return res.status(400).json({ error: 'كلمة المرور مطلوبة' });
 
       const hashedPass = await bcrypt.hash(password, 10);
-
-      // ✅ توليد pageId مؤقت عشوائي
       const fakePageId = pageId || crypto.randomUUID();
 
       const newUserData = {
@@ -37,7 +35,6 @@ const createBot = async (req, res) => {
       await user.save();
     }
 
-    // إعداد بيانات البوت
     const newBotData = {
       name,
       userId: user._id,
@@ -53,13 +50,57 @@ const createBot = async (req, res) => {
     await newBot.save();
 
     res.status(201).json(newBot);
-
   } catch (err) {
     console.error('خطأ في إنشاء البوت:', err);
     res.status(500).json({ error: 'فشل في إنشاء البوت' });
   }
 };
 
+// تحديث بوت موجود
+const updateBot = async (req, res) => {
+  const { id } = req.params;
+  const { name, fbToken, openaiKey, pageId } = req.body;
+
+  try {
+    const updatedBot = await Bot.findByIdAndUpdate(
+      id,
+      {
+        name,
+        fbToken: fbToken || null,
+        openaiKey: openaiKey || null,
+        pageId: pageId || null
+      },
+      { new: true }
+    );
+
+    if (!updatedBot) {
+      return res.status(404).json({ error: 'البوت غير موجود' });
+    }
+
+    res.json(updatedBot);
+  } catch (err) {
+    console.error('خطأ في تحديث البوت:', err);
+    res.status(500).json({ error: 'فشل في تحديث البوت' });
+  }
+};
+
+// حذف بوت
+const deleteBot = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedBot = await Bot.findByIdAndDelete(id);
+    if (!deletedBot) {
+      return res.status(404).json({ error: 'البوت غير موجود' });
+    }
+    res.json({ message: 'تم حذف البوت بنجاح' });
+  } catch (err) {
+    console.error('خطأ في حذف البوت:', err);
+    res.status(500).json({ error: 'فشل في حذف البوت' });
+  }
+};
+
+// جلب كل البوتات
 const getBots = async (req, res) => {
   try {
     const role = req.user.role;
@@ -81,4 +122,9 @@ const getBots = async (req, res) => {
   }
 };
 
-module.exports = { createBot, getBots };
+module.exports = {
+  createBot,
+  getBots,
+  updateBot,
+  deleteBot
+};
