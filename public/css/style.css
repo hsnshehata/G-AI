@@ -3,64 +3,19 @@ body {
   font-family: 'Cairo', sans-serif;
   background-color: #121212;
   color: #f1f1f1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
   direction: rtl;
 }
 
-.login-container {
-  background: #1f1f1f;
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 0 20px rgba(255, 165, 0, 0.2);
-  width: 100%;
-  max-width: 400px;
-}
-
-.login-container h1 {
-  color: #f5a623;
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border: none;
-  border-radius: 8px;
-  background-color: #2e2e2e;
-  color: #fff;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  background-color: #f5a623;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background-color: #ffb347;
-}
-
-.error {
-  color: #ff6b6b;
-  text-align: center;
-}
-
+/* Header */
 .dashboard-header {
   background-color: #1e1e1e;
   padding: 15px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .dashboard-header h1 {
@@ -78,12 +33,13 @@ button:hover {
   cursor: pointer;
 }
 
+/* Tabs */
 .dashboard-nav {
   background-color: #2a2a2a;
   padding: 10px;
   display: flex;
-  gap: 10px;
   justify-content: center;
+  gap: 10px;
 }
 
 .dashboard-nav button {
@@ -100,8 +56,11 @@ button:hover {
   color: #000;
 }
 
+/* Content */
 .dashboard-content {
-  padding: 20px;
+  padding: 30px 20px;
+  max-width: 1200px;
+  margin: auto;
 }
 
 .tab-section {
