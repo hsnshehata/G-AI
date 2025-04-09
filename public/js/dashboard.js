@@ -44,11 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem("currentTab", tabId);
 
     if (tabId === "bots") {
-      loadScript('/addBot.js').then(() => {
+      loadScript('/js/addBot.js').then(() => {
         if (typeof initAddBot === 'function') initAddBot();
       });
     } else if (tabId === "rules") {
-      loadScript('/rules.js').then(() => {
+      loadScript('/js/rules.js').then(() => {
         if (typeof initRules === 'function') initRules();
       });
     }
