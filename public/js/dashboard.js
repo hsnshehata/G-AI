@@ -16,18 +16,21 @@ function logout() {
   window.location.href = 'index.html';
 }
 
-function switchTab(tabId) {
-  // إخفاء كل التبويبات
-  document.querySelectorAll('.tab-section').forEach(sec => sec.style.display = 'none');
-  document.getElementById(tabId).style.display = 'block';
+function switchTab(tab) {
+  document.querySelectorAll('.tab-section').forEach(section => {
+    if (section.id === tab) {
+      section.style.display = 'block';
+    } else {
+      section.style.display = 'none';
+    }
+  });
 
-  // إزالة التحديد من كل الأزرار
-  document.querySelectorAll('.dashboard-nav button').forEach(btn => btn.classList.remove('active-tab'));
+  document.querySelectorAll('.dashboard-nav button').forEach(btn => {
+    btn.classList.remove('active-tab');
+  });
+  document.querySelector(`.dashboard-nav button[onclick="switchTab('${tab}')"]`)?.classList.add('active-tab');
 
-  // ✅ إضافة التحديد للزر المناسب بدل استخدام event
-  const activeBtn = document.querySelector(`[onclick="switchTab('${tabId}')"]`);
-  if (activeBtn) activeBtn.classList.add('active-tab');
-
-  // استدعاء دوال التبويبات
-  if (tabId === 'bots') loadBotsTab();
+  // تحميل تبويب خاص
+  if (tab === 'bots') loadBotsTab?.();
+  if (tab === 'rules') loadRulesTab?.();
 }
