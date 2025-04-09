@@ -1,5 +1,4 @@
-const token = localStorage.getItem('token');
-const role = localStorage.getItem('role');
+
 const botsTable = document.querySelector('#botsTable tbody');
 const createBotError = document.getElementById('createBotError');
 let editingBotId = null;
