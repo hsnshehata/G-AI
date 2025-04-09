@@ -9,6 +9,7 @@ const connectDB = require('./db');
 const authRoutes = require('./routes/auth');
 const botRoutes = require('./routes/bots');
 const userRoutes = require('./routes/users');
+const ruleRoutes = require('./routes/rules');
 
 // تحميل المتغيرات من .env
 dotenv.config();
@@ -31,6 +32,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/login', authRoutes);
 app.use('/api/bots', botRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/rules', ruleRoutes);
 
 // 🏠 أي مسار غير معروف → يرجّع صفحة تسجيل الدخول
 app.get('*', (req, res) => {
