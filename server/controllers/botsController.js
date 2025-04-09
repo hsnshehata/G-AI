@@ -15,24 +15,37 @@ const createBot = async (req, res) => {
       }
     } else {
       if (!password) return res.status(400).json({ error: 'كلمة المرور مطلوبة' });
-
       const hashedPass = await bcrypt.hash(password, 10);
-      user = new User({ username, password: hashedPass });
+      const newUserData = { username, password: hashedPass };
+
+      // ✅ إضافة pageId فقط لو تم إرساله
+      if (pageId) {
+        newUserData.pageId = pageId;
+      }
+
+      user = new User(newUserData);
       await user.save();
     }
 
-    const newBot = new Bot({
+    // إعداد بيانات البوت
+    const newBotData = {
       name,
       userId: user._id,
       fbToken,
-      pageId,
       openaiKey
-    });
+    };
 
+    if (pageId) {
+      newBotData.pageId = pageId;
+    }
+
+    const newBot = new Bot(newBotData);
     await newBot.save();
+
     res.status(201).json(newBot);
+
   } catch (err) {
-    console.error(err);
+    console.error('خطأ في إنشاء البوت:', err);
     res.status(500).json({ error: 'فشل في إنشاء البوت' });
   }
 };
