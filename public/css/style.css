@@ -6,7 +6,7 @@ body {
   direction: rtl;
 }
 
-/* Header */
+/* =================== Header =================== */
 .dashboard-header {
   background-color: #1e1e1e;
   padding: 15px 20px;
@@ -33,7 +33,7 @@ body {
   cursor: pointer;
 }
 
-/* Tabs */
+/* =================== Navigation =================== */
 .dashboard-nav {
   background-color: #2a2a2a;
   padding: 10px;
@@ -49,6 +49,7 @@ body {
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
+  transition: background 0.3s;
 }
 
 .dashboard-nav .active-tab {
@@ -56,7 +57,7 @@ body {
   color: #000;
 }
 
-/* Content */
+/* =================== Main Content =================== */
 .dashboard-content {
   padding: 30px 20px;
   max-width: 1200px;
@@ -65,4 +66,81 @@ body {
 
 .tab-section {
   display: none;
+}
+
+.tab-section.active {
+  display: block;
+}
+
+/* =================== Tables =================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #1f1f1f;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 12px 16px;
+  text-align: right;
+  border-bottom: 1px solid #333;
+}
+
+th {
+  background-color: #292929;
+  color: #f5a623;
+}
+
+tr:hover {
+  background-color: #2e2e2e;
+}
+
+tr.selected {
+  background-color: #2e2e2e !important;
+}
+
+/* =================== Forms =================== */
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #2e2e2e;
+  color: white;
+}
+
+button[type="submit"] {
+  background-color: #f5a623;
+  color: #000;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button[type="submit"]:hover {
+  background-color: #ffb347;
+}
+
+/* =================== Error Message =================== */
+.error {
+  color: #ff6b6b;
+  text-align: center;
+}
+
+/* =================== Responsive =================== */
+@media (max-width: 768px) {
+  .dashboard-nav {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
