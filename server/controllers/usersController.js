@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { v4: uuidv4 } = require('uuid'); // ✅ توليد UUID تلقائي
 
 exports.createUser = async (req, res) => {
   try {
@@ -13,10 +14,12 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ error: 'اسم المستخدم موجود بالفعل' });
     }
 
-    const user = new User({ username, password });
-    await user.save();
+    const pageId = uuidv4(); // ✅ توليد pageId تلقائي
 
-    res.status(201).json({ message: 'تم إنشاء المستخدم بنجاح' });
+    const newUser = new User({ username, password, pageId });
+    await newUser.save();
+
+    res.status(201).json({ message: 'تم إنشاء المستخدم بنجاح', pageId });
   } catch (err) {
     console.error('خطأ في إنشاء المستخدم:', err);
     res.status(500).json({ error: 'حدث خطأ أثناء إنشاء المستخدم' });
