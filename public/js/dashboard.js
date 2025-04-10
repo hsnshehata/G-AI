@@ -2,7 +2,6 @@ const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 let selectedBotId = localStorage.getItem('selectedBotId') || null;
 
-// تفعيل تبويب البوتات تلقائيًا عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
   switchTab('bots');
 });
@@ -15,7 +14,7 @@ function switchTab(tab) {
   document.querySelectorAll('.dashboard-nav button').forEach(btn => btn.classList.remove('active-tab'));
   document.querySelector(`.dashboard-nav button[onclick="switchTab('${tab}')"]`)?.classList.add('active-tab');
 
-  if (tab === 'bots' && typeof loadBotsTab === 'function') loadBotsTab();
+  if (tab === 'bots' && typeof loadBXTab === 'function') loadBXTab(); // تم التعديل هنا
   if (tab === 'rules' && typeof loadRulesTab === 'function') loadRulesTab();
 }
 
