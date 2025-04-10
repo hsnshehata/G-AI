@@ -8,13 +8,13 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ error: 'يرجى إدخال اسم المستخدم وكلمة المرور' });
     }
 
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
+    const existing = await User.findOne({ username });
+    if (existing) {
       return res.status(400).json({ error: 'اسم المستخدم موجود بالفعل' });
     }
 
-    const newUser = new User({ username, password });
-    await newUser.save();
+    const user = new User({ username, password });
+    await user.save();
 
     res.status(201).json({ message: 'تم إنشاء المستخدم بنجاح' });
   } catch (err) {
