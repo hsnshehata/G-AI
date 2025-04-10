@@ -32,6 +32,42 @@ async function loadBXUsers() {
   }
 }
 
+// إنشاء مستخدم جديد
+document.getElementById('bxUserForm')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const username = document.getElementById('newUsername').value.trim();
+  const password = document.getElementById('newPassword').value;
+
+  if (!username || !password) {
+    document.getElementById('userCreateError').textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/users/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ username, password })
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      document.getElementById('userCreateError').textContent = '';
+      document.getElementById('bxUserForm').reset();
+      loadBXUsers(); // تحديث القائمة
+      alert('✅ تم إنشاء المستخدم بنجاح');
+    } else {
+      document.getElementById('userCreateError').textContent = result.error || 'فشل في إنشاء المستخدم';
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById('userCreateError').textContent = 'حدث خطأ أثناء الإرسال';
+  }
+});
+
 // تحميل البوتات
 async function loadBXBots() {
   try {
@@ -70,22 +106,18 @@ bxCreateForm?.addEventListener('submit', async e => {
 
   const name = document.getElementById('bxName').value.trim();
   const user = bxUserSelect.value;
-  const newUsername = document.getElementById('bxNewUsername')?.value.trim();
-  const newPassword = document.getElementById('bxNewPassword')?.value;
   const tokenVal = document.getElementById('bxToken').value.trim();
   const aiKey = document.getElementById('bxAIKey').value.trim();
   const extra = document.getElementById('bxExtra').value.trim();
 
-  if (!name || (!user && (!newUsername || !newPassword))) {
+  if (!name || !user) {
     bxCreateError.textContent = 'الاسم والمستخدم مطلوبان';
     return;
   }
 
   const body = {
     bx_name: name,
-    ...(user && { bx_user: user }),
-    ...(newUsername && { new_username: newUsername }),
-    ...(newPassword && { new_password: newPassword }),
+    bx_user: user,
     bx_token: tokenVal,
     bx_ai_key: aiKey,
     bx_extra: extra
