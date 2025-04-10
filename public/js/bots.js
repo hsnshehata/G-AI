@@ -3,6 +3,7 @@ const createBotError = document.getElementById('createBotError');
 let botsList = [];
 let editingBotId = null;
 
+
 // زرار إظهار النموذج
 document.getElementById('showBotForm')?.addEventListener('click', () => {
   const form = document.getElementById('createBotForm');
@@ -91,7 +92,7 @@ document.getElementById('createBotForm')?.addEventListener('submit', async e => 
   const pageId = document.getElementById('pageId').value.trim();
 
   let usernameToSend = '';
-  let passwordToSend = '';
+  let passwordToSend;
 
   if (existingUsername) {
     usernameToSend = existingUsername;
@@ -106,10 +107,10 @@ document.getElementById('createBotForm')?.addEventListener('submit', async e => 
   const body = {
     name: botName,
     username: usernameToSend,
-    password: passwordToSend,
-    openaiKey,
-    fbToken: facebookApiKey,
-    pageId
+    ...(passwordToSend && { password: passwordToSend }),
+    ...(openaiKey && { openaiKey }),
+    ...(facebookApiKey && { fbToken: facebookApiKey }),
+    ...(pageId && { pageId })
   };
 
   const url = editingBotId ? `/api/bots/${editingBotId}` : '/api/bots/create';
