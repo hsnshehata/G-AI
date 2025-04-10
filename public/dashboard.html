@@ -24,6 +24,14 @@
     <section id="bots" class="tab-section">
       <h2>إدارة البوتات</h2>
 
+      <form id="bxUserForm" style="margin-bottom: 20px;">
+        <h3>إنشاء مستخدم جديد</h3>
+        <input type="text" id="newUsername" placeholder="اسم المستخدم" required />
+        <input type="password" id="newPassword" placeholder="كلمة المرور" required />
+        <button type="submit">➕ إنشاء المستخدم</button>
+        <p class="error" id="userCreateError"></p>
+      </form>
+
       <button id="showBXForm">+ إنشاء بوت جديد</button>
 
       <form id="bxCreateForm" style="display: none; margin-bottom: 20px;">
@@ -31,10 +39,6 @@
 
         <label>اختر مستخدم موجود:</label>
         <select id="bxUserSelect"></select>
-
-        <p>أو إنشاء مستخدم جديد:</p>
-        <input type="text" id="bxNewUsername" placeholder="اسم مستخدم جديد" />
-        <input type="password" id="bxNewPassword" placeholder="كلمة المرور" />
 
         <input type="text" id="bxToken" placeholder="Facebook Token (اختياري)" />
         <input type="text" id="bxAIKey" placeholder="OpenAI Key (اختياري)" />
