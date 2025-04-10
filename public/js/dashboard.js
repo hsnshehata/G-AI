@@ -2,13 +2,20 @@ const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 let selectedBotId = localStorage.getItem('selectedBotId') || null;
 
-// تشغيل تبويب البوتات تلقائيًا عند فتح الصفحة
 document.addEventListener('DOMContentLoaded', () => {
+  // تفعيل تبويب البوتات تلقائيًا
   switchTab('bots');
+
+  // عرض زر "إنشاء مستخدم" فقط للمشرف
   if (role === 'admin') {
-    const userSection = document.getElementById('userCreationSection');
-    if (userSection) userSection.style.display = 'block';
+    document.getElementById('toggleUserForm')?.style.display = 'inline-block';
+  } else {
+    document.getElementById('toggleUserForm')?.style.display = 'none';
   }
+
+  // إخفاء النموذج تلقائيًا
+  const userForm = document.getElementById('bxUserForm');
+  if (userForm) userForm.style.display = 'none';
 });
 
 function switchTab(tab) {
@@ -21,6 +28,7 @@ function switchTab(tab) {
 
   if (tab === 'bots' && typeof loadBXTab === 'function') loadBXTab();
   if (tab === 'rules' && typeof loadRulesTab === 'function') loadRulesTab();
+  if (tab === 'users' && typeof loadUsersTab === 'function') loadUsersTab();
 }
 
 function logout() {
@@ -31,39 +39,44 @@ function logout() {
 window.switchTab = switchTab;
 window.logout = logout;
 
-// نموذج إنشاء مستخدم جديد (للسوبر أدمن فقط)
-document.getElementById('userForm')?.addEventListener('submit', async (e) => {
+// إنشاء مستخدم جديد
+document.getElementById('toggleUserForm')?.addEventListener('click', () => {
+  const form = document.getElementById('bxUserForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('bxUserForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const username = document.getElementById('newUsername').value.trim();
   const password = document.getElementById('newPassword').value.trim();
-  const errorElement = document.getElementById('userCreateError');
+  const errorEl = document.getElementById('userCreateError');
 
   if (!username || !password) {
-    errorElement.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور';
+    errorEl.textContent = '❌ يرجى إدخال اسم مستخدم وكلمة مرور';
     return;
   }
 
   try {
-    const response = await fetch('/api/users/create', {
+    const res = await fetch('/api/users/create', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || 'حدث خطأ أثناء إنشاء المستخدم');
+    if (!res.ok) {
+      throw new Error(data.error || 'حدث خطأ');
     }
 
     alert('✅ تم إنشاء المستخدم بنجاح');
-    document.getElementById('userForm').reset();
-    if (typeof loadUsersDropdown === 'function') loadUsersDropdown(); // تحديث القائمة في bxbots.js
+    document.getElementById('bxUserForm').reset();
+    document.getElementById('bxUserForm').style.display = 'none';
+
+    // تحديث قائمة المستخدمين
+    if (typeof loadUsersDropdown === 'function') loadUsersDropdown();
   } catch (err) {
-    console.error('خطأ في إنشاء المستخدم:', err);
-    errorElement.textContent = err.message || 'فشل غير متوقع';
+    errorEl.textContent = err.message;
   }
 });
