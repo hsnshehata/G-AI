@@ -93,19 +93,15 @@ document.getElementById('createBotForm')?.addEventListener('submit', async e => 
   let usernameToSend = '';
   let passwordToSend;
 
-  if (existingUsername) {
+  if (existingUsername && existingUsername !== 'null') {
     usernameToSend = existingUsername;
-  } else if (newUsername && newPassword) {
-    usernameToSend = newUsername;
+  } else if (newUsername && newPassword && newUsername.trim() !== '') {
+    usernameToSend = newUsername.trim();
     passwordToSend = newPassword;
-  } else {
-    createBotError.textContent = 'اختر مستخدم أو أنشئ مستخدم جديد بكلمة مرور';
-    return;
   }
 
-  // حماية إضافية من إرسال username null أو فارغ
-  if (!usernameToSend || usernameToSend === 'null') {
-    createBotError.textContent = 'اسم المستخدم غير صالح ❌';
+  if (!usernameToSend) {
+    createBotError.textContent = 'اسم المستخدم غير صالح أو مفقود ❌';
     return;
   }
 
