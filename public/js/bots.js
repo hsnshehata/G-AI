@@ -1,34 +1,23 @@
-const botsTable = document.querySelector('#botsTable tbody');
-const createBotError = document.getElementById('createBotError');
-let botsList = [];
-let editingBotId = null;
-
-// زرار إظهار النموذج
-document.getElementById('showBotForm')?.addEventListener('click', () => {
-  const form = document.getElementById('createBotForm');
-  form.style.display = form.style.display === 'none' ? 'block' : 'none';
-});
-
-// إظهار خانة الـ Page ID عند إدخال Facebook API Key
-document.getElementById('facebookApiKey')?.addEventListener('input', e => {
-  document.getElementById('pageIdContainer').style.display = e.target.value.trim() ? 'block' : 'none';
-});
+const bxBotsTable = document.querySelector('#bxBotsTable tbody');
+const bxCreateForm = document.getElementById('bxCreateForm');
+const bxCreateError = document.getElementById('bxCreateError');
+const bxUserSelect = document.getElementById('bxUserSelect');
+let bxEditingId = null;
+let bxBotsList = [];
 
 // تحميل المستخدمين
-async function loadUsersList() {
+async function loadBXUsers() {
   try {
     const res = await fetch('/api/users', {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` }
     });
     const users = await res.json();
-    const select = document.getElementById('existingUsersSelect');
-    select.innerHTML = '<option value="">اختر مستخدم موجود</option>';
-
+    bxUserSelect.innerHTML = '<option value="">اختر مستخدم</option>';
     users.forEach(user => {
       const option = document.createElement('option');
-      option.value = user.username;
+      option.value = user._id;
       option.textContent = user.username;
-      select.appendChild(option);
+      bxUserSelect.appendChild(option);
     });
   } catch (err) {
     console.error('فشل تحميل المستخدمين:', err);
@@ -36,170 +25,123 @@ async function loadUsersList() {
 }
 
 // تحميل البوتات
-async function fetchBots() {
+async function loadBXBots() {
   try {
-    const res = await fetch('/api/bots', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch('/api/bxbots', {
+      headers: { Authorization: `Bearer ${token}` }
     });
-
     const bots = await res.json();
-    botsList = bots;
-    botsTable.innerHTML = '';
+    bxBotsList = bots;
+    bxBotsTable.innerHTML = '';
 
     if (!bots.length) {
-      botsTable.innerHTML = '<tr><td colspan="3">لا توجد بوتات بعد</td></tr>';
+      bxBotsTable.innerHTML = '<tr><td colspan="3">لا توجد بوتات بعد</td></tr>';
       return;
     }
 
     bots.forEach(bot => {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${bot.name}</td>
-        <td>${bot.username || 'غير معروف'}</td>
+        <td>${bot.bx_name}</td>
+        <td>${bot.bx_userRef?.username || 'غير معروف'}</td>
         <td>
-          <button onclick="editBot('${bot._id}')">✏️</button>
-          <button onclick="deleteBot('${bot._id}')">🗑️</button>
+          <button onclick="editBXBot('${bot._id}')">✏️</button>
+          <button onclick="deleteBXBot('${bot._id}')">🗑️</button>
         </td>
       `;
-
-      row.style.cursor = 'pointer';
-      row.addEventListener('click', () => {
-        document.querySelectorAll('#botsTable tr').forEach(r => r.classList.remove('selected'));
-        row.classList.add('selected');
-        selectedBotId = bot._id;
-        localStorage.setItem('selectedBotId', selectedBotId);
-      });
-
-      botsTable.appendChild(row);
+      bxBotsTable.appendChild(row);
     });
   } catch (err) {
-    botsTable.innerHTML = '<tr><td colspan="3">حدث خطأ أثناء تحميل البوتات ❌</td></tr>';
-    console.error(err);
+    console.error('خطأ أثناء تحميل BXBots:', err);
   }
 }
 
-// إرسال البيانات لإنشاء أو تعديل بوت
-document.getElementById('createBotForm')?.addEventListener('submit', async e => {
+// إرسال نموذج البوت
+bxCreateForm?.addEventListener('submit', async e => {
   e.preventDefault();
 
-  const botName = document.getElementById('botName').value.trim();
-  const existingUsername = document.getElementById('existingUsersSelect').value;
-  const newUsername = document.getElementById('newUsername').value.trim();
-  const newPassword = document.getElementById('newPassword').value;
-  const openaiKey = document.getElementById('openaiKey').value.trim();
-  const facebookApiKey = document.getElementById('facebookApiKey').value.trim();
-  const pageId = document.getElementById('pageId').value.trim();
+  const name = document.getElementById('bxName').value.trim();
+  const user = bxUserSelect.value;
+  const tokenVal = document.getElementById('bxToken').value.trim();
+  const aiKey = document.getElementById('bxAIKey').value.trim();
+  const extra = document.getElementById('bxExtra').value.trim();
 
-  let usernameToSend = '';
-  let passwordToSend;
-
-  if (existingUsername && existingUsername !== 'null') {
-    usernameToSend = existingUsername;
-  } else if (newUsername && newPassword && newUsername.trim() !== '') {
-    usernameToSend = newUsername.trim();
-    passwordToSend = newPassword;
-  }
-
-  if (!usernameToSend) {
-    createBotError.textContent = 'اسم المستخدم غير صالح أو مفقود ❌';
+  if (!name || !user) {
+    bxCreateError.textContent = 'الاسم والمستخدم مطلوبان';
     return;
   }
 
   const body = {
-    name: botName,
-    ...(usernameToSend && { username: usernameToSend }),
-    ...(passwordToSend && { password: passwordToSend }),
-    ...(openaiKey && { openaiKey }),
-    ...(facebookApiKey && { fbToken: facebookApiKey }),
-    ...(pageId && { pageId })
+    bx_name: name,
+    bx_user: user,
+    bx_token: tokenVal,
+    bx_ai_key: aiKey,
+    bx_extra: extra
   };
 
-  const url = editingBotId ? `/api/bots/${editingBotId}` : '/api/bots/create';
-  const method = editingBotId ? 'PUT' : 'POST';
+  const url = bxEditingId ? `/api/bxbots/${bxEditingId}` : '/api/bxbots/create';
+  const method = bxEditingId ? 'PUT' : 'POST';
 
   try {
     const res = await fetch(url, {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(body)
     });
 
     const result = await res.json();
-
     if (res.ok) {
-      createBotError.textContent = '';
-      document.getElementById('createBotForm').reset();
-      document.getElementById('createBotForm').style.display = 'none';
-      document.getElementById('pageIdContainer').style.display = 'none';
-      document.getElementById('showBotForm').textContent = '+ إنشاء بوت جديد';
-      editingBotId = null;
-      fetchBots();
+      bxCreateError.textContent = '';
+      bxCreateForm.reset();
+      bxEditingId = null;
+      loadBXBots();
     } else {
-      createBotError.textContent = result.error || 'فشل في حفظ التعديلات';
+      bxCreateError.textContent = result.error || 'فشل في الحفظ';
     }
   } catch (err) {
-    createBotError.textContent = 'حدث خطأ أثناء إرسال البيانات';
+    bxCreateError.textContent = 'حدث خطأ أثناء الإرسال';
     console.error(err);
   }
 });
 
-// تعبئة النموذج للتعديل
-function editBot(botId) {
-  const bot = botsList.find(b => b._id === botId);
+function editBXBot(id) {
+  const bot = bxBotsList.find(b => b._id === id);
   if (!bot) return;
 
-  editingBotId = botId;
-  document.getElementById('botName').value = bot.name || '';
-  document.getElementById('existingUsersSelect').value = bot.username || '';
-  document.getElementById('newUsername').value = '';
-  document.getElementById('newPassword').value = '';
-  document.getElementById('openaiKey').value = bot.openaiKey || '';
-  document.getElementById('facebookApiKey').value = bot.fbToken || '';
-  document.getElementById('pageId').value = bot.pageId || '';
-  document.getElementById('pageIdContainer').style.display = bot.fbToken ? 'block' : 'none';
-
-  document.getElementById('createBotForm').style.display = 'block';
-  document.getElementById('showBotForm').textContent = 'تعديل البوت';
+  bxEditingId = id;
+  document.getElementById('bxName').value = bot.bx_name || '';
+  document.getElementById('bxUserSelect').value = bot.bx_userRef?._id || '';
+  document.getElementById('bxToken').value = bot.bx_token || '';
+  document.getElementById('bxAIKey').value = bot.bx_ai_key || '';
+  document.getElementById('bxExtra').value = bot.bx_extra || '';
 }
 
-// حذف البوت فعليًا
-async function deleteBot(botId) {
-  if (!confirm('هل أنت متأكد أنك تريد حذف هذا البوت؟')) return;
+async function deleteBXBot(id) {
+  if (!confirm('هل تريد حذف هذا البوت؟')) return;
 
   try {
-    const res = await fetch(`/api/bots/${botId}`, {
+    const res = await fetch(`/api/bxbots/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     const result = await res.json();
-
     if (res.ok) {
-      fetchBots(); // إعادة تحميل القائمة بعد الحذف
+      loadBXBots();
     } else {
-      alert(result.error || 'فشل في حذف البوت.');
+      alert(result.error || 'فشل في الحذف');
     }
   } catch (err) {
     console.error('خطأ أثناء الحذف:', err);
-    alert('حدث خطأ أثناء الحذف.');
   }
 }
 
-// تحميل تبويب البوتات
-function loadBotsTab() {
-  if (role === 'admin') {
-    document.getElementById('createBotContainer').style.display = 'block';
-    loadUsersList();
-  } else {
-    document.getElementById('createBotContainer').style.display = 'none';
-  }
-
-  fetchBots();
+function loadBXTab() {
+  loadBXUsers();
+  loadBXBots();
 }
 
-window.loadBotsTab = loadBotsTab;
+window.loadBXTab = loadBXTab;
