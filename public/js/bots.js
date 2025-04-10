@@ -3,7 +3,6 @@ const createBotError = document.getElementById('createBotError');
 let botsList = [];
 let editingBotId = null;
 
-
 // زرار إظهار النموذج
 document.getElementById('showBotForm')?.addEventListener('click', () => {
   const form = document.getElementById('createBotForm');
@@ -104,9 +103,15 @@ document.getElementById('createBotForm')?.addEventListener('submit', async e => 
     return;
   }
 
+  // حماية إضافية من إرسال username null أو فارغ
+  if (!usernameToSend || usernameToSend === 'null') {
+    createBotError.textContent = 'اسم المستخدم غير صالح ❌';
+    return;
+  }
+
   const body = {
     name: botName,
-    username: usernameToSend,
+    ...(usernameToSend && { username: usernameToSend }),
     ...(passwordToSend && { password: passwordToSend }),
     ...(openaiKey && { openaiKey }),
     ...(facebookApiKey && { fbToken: facebookApiKey }),
