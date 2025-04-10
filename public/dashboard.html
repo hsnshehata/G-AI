@@ -24,9 +24,18 @@
     <section id="bots" class="tab-section">
       <h2>إدارة البوتات</h2>
 
-      <form id="bxCreateForm" style="margin-bottom: 20px;">
+      <button id="showBXForm">+ إنشاء بوت جديد</button>
+
+      <form id="bxCreateForm" style="display: none; margin-bottom: 20px;">
         <input type="text" id="bxName" placeholder="اسم البوت" required />
+
+        <label>اختر مستخدم موجود:</label>
         <select id="bxUserSelect"></select>
+
+        <p>أو إنشاء مستخدم جديد:</p>
+        <input type="text" id="bxNewUsername" placeholder="اسم مستخدم جديد" />
+        <input type="password" id="bxNewPassword" placeholder="كلمة المرور" />
+
         <input type="text" id="bxToken" placeholder="Facebook Token (اختياري)" />
         <input type="text" id="bxAIKey" placeholder="OpenAI Key (اختياري)" />
         <input type="text" id="bxExtra" placeholder="ملاحظات إضافية (اختياري)" />
