@@ -2,6 +2,7 @@ const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 let selectedBotId = localStorage.getItem('selectedBotId') || null;
 
+// تفعيل تبويب البوتات تلقائيًا عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
   switchTab('bots');
 });
@@ -16,7 +17,7 @@ function switchTab(tab) {
 
   if (tab === 'bots' && typeof loadBXTab === 'function') loadBXTab();
   if (tab === 'rules' && typeof loadRulesTab === 'function') loadRulesTab();
-  if (tab === 'users' && typeof loadUsersTab === 'function') loadUsersTab(); // دعم تبويب المستخدمين
+  if (tab === 'users' && typeof loadUsersTab === 'function') loadUsersTab();
 }
 
 function logout() {
@@ -27,15 +28,18 @@ function logout() {
 window.switchTab = switchTab;
 window.logout = logout;
 
-// إضافة دوال للتعامل مع تبويب المستخدمين
+// 👥 التعامل مع تبويب المستخدمين
 
+// زر إظهار / إخفاء نموذج المستخدم
 document.getElementById('toggleUserForm')?.addEventListener('click', () => {
   const userForm = document.getElementById('bxUserForm');
   userForm.style.display = userForm.style.display === 'none' ? 'block' : 'none';
 });
 
+// إرسال نموذج إنشاء مستخدم جديد
 document.getElementById('bxUserForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const username = document.getElementById('newUsername').value.trim();
   const password = document.getElementById('newPassword').value.trim();
   const errorElement = document.getElementById('userCreateError');
@@ -59,14 +63,20 @@ document.getElementById('bxUserForm')?.addEventListener('submit', async (e) => {
     }
 
     alert('تم إنشاء المستخدم بنجاح');
+
+    // ✅ تفريغ النموذج والرسائل بعد الإرسال
     document.getElementById('bxUserForm').reset();
     document.getElementById('bxUserForm').style.display = 'none';
-    loadUsersTab(); // إعادة تحميل قائمة المستخدمين
+    errorElement.textContent = '';
+
+    // تحديث الجدول
+    loadUsersTab();
   } catch (err) {
     errorElement.textContent = err.message;
   }
 });
 
+// تحميل جدول المستخدمين
 async function loadUsersTab() {
   try {
     const response = await fetch('/api/users');
