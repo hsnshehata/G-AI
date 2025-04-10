@@ -2,6 +2,11 @@ const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 let selectedBotId = localStorage.getItem('selectedBotId') || null;
 
+// تفعيل تبويب البوتات تلقائيًا عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+  switchTab('bots');
+});
+
 function switchTab(tab) {
   document.querySelectorAll('.tab-section').forEach(section => {
     section.style.display = section.id === tab ? 'block' : 'none';
