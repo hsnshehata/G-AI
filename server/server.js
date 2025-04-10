@@ -7,7 +7,7 @@ const connectDB = require('./db');
 
 // استدعاء الراوتات
 const authRoutes = require('./routes/auth');
-const botRoutes = require('./routes/bots');
+const botRoutes = require('./routes/bxbots');
 const userRoutes = require('./routes/users');
 const ruleRoutes = require('./routes/rules');
 
@@ -30,7 +30,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // 🔐 الراوتات الخاصة بالـ API
 app.use('/api/login', authRoutes);
-app.use('/api/bots', botRoutes);
+app.use('/api/bxbots', botRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/rules', ruleRoutes);
 
