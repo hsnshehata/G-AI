@@ -5,6 +5,14 @@ const bxUserSelect = document.getElementById('bxUserSelect');
 let bxEditingId = null;
 let bxBotsList = [];
 
+// زر إظهار/إخفاء النموذج
+const showFormBtn = document.getElementById('showBXForm');
+if (showFormBtn) {
+  showFormBtn.addEventListener('click', () => {
+    bxCreateForm.style.display = bxCreateForm.style.display === 'none' ? 'block' : 'none';
+  });
+}
+
 // تحميل المستخدمين
 async function loadBXUsers() {
   try {
@@ -12,7 +20,7 @@ async function loadBXUsers() {
       headers: { Authorization: `Bearer ${token}` }
     });
     const users = await res.json();
-    bxUserSelect.innerHTML = '<option value="">اختر مستخدم</option>';
+    bxUserSelect.innerHTML = '<option value="">اختر مستخدم موجود</option>';
     users.forEach(user => {
       const option = document.createElement('option');
       option.value = user._id;
@@ -62,18 +70,22 @@ bxCreateForm?.addEventListener('submit', async e => {
 
   const name = document.getElementById('bxName').value.trim();
   const user = bxUserSelect.value;
+  const newUsername = document.getElementById('bxNewUsername')?.value.trim();
+  const newPassword = document.getElementById('bxNewPassword')?.value;
   const tokenVal = document.getElementById('bxToken').value.trim();
   const aiKey = document.getElementById('bxAIKey').value.trim();
   const extra = document.getElementById('bxExtra').value.trim();
 
-  if (!name || !user) {
+  if (!name || (!user && (!newUsername || !newPassword))) {
     bxCreateError.textContent = 'الاسم والمستخدم مطلوبان';
     return;
   }
 
   const body = {
     bx_name: name,
-    bx_user: user,
+    ...(user && { bx_user: user }),
+    ...(newUsername && { new_username: newUsername }),
+    ...(newPassword && { new_password: newPassword }),
     bx_token: tokenVal,
     bx_ai_key: aiKey,
     bx_extra: extra
