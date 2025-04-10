@@ -16,6 +16,7 @@
   <nav class="dashboard-nav">
     <button onclick="switchTab('bots')">البوتات</button>
     <button onclick="switchTab('rules')">القواعد النصية</button>
+    <button onclick="switchTab('users')">المستخدمين</button>
   </nav>
 
   <main class="dashboard-content">
@@ -68,6 +69,32 @@
       <button id="saveTextRules" onclick="saveTextRules()">💾 حفظ القواعد</button>
       <p class="error" id="rulesError"></p>
       <p class="success" id="rulesSuccess"></p>
+    </section>
+
+    <!-- تبويب المستخدمين -->
+    <section id="users" class="tab-section" style="display: none;">
+      <h2>إدارة المستخدمين</h2>
+
+      <button id="toggleUserForm">+ مستخدم جديد</button>
+
+      <form id="bxUserForm" style="display: none; margin: 20px 0;">
+        <input type="text" id="newUsername" placeholder="اسم المستخدم" required />
+        <input type="password" id="newPassword" placeholder="كلمة المرور" required />
+        <button type="submit" class="btn">➕ إنشاء المستخدم</button>
+        <p class="error" id="userCreateError"></p>
+      </form>
+
+      <table id="usersTable">
+        <thead>
+          <tr>
+            <th>اسم المستخدم</th>
+            <th>الدور</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- سيتم ملء هذا الجدول ديناميكيًا -->
+        </tbody>
+      </table>
     </section>
 
   </main>
