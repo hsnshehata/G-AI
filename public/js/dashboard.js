@@ -2,9 +2,13 @@ const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 let selectedBotId = localStorage.getItem('selectedBotId') || null;
 
-// تفعيل تبويب البوتات تلقائيًا عند تحميل الصفحة
+// تشغيل تبويب البوتات تلقائيًا عند فتح الصفحة
 document.addEventListener('DOMContentLoaded', () => {
   switchTab('bots');
+  if (role === 'admin') {
+    const userSection = document.getElementById('userCreationSection');
+    if (userSection) userSection.style.display = 'block';
+  }
 });
 
 function switchTab(tab) {
@@ -17,7 +21,6 @@ function switchTab(tab) {
 
   if (tab === 'bots' && typeof loadBXTab === 'function') loadBXTab();
   if (tab === 'rules' && typeof loadRulesTab === 'function') loadRulesTab();
-  if (tab === 'users' && typeof loadUsersTab === 'function') loadUsersTab();
 }
 
 function logout() {
@@ -28,18 +31,9 @@ function logout() {
 window.switchTab = switchTab;
 window.logout = logout;
 
-// 👥 التعامل مع تبويب المستخدمين
-
-// زر إظهار / إخفاء نموذج المستخدم
-document.getElementById('toggleUserForm')?.addEventListener('click', () => {
-  const userForm = document.getElementById('bxUserForm');
-  userForm.style.display = userForm.style.display === 'none' ? 'block' : 'none';
-});
-
-// إرسال نموذج إنشاء مستخدم جديد
-document.getElementById('bxUserForm')?.addEventListener('submit', async (e) => {
+// نموذج إنشاء مستخدم جديد (للسوبر أدمن فقط)
+document.getElementById('userForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-
   const username = document.getElementById('newUsername').value.trim();
   const password = document.getElementById('newPassword').value.trim();
   const errorElement = document.getElementById('userCreateError');
@@ -52,7 +46,10 @@ document.getElementById('bxUserForm')?.addEventListener('submit', async (e) => {
   try {
     const response = await fetch('/api/users/create', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ username, password })
     });
 
@@ -62,35 +59,11 @@ document.getElementById('bxUserForm')?.addEventListener('submit', async (e) => {
       throw new Error(data.error || 'حدث خطأ أثناء إنشاء المستخدم');
     }
 
-    alert('تم إنشاء المستخدم بنجاح');
-
-    // ✅ تفريغ النموذج والرسائل بعد الإرسال
-    document.getElementById('bxUserForm').reset();
-    document.getElementById('bxUserForm').style.display = 'none';
-    errorElement.textContent = '';
-
-    // تحديث الجدول
-    loadUsersTab();
+    alert('✅ تم إنشاء المستخدم بنجاح');
+    document.getElementById('userForm').reset();
+    if (typeof loadUsersDropdown === 'function') loadUsersDropdown(); // تحديث القائمة في bxbots.js
   } catch (err) {
-    errorElement.textContent = err.message;
+    console.error('خطأ في إنشاء المستخدم:', err);
+    errorElement.textContent = err.message || 'فشل غير متوقع';
   }
 });
-
-// تحميل جدول المستخدمين
-async function loadUsersTab() {
-  try {
-    const response = await fetch('/api/users');
-    const users = await response.json();
-
-    const usersTableBody = document.querySelector('#usersTable tbody');
-    usersTableBody.innerHTML = '';
-
-    users.forEach(user => {
-      const row = document.createElement('tr');
-      row.innerHTML = `<td>${user.username}</td><td>${user.role}</td>`;
-      usersTableBody.appendChild(row);
-    });
-  } catch (err) {
-    console.error('فشل في تحميل المستخدمين:', err);
-  }
-}
