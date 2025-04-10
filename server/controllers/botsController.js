@@ -3,9 +3,13 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
-// إنشاء بوت جديد
 const createBot = async (req, res) => {
   let { name, username, password, fbToken, pageId, openaiKey } = req.body;
+
+  // تحقق من صلاحية اسم المستخدم
+  if (!username || username === 'null' || username.trim() === '') {
+    return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
+  }
 
   if (!pageId || pageId === 'null' || pageId.trim() === '') {
     pageId = undefined;
@@ -38,7 +42,7 @@ const createBot = async (req, res) => {
     const newBotData = {
       name,
       userId: user._id,
-      username: user.username, // ✅ مهم جدًا عشان ما يبقاش null
+      username: user.username,
       fbToken: fbToken || null,
       openaiKey: openaiKey || null
     };
@@ -57,69 +61,46 @@ const createBot = async (req, res) => {
   }
 };
 
-// تحديث بوت موجود
-const updateBot = async (req, res) => {
-  const { id } = req.params;
-  const { name, fbToken, openaiKey, pageId } = req.body;
-
+const getBots = async (req, res) => {
   try {
-    const updatedBot = await Bot.findByIdAndUpdate(
-      id,
-      {
-        name,
-        fbToken: fbToken || null,
-        openaiKey: openaiKey || null,
-        pageId: pageId || null
-      },
-      { new: true }
-    );
-
-    if (!updatedBot) {
-      return res.status(404).json({ error: 'البوت غير موجود' });
-    }
-
-    res.json(updatedBot);
+    const bots = await Bot.find().populate('userId', 'username');
+    res.json(bots);
   } catch (err) {
-    console.error('خطأ في تحديث البوت:', err);
-    res.status(500).json({ error: 'فشل في تحديث البوت' });
+    res.status(500).json({ error: 'فشل في تحميل البوتات' });
   }
 };
 
-// حذف بوت
+const updateBot = async (req, res) => {
+  const { id } = req.params;
+  const { name, fbToken, pageId, openaiKey } = req.body;
+
+  try {
+    const bot = await Bot.findById(id);
+    if (!bot) return res.status(404).json({ error: 'البوت غير موجود' });
+
+    bot.name = name || bot.name;
+    bot.fbToken = fbToken || bot.fbToken;
+    bot.pageId = pageId || bot.pageId;
+    bot.openaiKey = openaiKey || bot.openaiKey;
+
+    await bot.save();
+    res.json(bot);
+  } catch (err) {
+    console.error('خطأ في تعديل البوت:', err);
+    res.status(500).json({ error: 'فشل في تعديل البوت' });
+  }
+};
+
 const deleteBot = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedBot = await Bot.findByIdAndDelete(id);
-    if (!deletedBot) {
-      return res.status(404).json({ error: 'البوت غير موجود' });
-    }
+    const bot = await Bot.findByIdAndDelete(id);
+    if (!bot) return res.status(404).json({ error: 'البوت غير موجود' });
+
     res.json({ message: 'تم حذف البوت بنجاح' });
   } catch (err) {
-    console.error('خطأ في حذف البوت:', err);
     res.status(500).json({ error: 'فشل في حذف البوت' });
-  }
-};
-
-// جلب كل البوتات
-const getBots = async (req, res) => {
-  try {
-    const role = req.user.role;
-    const userId = req.user.id;
-
-    let bots = role === 'admin'
-      ? await Bot.find().populate('userId', 'username')
-      : await Bot.find({ userId }).populate('userId', 'username');
-
-    bots = bots.map(bot => ({
-      _id: bot._id,
-      name: bot.name,
-      username: bot.userId?.username || 'غير معروف'
-    }));
-
-    res.json(bots);
-  } catch (err) {
-    res.status(500).json({ error: 'خطأ في جلب البوتات' });
   }
 };
 
