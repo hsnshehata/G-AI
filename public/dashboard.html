@@ -14,56 +14,38 @@
   </header>
 
   <nav class="dashboard-nav">
-    <button class="active-tab" onclick="switchTab('bxbots')">البوتات</button>
+    <button onclick="switchTab('bots')">البوتات</button>
     <button onclick="switchTab('rules')">القواعد النصية</button>
   </nav>
 
   <main class="dashboard-content">
 
-    <!-- تبويب البوتات -->
-    <section id="bxbots" class="tab-section">
-      <div id="createBotContainer" style="display: none;">
-        <button id="showBotForm">+ إنشاء بوت جديد</button>
+    <!-- تبويب البوتات (BXBot بعد الدمج) -->
+    <section id="bots" class="tab-section">
+      <h2>إدارة البوتات</h2>
 
-        <form id="createBotForm" style="display: none; margin-top: 20px;">
-          <input type="text" id="botName" placeholder="اسم البوت" required />
-          
-          <label>ربط باسم مستخدم:</label>
-          <select id="existingUsersSelect">
-            <option value="">اختر مستخدم موجود</option>
-          </select>
+      <form id="bxCreateForm" style="margin-bottom: 20px;">
+        <input type="text" id="bxName" placeholder="اسم البوت" required />
+        <select id="bxUserSelect"></select>
+        <input type="text" id="bxToken" placeholder="Facebook Token (اختياري)" />
+        <input type="text" id="bxAIKey" placeholder="OpenAI Key (اختياري)" />
+        <input type="text" id="bxExtra" placeholder="ملاحظات إضافية (اختياري)" />
+        <button type="submit">💾 حفظ</button>
+        <p class="error" id="bxCreateError"></p>
+      </form>
 
-          <p>أو إنشاء مستخدم جديد:</p>
-          <input type="text" id="newUsername" placeholder="اسم مستخدم جديد" />
-          <input type="password" id="newPassword" placeholder="كلمة المرور" />
-
-          <input type="text" id="openaiKey" placeholder="OpenAI API Key (اختياري)" />
-          <input type="text" id="facebookApiKey" placeholder="Facebook API Key (اختياري)" />
-
-          <div id="pageIdContainer" style="display: none;">
-            <input type="text" id="pageId" placeholder="معرّف صفحة فيسبوك" />
-          </div>
-
-          <button type="submit">إنشاء</button>
-          <p class="error" id="createBotError"></p>
-        </form>
-      </div>
-
-      <div class="bots-list">
-        <h2>البوتات الخاصة بك</h2>
-        <table id="botsTable">
-          <thead>
-            <tr>
-              <th>اسم البوت</th>
-              <th>اسم المستخدم</th>
-              <th>تحكم</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="3">جاري التحميل...</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <table id="bxBotsTable">
+        <thead>
+          <tr>
+            <th>اسم البوت</th>
+            <th>المستخدم</th>
+            <th>تحكم</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="3">جاري التحميل...</td></tr>
+        </tbody>
+      </table>
     </section>
 
     <!-- تبويب القواعد -->
