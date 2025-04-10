@@ -15,36 +15,38 @@
 
   <nav class="dashboard-nav">
     <button onclick="switchTab('bots')">البوتات</button>
-    <button onclick="switchTab('rules')">القواعد النصية</button>
+    <button onclick="switchTab('rules')">القواعد</button>
   </nav>
 
   <main class="dashboard-content">
 
-    <!-- تبويب البوتات -->
+    <!-- 📌 تبويب البوتات -->
     <section id="bots" class="tab-section">
       <h2>إدارة البوتات</h2>
 
-      <form id="bxCreateForm" style="margin-bottom: 20px;">
+      <!-- نموذج إنشاء بوت -->
+      <form id="bxCreateForm">
         <input type="text" id="bxName" placeholder="اسم البوت" required />
-        <select id="bxUserSelect"></select>
+        <select id="bxUserSelect" required></select>
         <input type="text" id="bxToken" placeholder="Facebook Token (اختياري)" />
         <input type="text" id="bxAIKey" placeholder="OpenAI Key (اختياري)" />
-        <input type="text" id="bxExtra" placeholder="ملاحظات إضافية (اختياري)" />
+        <input type="text" id="bxExtra" placeholder="ملاحظات (اختياري)" />
         <button type="submit">💾 حفظ</button>
         <p class="error" id="bxCreateError"></p>
       </form>
 
-      <!-- نموذج إنشاء المستخدم يظهر فقط للسوبر أدمن -->
-      <div id="userCreationSection" style="display: none; margin-bottom: 30px;">
-        <h3>إنشاء مستخدم جديد</h3>
-        <form id="userForm">
-          <input type="text" id="newUsername" placeholder="اسم المستخدم" required />
-          <input type="password" id="newPassword" placeholder="كلمة المرور" required />
-          <button type="submit">➕ إنشاء المستخدم</button>
-          <p id="userCreateError" class="error"></p>
-        </form>
-      </div>
+      <!-- زر إظهار نموذج إنشاء مستخدم -->
+      <button id="toggleUserForm" style="margin-top: 20px;">+ إنشاء مستخدم جديد</button>
 
+      <!-- نموذج إنشاء مستخدم -->
+      <form id="bxUserForm" style="display: none; margin-top: 10px;">
+        <input type="text" id="newUsername" placeholder="اسم المستخدم" required />
+        <input type="password" id="newPassword" placeholder="كلمة المرور" required />
+        <button type="submit">➕ إنشاء</button>
+        <p class="error" id="userCreateError"></p>
+      </form>
+
+      <!-- جدول البوتات -->
       <table id="bxBotsTable">
         <thead>
           <tr>
@@ -59,11 +61,11 @@
       </table>
     </section>
 
-    <!-- تبويب القواعد -->
+    <!-- 📌 تبويب القواعد -->
     <section id="rules" class="tab-section" style="display: none;">
-      <h2>القواعد النصية للبوت المحدد</h2>
-      <textarea id="textRules" rows="10" style="width: 100%; margin-bottom: 10px;" placeholder="اكتب كل قاعدة في سطر منفصل..."></textarea>
-      <button id="saveTextRules" onclick="saveTextRules()">💾 حفظ القواعد</button>
+      <h2>القواعد النصية</h2>
+      <textarea id="textRules" rows="10" style="width: 100%; margin-bottom: 10px;" placeholder="اكتب كل قاعدة في سطر..."></textarea>
+      <button onclick="saveTextRules()">💾 حفظ القواعد</button>
       <p class="error" id="rulesError"></p>
       <p class="success" id="rulesSuccess"></p>
     </section>
