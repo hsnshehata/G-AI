@@ -9,7 +9,9 @@ async function loadWhatsAppPage() {
     <div id="whatsappContent">
       <h2>إدارة واتساب</h2>
       <p>اختر بوتًا لربطه مع واتساب:</p>
-      <select id="botSelect"></select>
+      <select id="botSelect">
+        <option value="">-- اختر بوت --</option>
+      </select>
       <div id="connectionStatus"></div>
       <div id="sessionDuration"></div>
       <div id="qrCode"></div>
@@ -34,7 +36,7 @@ async function loadWhatsAppPage() {
     bots.forEach(bot => {
       const option = document.createElement('option');
       option.value = bot._id;
-      option.textContent = bot._id; // ممكن تغيّرها لعنوان البوت لو عندك حقل title
+      option.textContent = bot.name; // عرض الـ name بدل الـ _id
       botSelect.appendChild(option);
     });
   } catch (err) {
@@ -46,7 +48,14 @@ async function loadWhatsAppPage() {
   // تحديث حالة الاتصال عند اختيار بوت
   botSelect.addEventListener('change', async () => {
     const botId = botSelect.value;
-    if (!botId) return;
+    if (!botId) {
+      connectionStatus.textContent = '';
+      sessionDuration.textContent = '';
+      connectBtn.style.display = 'none';
+      disconnectBtn.style.display = 'none';
+      qrCodeDiv.innerHTML = '';
+      return;
+    }
 
     try {
       const res = await fetch(`/api/whatsapp/status/${botId}`, {
