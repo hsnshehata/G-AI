@@ -18,9 +18,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       localStorage.setItem('role', data.role);
       window.location.href = '/dashboard';
     } else {
-      errorEl.textContent = data.message;
+      errorEl.textContent = 'بيانات الدخول غير صحيحة';
     }
   } catch (err) {
-    errorEl.textContent = 'Server error';
+    errorEl.textContent = 'خطأ في السيرفر';
   }
 });
