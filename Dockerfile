@@ -1,9 +1,25 @@
-# استخدام صورة Node.js رسمية كـ base image (هنستخدم node:18 بدل node:18-slim عشان تكون أكتر استقرارًا)
+# استخدام صورة Node.js رسمية كـ base image
 FROM node:18
 
 # تثبيت الـ dependencies المطلوبة لـ chromium
 RUN apt-get update && apt-get install -y \
   chromium \
+  libx11-xcb1 \
+  libxcomposite1 \
+  libxdamage1 \
+  libxi6 \
+  libxtst6 \
+  libnss3 \
+  libxss1 \
+  libasound2 \
+  libatk1.0-0 \
+  libatk-bridge2.0-0 \
+  libcups2 \
+  libdrm2 \
+  libgbm1 \
+  libpango-1.0-0 \
+  libcairo2 \
+  libxkbcommon0 \
   && rm -rf /var/lib/apt/lists/*
 
 # التأكد من المسار بتاع chromium
@@ -13,6 +29,10 @@ RUN which chromium || echo "Error: chromium not found"
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PORT=3000
+
+# إنشاء user جديد لتشغيل التطبيق
+RUN useradd -m -s /bin/bash appuser
+USER appuser
 
 # تحديد مجلد العمل
 WORKDIR /app
