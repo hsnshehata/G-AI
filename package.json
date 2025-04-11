@@ -1,29 +1,21 @@
 {
-  "name": "bot-dashboard",
+  "name": "ai-chat-controller",
   "version": "1.0.0",
-  "description": "A professional bot management dashboard with WhatsApp, OpenAI, and MongoDB integration",
+  "description": "AI Chat Controller for managing bots",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "migrate": "node server/scripts/migrate.js",
     "dev": "nodemon server/server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^6.12.0",
-    "dotenv": "^16.4.5",
-    "cors": "^2.8.5",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "axios": "^1.6.7",
-    "openai": "^4.0.0",
-    "qrcode": "^1.5.3",
-    "chart.js": "^4.4.0",
-    "whatsapp-web.js": "^1.23.0"
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
-  },
-  "author": "Hassan Shehata",
-  "license": "MIT"
+    "nodemon": "^2.0.22"
+  }
 }
