@@ -12,7 +12,7 @@ exports.getSessionStatus = async (req, res) => {
 
   try {
     // التأكد من إن البوت تابع للمستخدم
-    const bot = await Bot.findOne({ _id: botId, createdBy: userId });
+    const bot = await Bot.findOne({ _id: botId, userId });
     if (!bot) {
       return res.status(404).json({ message: 'البوت غير موجود أو لا يخصك' });
     }
@@ -38,7 +38,7 @@ exports.connectWhatsApp = async (req, res) => {
 
   try {
     // التأكد من إن البوت تابع للمستخدم
-    const bot = await Bot.findOne({ _id: botId, createdBy: userId });
+    const bot = await Bot.findOne({ _id: botId, userId });
     if (!bot) {
       return res.status(404).json({ message: 'البوت غير موجود أو لا يخصك' });
     }
@@ -116,7 +116,7 @@ exports.disconnectWhatsApp = async (req, res) => {
 
   try {
     // التأكد من إن البوت تابع للمستخدم
-    const bot = await Bot.findOne({ _id: botId, createdBy: userId });
+    const bot = await Bot.findOne({ _id: botId, userId });
     if (!bot) {
       return res.status(404).json({ message: 'البوت غير موجود أو لا يخصك' });
     }
