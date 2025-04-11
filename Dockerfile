@@ -28,6 +28,9 @@ RUN which chromium || echo "Error: chromium not found"
 # طباعة الـ permissions بتاعة chromium
 RUN ls -la /usr/bin/chromium || echo "Error: /usr/bin/chromium not found"
 
+# إنشاء user جديد لتشغيل التطبيق
+RUN useradd -m -s /bin/bash appuser
+
 # إصلاح الـ permissions عشان appuser يقدر يشغّل chromium
 RUN chmod +x /usr/bin/chromium && chown appuser:appuser /usr/bin/chromium
 
@@ -36,8 +39,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PORT=3000
 
-# إنشاء user جديد لتشغيل التطبيق
-RUN useradd -m -s /bin/bash appuser
+# التحول لـ appuser
 USER appuser
 
 # التأكد من الـ PATH بتاع appuser
