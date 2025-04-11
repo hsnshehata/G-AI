@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('./db');
 require('dotenv').config();
-
+const webhookRouter = require('./routes/webhook');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -28,6 +28,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/rules', require('./routes/rules'));
 app.use('/api/bot', require('./routes/bot'));
 app.use('/api/webhook', require('./routes/webhook')); // إضافة الـ webhook لفيسبوك
+app.use('/webhook', webhookRouter); // دعم المسار القديم
 
 // Route لصفحة الـ Dashboard
 app.get('/dashboard', (req, res) => {
