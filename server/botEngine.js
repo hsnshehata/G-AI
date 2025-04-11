@@ -1,5 +1,6 @@
 const OpenAI = require('openai');
 const mongoose = require('mongoose');
+const axios = require('axios'); // لتحميل الملفات الصوتية
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -21,6 +22,29 @@ const Conversation = mongoose.model('Conversation', conversationSchema);
 
 const Rule = require('./models/Rule');
 
+// دالة لتحويل الصوت إلى نص باستخدام OpenAI Whisper
+async function transcribeAudio(audioUrl) {
+  try {
+    console.log('📥 Downloading audio file from:', audioUrl);
+    const response = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+    const audioBuffer = Buffer.from(response.data);
+
+    // تحويل الصوت إلى نص باستخدام OpenAI Whisper
+    console.log('🎙️ Transcribing audio using OpenAI Whisper...');
+    const transcription = await openai.audio.transcriptions.create({
+      file: audioBuffer,
+      model: 'whisper-1',
+      response_format: 'text',
+    });
+
+    console.log('✅ Audio transcribed:', transcription);
+    return transcription;
+  } catch (err) {
+    console.error('❌ Error transcribing audio:', err.message, err.stack);
+    throw new Error('Failed to transcribe audio');
+  }
+}
+
 async function processMessage(botId, userId, message, isImage = false, isVoice = false) {
   try {
     console.log('🤖 Processing message for bot:', botId, 'user:', userId, 'message:', message);
@@ -30,15 +54,19 @@ async function processMessage(botId, userId, message, isImage = false, isVoice =
     console.log('📜 Rules found:', rules);
 
     let systemPrompt = 'أنت بوت ذكي يساعد المستخدمين بناءً على القواعد التالية:\n';
-    rules.forEach((rule) => {
-      if (rule.type === 'global' || rule.type === 'general') {
-        systemPrompt += `${rule.content}\n`;
-      } else if (rule.type === 'products') {
-        systemPrompt += `المنتج: ${rule.content.product}، السعر: ${rule.content.price} ${rule.content.currency}\n`;
-      } else if (rule.type === 'qa') {
-        systemPrompt += `السؤال: ${rule.content.question}، الإجابة: ${rule.content.answer}\n`;
-      }
-    });
+    if (rules.length === 0) {
+      systemPrompt += 'لا توجد قواعد محددة، قم بالرد بشكل عام ومفيد.\n';
+    } else {
+      rules.forEach((rule) => {
+        if (rule.type === 'global' || rule.type === 'general') {
+          systemPrompt += `${rule.content}\n`;
+        } else if (rule.type === 'products') {
+          systemPrompt += `المنتج: ${rule.content.product}، السعر: ${rule.content.price} ${rule.content.currency}\n`;
+        } else if (rule.type === 'qa') {
+          systemPrompt += `السؤال: ${rule.content.question}، الإجابة: ${rule.content.answer}\n`;
+        }
+      });
+    }
     console.log('📝 System prompt:', systemPrompt);
 
     // Fetch or create conversation
@@ -50,10 +78,19 @@ async function processMessage(botId, userId, message, isImage = false, isVoice =
       console.log('📋 Found existing conversation:', conversation._id);
     }
 
+    // معالجة الرسالة بناءً على نوعها
+    let userMessageContent = message;
+
+    if (isVoice) {
+      // تحويل الصوت إلى نص
+      userMessageContent = await transcribeAudio(message);
+      console.log('💬 Transcribed audio message:', userMessageContent);
+    }
+
     // Add user message to conversation
-    conversation.messages.push({ role: 'user', content: message });
+    conversation.messages.push({ role: 'user', content: userMessageContent });
     await conversation.save();
-    console.log('💬 User message added to conversation:', message);
+    console.log('💬 User message added to conversation:', userMessageContent);
 
     // Prepare messages for OpenAI
     const messages = [
@@ -74,10 +111,10 @@ async function processMessage(botId, userId, message, isImage = false, isVoice =
 
     // Call OpenAI
     console.log('📡 Calling OpenAI API...');
-    console.log('OpenAI API Key:', process.env.OPENAI_API_KEY || 'المفتاح فاضي!');
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages,
+      max_tokens: 700,
     });
 
     const reply = response.choices[0].message.content;
@@ -88,10 +125,11 @@ async function processMessage(botId, userId, message, isImage = false, isVoice =
     await conversation.save();
     console.log('💬 Assistant reply added to conversation:', reply);
 
+    // لو عايزين نرد بصوت (اختياري)
     if (isVoice) {
-      // Simulate voice response using LemonFox API (placeholder)
-      console.log('🎙️ Processing voice response with LemonFox API...');
-      // Add actual LemonFox API integration here
+      console.log('🎙️ Processing voice response (Text-to-Speech)...');
+      // هنا ممكن نستخدم Text-to-Speech API زي LemonFox أو OpenAI TTS لو متاح
+      // دلوقتي هنرجع الرد كنص عادي
     }
 
     return reply;
