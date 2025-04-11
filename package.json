@@ -8,15 +8,16 @@
     "dev": "nodemon server/server.js"
   },
   "dependencies": {
-    "express": "^4.17.1",
-    "cors": "^2.8.5",
-    "mongoose": "^6.0.0",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^8.5.1",
-    "dotenv": "^10.0.0",
-    "openai": "^4.0.0"
+    "express": "^4.19.2", // الإصدار الأحدث لـ Express
+    "cors": "^2.8.5", // للسماح بالاتصال من نطاقات مختلفة
+    "mongoose": "^8.6.0", // الإصدار الأحدث لـ Mongoose
+    "bcryptjs": "^2.4.3", // لتشفير كلمات المرور
+    "jsonwebtoken": "^9.0.2", // الإصدار الأحدث لـ JWT
+    "dotenv": "^16.4.5", // الإصدار الأحدث لـ dotenv
+    "openai": "^4.67.1", // الإصدار الأحدث لـ OpenAI
+    "request": "^2.88.2" // لإرسال الردود إلى فيسبوك
   },
   "devDependencies": {
-    "nodemon": "^2.0.14"
+    "nodemon": "^3.1.7" // الإصدار الأحدث لـ nodemon
   }
 }
