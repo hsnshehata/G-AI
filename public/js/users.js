@@ -49,11 +49,12 @@ function showCreateUserForm() {
       const data = await res.json();
       if (res.ok) {
         formContainer.innerHTML = '<p>تم إنشاء المستخدم بنجاح!</p>';
-        fetchUsers();
+        await fetchUsers();
       } else {
-        errorEl.textContent = data.message;
+        errorEl.textContent = data.message || 'فشل في إنشاء المستخدم';
       }
     } catch (err) {
+      console.error('خطأ في إنشاء المستخدم:', err);
       errorEl.textContent = 'خطأ في السيرفر';
     }
   });
@@ -64,7 +65,7 @@ async function editUser(id, username, role) {
   const newRole = prompt('أدخل نوع المستخدم (user أو superadmin):', role);
   if (newUsername && newRole) {
     try {
-      await fetch(`/api/users/${id}`, {
+      const res = await fetch(`/api/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -72,9 +73,17 @@ async function editUser(id, username, role) {
         },
         body: JSON.stringify({ username: newUsername, role: newRole }),
       });
-      fetchUsers();
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('تم تعديل المستخدم بنجاح');
+        await fetchUsers();
+      } else {
+        alert(data.message || 'فشل في تعديل المستخدم');
+      }
     } catch (err) {
-      console.error(err);
+      console.error('خطأ في تعديل المستخدم:', err);
+      alert('خطأ في السيرفر');
     }
   }
 }
@@ -82,13 +91,21 @@ async function editUser(id, username, role) {
 async function deleteUser(id) {
   if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
     try {
-      await fetch(`/api/users/${id}`, {
+      const res = await fetch(`/api/users/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      fetchUsers();
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('تم حذف المستخدم بنجاح');
+        await fetchUsers();
+      } else {
+        alert(data.message || 'فشل في حذف المستخدم');
+      }
     } catch (err) {
-      console.error(err);
+      console.error('خطأ في حذف المستخدم:', err);
+      alert('خطأ في السيرفر');
     }
   }
 }
