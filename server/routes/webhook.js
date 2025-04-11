@@ -31,32 +31,31 @@ router.get('/facebook', (req, res) => {
 // Webhook لاستقبال الرسائل من فيسبوك
 router.post('/facebook', async (req, res) => {
   try {
-    console.log('📩 Webhook POST request received:', req.body);
+    console.log('📩 Webhook POST request received:', JSON.stringify(req.body, null, 2));
 
     const body = req.body;
 
     if (body.object === 'page') {
-      body.entry.forEach(async (entry) => {
+      for (const entry of body.entry) {
         const webhookEvent = entry.messaging[0];
         const senderPsid = webhookEvent.sender.id; // معرف المرسل
         const message = webhookEvent.message ? webhookEvent.message.text : null;
+        const pageId = entry.id; // معرف الصفحة اللي بعتت الرسالة
 
-        console.log('💬 Message received:', { senderPsid, message });
+        console.log('💬 Message received:', { senderPsid, message, pageId });
 
         if (message) {
-          // الـ botId يدويًا (استبدلها بالـ botId الصحيح من قاعدة البيانات)
-          const botId = '67f8d411ccde76667f0d92e2'; // الـ botId من الصورة
-
-          // جلب الـ bot بناءً على الـ botId
-          const bot = await Bot.findById(botId);
+          // جلب الـ bot بناءً على الـ facebookPageId
+          const bot = await Bot.findOne({ facebookPageId: pageId });
           if (!bot) {
-            console.log('❌ Bot not found for botId:', botId);
+            console.log('❌ Bot not found for facebookPageId:', pageId);
             return;
           }
 
+          const botId = bot._id;
           const facebookApiKey = bot.facebookApiKey;
 
-          console.log('🤖 Bot found:', { botId, facebookApiKey });
+          console.log('🤖 Bot found:', { botId: botId.toString(), facebookApiKey });
 
           if (!facebookApiKey) {
             console.log('❌ No facebookApiKey found for botId:', botId);
@@ -88,11 +87,11 @@ router.post('/facebook', async (req, res) => {
           }
 
           // إرسال الرد للمستخدم
-          sendMessage(senderPsid, reply, facebookApiKey);
+          await sendMessage(senderPsid, reply, facebookApiKey);
         } else {
           console.log('❌ No message text found in webhook event');
         }
-      });
+      }
 
       res.status(200).json({ message: 'EVENT_RECEIVED' });
     } else {
@@ -106,7 +105,7 @@ router.post('/facebook', async (req, res) => {
 });
 
 // دالة لإرسال رسالة عبر فيسبوك
-function sendMessage(senderPsid, message, facebookApiKey) {
+async function sendMessage(senderPsid, message, facebookApiKey) {
   const requestBody = {
     recipient: {
       id: senderPsid,
@@ -118,19 +117,24 @@ function sendMessage(senderPsid, message, facebookApiKey) {
 
   console.log('📤 Sending message to PSID:', senderPsid, 'Message:', message);
 
-  request({
-    url: 'https://graph.facebook.com/v2.6/me/messages',
-    qs: { access_token: facebookApiKey },
-    method: 'POST',
-    json: requestBody,
-  }, (err, response, body) => {
-    if (err) {
-      console.error('❌ خطأ في إرسال الرسالة:', err);
-    } else if (response.body.error) {
-      console.error('❌ خطأ من فيسبوك:', response.body.error);
-    } else {
-      console.log('✅ تم إرسال الرسالة بنجاح:', body);
-    }
+  return new Promise((resolve, reject) => {
+    request({
+      url: 'https://graph.facebook.com/v2.6/me/messages',
+      qs: { access_token: facebookApiKey },
+      method: 'POST',
+      json: requestBody,
+    }, (err, response, body) => {
+      if (err) {
+        console.error('❌ خطأ في إرسال الرسالة:', err);
+        reject(err);
+      } else if (response.body.error) {
+        console.error('❌ خطأ من فيسبوك:', response.body.error);
+        reject(response.body.error);
+      } else {
+        console.log('✅ تم إرسال الرسالة بنجاح:', body);
+        resolve(body);
+      }
+    });
   });
 }
 
