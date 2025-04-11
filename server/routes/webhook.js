@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Bot = require('../models/Bot');
+const Bot = require('../models/Bot'); // نرجع لموديل Bot
 const request = require('request');
 const { processMessage } = require('../botEngine');
 
@@ -63,7 +63,7 @@ router.post('/facebook', async (req, res) => {
         continue;
       }
 
-      // جلب الـ bot بناءً على الـ facebookPageId
+      // جلب الـ bot بناءً على الـ facebookPageId من موديل Bot
       const bot = await Bot.findOne({ facebookPageId: pageId });
       if (!bot) {
         console.log('❌ Bot not found for facebookPageId:', pageId);
@@ -72,8 +72,9 @@ router.post('/facebook', async (req, res) => {
 
       const botId = bot._id;
       const facebookApiKey = bot.facebookApiKey;
+      const facebookPageId = bot.facebookPageId;
 
-      console.log('🤖 Bot found:', { botId: botId.toString(), facebookApiKey });
+      console.log('🤖 Bot found:', { botId: botId.toString(), facebookApiKey, facebookPageId });
 
       if (!facebookApiKey) {
         console.log('❌ No facebookApiKey found for botId:', botId);
