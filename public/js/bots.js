@@ -45,16 +45,24 @@ async function loadBotsPage() {
 async function populateBotSelect() {
   const botSelect = document.getElementById('botSelect');
   const role = localStorage.getItem('role');
-  const res = await fetch('/api/bots', {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-  });
-  const bots = await res.json();
+  try {
+    const res = await fetch('/api/bots', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+    if (!res.ok) {
+      throw new Error('فشل في جلب البوتات');
+    }
+    const bots = await res.json();
 
-  botSelect.innerHTML = '';
-  const userBots = role === 'superadmin' ? bots : bots.filter((bot) => bot.userId._id === localStorage.getItem('userId'));
-  userBots.forEach((bot) => {
-    botSelect.innerHTML += `<option value="${bot._id}">${bot.name}</option>`;
-  });
+    botSelect.innerHTML = '';
+    const userBots = role === 'superadmin' ? bots : bots.filter((bot) => bot.userId._id === localStorage.getItem('userId'));
+    userBots.forEach((bot) => {
+      botSelect.innerHTML += `<option value="${bot._id}">${bot.name}</option>`;
+    });
+  } catch (err) {
+    console.error('خطأ في جلب البوتات:', err);
+    alert('خطأ في جلب البوتات');
+  }
 }
 
 function selectBot(botId) {
@@ -73,6 +81,9 @@ async function fetchUsers() {
     const res = await fetch('/api/users', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
+    if (!res.ok) {
+      throw new Error('فشل في جلب المستخدمين');
+    }
     const users = await res.json();
 
     const tbody = document.getElementById('usersTable');
@@ -99,7 +110,8 @@ async function fetchUsers() {
       tbody.innerHTML += row;
     });
   } catch (err) {
-    console.error(err);
+    console.error('خطأ في جلب المستخدمين:', err);
+    alert('خطأ في جلب المستخدمين');
   }
 }
 
@@ -149,6 +161,10 @@ function showCreateBotForm() {
       users.forEach((user) => {
         userSelect.innerHTML += `<option value="${user._id}">${user.username}</option>`;
       });
+    })
+    .catch((err) => {
+      console.error('خطأ في جلب المستخدمين:', err);
+      document.getElementById('botError').textContent = 'خطأ في جلب المستخدمين';
     });
 
   userSearch.addEventListener('input', () => {
@@ -183,15 +199,16 @@ function showCreateBotForm() {
       const data = await res.json();
       if (res.ok) {
         formContainer.innerHTML = '<p>تم إنشاء البوت بنجاح!</p>';
-        fetchUsers();
+        await fetchUsers();
         await populateBotSelect();
         if (!selectedBotId && document.getElementById('botSelect').options.length > 0) {
           selectBot(document.getElementById('botSelect').options[0].value);
         }
       } else {
-        errorEl.textContent = data.message;
+        errorEl.textContent = data.message || 'فشل في إنشاء البوت';
       }
     } catch (err) {
+      console.error('خطأ في إنشاء البوت:', err);
       errorEl.textContent = 'خطأ في السيرفر';
     }
   });
@@ -199,14 +216,14 @@ function showCreateBotForm() {
 
 async function editBot(id, name, facebookApiKey, facebookPageId) {
   const newName = prompt('أدخل اسم البوت الجديد:', name);
-  const newFacebookApiKey = prompt('أدخل رقم API لفيسبوك (اختياري):', facebookApiKey);
+  const newFacebookApiKey = prompt('أدخل رقم API لفيسبوك (اختياري):', facebookApiKey || '');
   let newFacebookPageId = facebookPageId;
   if (newFacebookApiKey) {
-    newFacebookPageId = prompt('أدخل معرف صفحة الفيسبوك:', facebookPageId);
+    newFacebookPageId = prompt('أدخل معرف صفحة الفيسبوك:', facebookPageId || '');
   }
   if (newName) {
     try {
-      await fetch(`/api/bots/${id}`, {
+      const res = await fetch(`/api/bots/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -214,10 +231,18 @@ async function editBot(id, name, facebookApiKey, facebookPageId) {
         },
         body: JSON.stringify({ name: newName, facebookApiKey: newFacebookApiKey, facebookPageId: newFacebookPageId }),
       });
-      fetchUsers();
-      await populateBotSelect();
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('تم تعديل البوت بنجاح');
+        await fetchUsers();
+        await populateBotSelect();
+      } else {
+        alert(data.message || 'فشل في تعديل البوت');
+      }
     } catch (err) {
-      console.error(err);
+      console.error('خطأ في تعديل البوت:', err);
+      alert('خطأ في السيرفر');
     }
   }
 }
@@ -225,17 +250,27 @@ async function editBot(id, name, facebookApiKey, facebookPageId) {
 async function deleteBot(id) {
   if (confirm('هل أنت متأكد من حذف هذا البوت؟')) {
     try {
-      await fetch(`/api/bots/${id}`, {
+      const res = await fetch(`/api/bots/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      fetchUsers();
-      await populateBotSelect();
-      if (selectedBotId === id && document.getElementById('botSelect').options.length > 0) {
-        selectBot(document.getElementById('botSelect').options[0].value);
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('تم حذف البوت بنجاح');
+        await fetchUsers();
+        await populateBotSelect();
+        if (selectedBotId === id && document.getElementById('botSelect').options.length > 0) {
+          selectBot(document.getElementById('botSelect').options[0].value);
+        } else if (document.getElementById('botSelect').options.length === 0) {
+          selectedBotId = null;
+        }
+      } else {
+        alert(data.message || 'فشل في حذف البوت');
       }
     } catch (err) {
-      console.error(err);
+      console.error('خطأ في حذف البوت:', err);
+      alert('خطأ في السيرفر');
     }
   }
 }
