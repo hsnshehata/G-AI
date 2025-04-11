@@ -404,20 +404,3 @@ async function deleteRule(id) {
     }
   }
 }
-
-module.exports = {
-  loadRulesPage,
-  populateBotSelectRules,
-  fetchRules,
-  showCreateGlobalRuleForm,
-  showCreateGeneralRuleForm,
-  showCreateProductRuleForm,
-  showCreateQARuleForm,
-  showCreateStoreRuleForm,
-  createRule,
-  editRule,
-  editProductRule,
-  editQARule,
-  editStoreRule,
-  deleteRule,
-};
