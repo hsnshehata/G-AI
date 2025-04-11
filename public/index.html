@@ -1,21 +1,27 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تسجيل الدخول - G-AI</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chat Controller - Login</title>
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="login-container">
-    <h1>تسجيل الدخول إلى G-AI</h1>
+  <div class="container">
+    <h1>Login</h1>
     <form id="loginForm">
-      <input type="text" id="username" placeholder="اسم المستخدم" required />
-      <input type="password" id="password" placeholder="كلمة المرور" required />
-      <button type="submit">دخول</button>
-      <p id="loginError" class="error"></p>
+      <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" required>
+      </div>
+      <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+      </div>
+      <button type="submit">Login</button>
     </form>
+    <p id="error" style="color: red;"></p>
   </div>
-  <script src="js/auth.js"></script>
+  <script src="/js/auth.js"></script>
 </body>
 </html>
