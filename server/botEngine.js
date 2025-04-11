@@ -1,6 +1,7 @@
 const OpenAI = require('openai');
 const mongoose = require('mongoose');
 const axios = require('axios');
+const FormData = require('form-data'); // للتعامل مع multipart/form-data
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -22,47 +23,46 @@ const Conversation = mongoose.model('Conversation', conversationSchema);
 
 const Rule = require('./models/Rule');
 
-// دالة لتحويل الصوت إلى نص باستخدام OpenAI Whisper
+// دالة لتحويل الصوت إلى نص باستخدام LemonFox
 async function transcribeAudio(audioUrl) {
+  const body = new FormData();
+  body.append('file', audioUrl); // بنبعت رابط الصوت مباشرة
+  body.append('language', 'arabic');
+  body.append('response_format', 'json');
   try {
-    console.log('📥 Downloading audio file from:', audioUrl);
-    const response = await axios.get(audioUrl, { responseType: 'arraybuffer' });
-    if (!response.data || response.data.length === 0) {
-      throw new Error('Failed to download audio file: Empty response');
-    }
-    const audioBuffer = Buffer.from(response.data);
-    console.log('✅ Audio file downloaded, size:', audioBuffer.length, 'bytes');
-
-    // تحويل الصوت إلى نص باستخدام OpenAI Whisper
-    console.log('🎙️ Transcribing audio using OpenAI Whisper...');
-    const transcription = await openai.audio.transcriptions.create({
-      file: audioBuffer,
-      model: 'whisper-1',
-      response_format: 'text',
-    });
-
-    console.log('✅ Audio transcribed:', transcription);
-    return transcription;
+    console.log("LemonFox API Key: " + (process.env.LEMONFOX_API_KEY ? "تم جلب المفتاح" : "المفتاح فاضي!"));
+    const response = await axios.post(
+      'https://api.lemonfox.ai/v1/audio/transcriptions',
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.LEMONFOX_API_KEY}`,
+          ...body.getHeaders(),
+        },
+      }
+    );
+    console.log('✅ Audio transcribed with LemonFox:', response.data.text);
+    return response.data.text;
   } catch (err) {
-    console.error('❌ Error transcribing audio:', err.message, err.stack);
+    console.error('❌ Error transcribing audio with LemonFox:', err.message, err.stack);
     throw new Error(`Failed to transcribe audio: ${err.message}`);
   }
 }
 
-// دالة لتحويل النص إلى صوت باستخدام LemonFox (افتراضيًا)
+// دالة لتحويل النص إلى صوت باستخدام LemonFox
 async function textToSpeech(text) {
   try {
-    const LEMONFOX_API_KEY = process.env.LEMONFOX_API_KEY; // تأكد إن المفتاح موجود في .env
+    const LEMONFOX_API_KEY = process.env.LEMONFOX_API_KEY;
     if (!LEMONFOX_API_KEY) {
       throw new Error('LemonFox API Key is not defined');
     }
 
     console.log('🎙️ Converting text to speech using LemonFox...');
     const response = await axios.post(
-      'https://api.lemonfox.ai/v1/tts', // افتراضي، استبدله بالـ endpoint الصحيح
+      'https://api.lemonfox.ai/v1/tts', // استبدله بالـ endpoint الصحيح لو مختلف
       {
         text: text,
-        voice: 'ar-EG-male', // اختر صوت مناسب (مثلاً صوت رجل عربي)
+        voice: 'ar-EG-male', // صوت رجل عربي
       },
       {
         headers: {
@@ -72,7 +72,7 @@ async function textToSpeech(text) {
       }
     );
 
-    const audioUrl = response.data.audio_url; // افتراضي، بناءً على رد LemonFox
+    const audioUrl = response.data.audio_url; // بناءً على رد LemonFox
     console.log('✅ Text converted to speech:', audioUrl);
     return audioUrl;
   } catch (err) {
@@ -118,8 +118,11 @@ async function processMessage(botId, userId, message, isImage = false, isVoice =
     let userMessageContent = message;
 
     if (isVoice) {
-      // تحويل الصوت إلى نص
+      // تحويل الصوت إلى نص باستخدام LemonFox
       userMessageContent = await transcribeAudio(message);
+      if (!userMessageContent) {
+        throw new Error('Failed to transcribe audio: No text returned');
+      }
       console.log('💬 Transcribed audio message:', userMessageContent);
     }
 
@@ -165,7 +168,7 @@ async function processMessage(botId, userId, message, isImage = false, isVoice =
     if (isVoice) {
       const audioReplyUrl = await textToSpeech(reply);
       console.log('🎙️ Audio reply generated:', audioReplyUrl);
-      return audioReplyUrl; // هنرجع رابط الصوت عشان نستخدمه في الرد
+      return audioReplyUrl;
     }
 
     return reply;
