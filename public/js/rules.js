@@ -87,39 +87,79 @@ async function fetchRules() {
 
     rules.forEach((rule) => {
       console.log('Rule:', rule);
+      const ruleElement = document.createElement('p');
       if (rule.type === 'global' && globalRulesDiv) {
-        globalRulesDiv.innerHTML += `
-          <p>${rule.content}
-            <button onclick="editRule('${rule._id}', 'global', '${rule.content}')">تعديل</button>
-            <button onclick="deleteRule('${rule._id}')">حذف</button>
-          </p>`;
+        ruleElement.innerHTML = `${rule.content}
+          <button class="edit-rule" data-id="${rule._id}" data-type="global" data-content="${rule.content}">تعديل</button>
+          <button class="delete-rule" data-id="${rule._id}">حذف</button>`;
+        globalRulesDiv.appendChild(ruleElement);
       } else if (rule.botId && rule.botId.toString() === selectedBotId) {
         if (rule.type === 'general') {
-          generalRulesDiv.innerHTML += `
-            <p>${rule.content}
-              <button onclick="editRule('${rule._id}', 'general', '${rule.content}')">تعديل</button>
-              <button onclick="deleteRule('${rule._id}')">حذف</button>
-            </p>`;
+          ruleElement.innerHTML = `${rule.content}
+            <button class="edit-rule" data-id="${rule._id}" data-type="general" data-content="${rule.content}">تعديل</button>
+            <button class="delete-rule" data-id="${rule._id}">حذف</button>`;
+          generalRulesDiv.appendChild(ruleElement);
         } else if (rule.type === 'products') {
-          productRulesDiv.innerHTML += `
-            <p>المنتج: ${rule.content.product}، السعر: ${rule.content.price} ${rule.content.currency}
-              <button onclick="editProductRule('${rule._id}', '${rule.content.product}', '${rule.content.price}', '${rule.content.currency}')">تعديل</button>
-              <button onclick="deleteRule('${rule._id}')">حذف</button>
-            </p>`;
+          ruleElement.innerHTML = `المنتج: ${rule.content.product}، السعر: ${rule.content.price} ${rule.content.currency}
+            <button class="edit-product-rule" data-id="${rule._id}" data-product="${rule.content.product}" data-price="${rule.content.price}" data-currency="${rule.content.currency}">تعديل</button>
+            <button class="delete-rule" data-id="${rule._id}">حذف</button>`;
+          productRulesDiv.appendChild(ruleElement);
         } else if (rule.type === 'qa') {
-          qaRulesDiv.innerHTML += `
-            <p>السؤال: ${rule.content.question}، الإجابة: ${rule.content.answer}
-              <button onclick="editQARule('${rule._id}', '${rule.content.question}', '${rule.content.answer}')">تعديل</button>
-              <button onclick="deleteRule('${rule._id}')">حذف</button>
-            </p>`;
+          ruleElement.innerHTML = `السؤال: ${rule.content.question}، الإجابة: ${rule.content.answer}
+            <button class="edit-qa-rule" data-id="${rule._id}" data-question="${rule.content.question}" data-answer="${rule.content.answer}">تعديل</button>
+            <button class="delete-rule" data-id="${rule._id}">حذف</button>`;
+          qaRulesDiv.appendChild(ruleElement);
         } else if (rule.type === 'store') {
-          storeRulesDiv.innerHTML += `
-            <p>مفتاح API: ${rule.content.apiKey}
-              <button onclick="editStoreRule('${rule._id}', '${rule.content.apiKey}')">تعديل</button>
-              <button onclick="deleteRule('${rule._id}')">حذف</button>
-            </p>`;
+          ruleElement.innerHTML = `مفتاح API: ${rule.content.apiKey}
+            <button class="edit-store-rule" data-id="${rule._id}" data-apikey="${rule.content.apiKey}">تعديل</button>
+            <button class="delete-rule" data-id="${rule._id}">حذف</button>`;
+          storeRulesDiv.appendChild(ruleElement);
         }
       }
+    });
+
+    // إضافة event listeners لأزرار التعديل والحذف
+    document.querySelectorAll('.edit-rule').forEach((button) => {
+      button.addEventListener('click', () => {
+        const id = button.getAttribute('data-id');
+        const type = button.getAttribute('data-type');
+        const content = button.getAttribute('data-content');
+        editRule(id, type, content);
+      });
+    });
+
+    document.querySelectorAll('.edit-product-rule').forEach((button) => {
+      button.addEventListener('click', () => {
+        const id = button.getAttribute('data-id');
+        const product = button.getAttribute('data-product');
+        const price = button.getAttribute('data-price');
+        const currency = button.getAttribute('data-currency');
+        editProductRule(id, product, price, currency);
+      });
+    });
+
+    document.querySelectorAll('.edit-qa-rule').forEach((button) => {
+      button.addEventListener('click', () => {
+        const id = button.getAttribute('data-id');
+        const question = button.getAttribute('data-question');
+        const answer = button.getAttribute('data-answer');
+        editQARule(id, question, answer);
+      });
+    });
+
+    document.querySelectorAll('.edit-store-rule').forEach((button) => {
+      button.addEventListener('click', () => {
+        const id = button.getAttribute('data-id');
+        const apiKey = button.getAttribute('data-apikey');
+        editStoreRule(id, apiKey);
+      });
+    });
+
+    document.querySelectorAll('.delete-rule').forEach((button) => {
+      button.addEventListener('click', () => {
+        const id = button.getAttribute('data-id');
+        deleteRule(id);
+      });
     });
   } catch (err) {
     console.error('Error fetching rules:', err);
