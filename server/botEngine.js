@@ -1,10 +1,9 @@
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAI = require('openai');
 const mongoose = require('mongoose');
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 const conversationSchema = new mongoose.Schema({
   botId: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
@@ -55,16 +54,22 @@ async function processMessage(botId, userId, message, isImage = false, isVoice =
     ];
 
     if (isImage) {
-      messages.push({ role: 'user', content: [{ type: 'image_url', image_url: { url: message } }] });
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: 'Analyze this image:' },
+          { type: 'image_url', image_url: { url: message } },
+        ],
+      });
     }
 
     // Call OpenAI
-    const response = await openai.createChatCompletion({
+    const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages,
     });
 
-    const reply = response.data.choices[0].message.content;
+    const reply = response.choices[0].message.content;
 
     // Add assistant reply to conversation
     conversation.messages.push({ role: 'assistant', content: reply });
