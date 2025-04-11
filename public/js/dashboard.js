@@ -419,60 +419,68 @@ async function populateBotSelectRules() {
 }
 
 async function fetchRules() {
-  if (!selectedBotId) return;
+  if (!selectedBotId) {
+    console.log('No bot selected');
+    return;
+  }
 
-  const res = await fetch('/api/rules', {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-  });
-  const rules = await res.json();
+  try {
+    const res = await fetch(`/api/rules?botId=${selectedBotId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+    const rules = await res.json();
 
-  const generalRulesDiv = document.getElementById('generalRules');
-  const productRulesDiv = document.getElementById('productRules');
-  const qaRulesDiv = document.getElementById('qaRules');
-  const storeRulesDiv = document.getElementById('storeRules');
-  const globalRulesDiv = document.getElementById('globalRules');
+    const generalRulesDiv = document.getElementById('generalRules');
+    const productRulesDiv = document.getElementById('productRules');
+    const qaRulesDiv = document.getElementById('qaRules');
+    const storeRulesDiv = document.getElementById('storeRules');
+    const globalRulesDiv = document.getElementById('globalRules');
 
-  generalRulesDiv.innerHTML = '';
-  productRulesDiv.innerHTML = '';
-  qaRulesDiv.innerHTML = '';
-  storeRulesDiv.innerHTML = '';
-  if (globalRulesDiv) globalRulesDiv.innerHTML = '';
+    generalRulesDiv.innerHTML = '';
+    productRulesDiv.innerHTML = '';
+    qaRulesDiv.innerHTML = '';
+    storeRulesDiv.innerHTML = '';
+    if (globalRulesDiv) globalRulesDiv.innerHTML = '';
 
-  rules.forEach((rule) => {
-    if (rule.type === 'global' && globalRulesDiv) {
-      globalRulesDiv.innerHTML += `
-        <p>${rule.content}
-          <button onclick="editRule('${rule._id}', 'global', '${rule.content}')">تعديل</button>
-          <button onclick="deleteRule('${rule._id}')">حذف</button>
-        </p>`;
-    } else if (rule.botId.toString() === selectedBotId) {
-      if (rule.type === 'general') {
-        generalRulesDiv.innerHTML += `
+    rules.forEach((rule) => {
+      console.log('Rule:', rule); // للتأكد من القواعد اللي بتتجلب
+      if (rule.type === 'global' && globalRulesDiv) {
+        globalRulesDiv.innerHTML += `
           <p>${rule.content}
-            <button onclick="editRule('${rule._id}', 'general', '${rule.content}')">تعديل</button>
+            <button onclick="editRule('${rule._id}', 'global', '${rule.content}')">تعديل</button>
             <button onclick="deleteRule('${rule._id}')">حذف</button>
           </p>`;
-      } else if (rule.type === 'products') {
-        productRulesDiv.innerHTML += `
-          <p>المنتج: ${rule.content.product}، السعر: ${rule.content.price} ${rule.content.currency}
-            <button onclick="editProductRule('${rule._id}', '${rule.content.product}', '${rule.content.price}', '${rule.content.currency}')">تعديل</button>
-            <button onclick="deleteRule('${rule._id}')">حذف</button>
-          </p>`;
-      } else if (rule.type === 'qa') {
-        qaRulesDiv.innerHTML += `
-          <p>السؤال: ${rule.content.question}، الإجابة: ${rule.content.answer}
-            <button onclick="editQARule('${rule._id}', '${rule.content.question}', '${rule.content.answer}')">تعديل</button>
-            <button onclick="deleteRule('${rule._id}')">حذف</button>
-          </p>`;
-      } else if (rule.type === 'store') {
-        storeRulesDiv.innerHTML += `
-          <p>مفتاح API: ${rule.content.apiKey}
-            <button onclick="editStoreRule('${rule._id}', '${rule.content.apiKey}')">تعديل</button>
-            <button onclick="deleteRule('${rule._id}')">حذف</button>
-          </p>`;
+      } else if (rule.botId && rule.botId.toString() === selectedBotId) {
+        if (rule.type === 'general') {
+          generalRulesDiv.innerHTML += `
+            <p>${rule.content}
+              <button onclick="editRule('${rule._id}', 'general', '${rule.content}')">تعديل</button>
+              <button onclick="deleteRule('${rule._id}')">حذف</button>
+            </p>`;
+        } else if (rule.type === 'products') {
+          productRulesDiv.innerHTML += `
+            <p>المنتج: ${rule.content.product}، السعر: ${rule.content.price} ${rule.content.currency}
+              <button onclick="editProductRule('${rule._id}', '${rule.content.product}', '${rule.content.price}', '${rule.content.currency}')">تعديل</button>
+              <button onclick="deleteRule('${rule._id}')">حذف</button>
+            </p>`;
+        } else if (rule.type === 'qa') {
+          qaRulesDiv.innerHTML += `
+            <p>السؤال: ${rule.content.question}، الإجابة: ${rule.content.answer}
+              <button onclick="editQARule('${rule._id}', '${rule.content.question}', '${rule.content.answer}')">تعديل</button>
+              <button onclick="deleteRule('${rule._id}')">حذف</button>
+            </p>`;
+        } else if (rule.type === 'store') {
+          storeRulesDiv.innerHTML += `
+            <p>مفتاح API: ${rule.content.apiKey}
+              <button onclick="editStoreRule('${rule._id}', '${rule.content.apiKey}')">تعديل</button>
+              <button onclick="deleteRule('${rule._id}')">حذف</button>
+            </p>`;
+        }
       }
-    }
-  });
+    });
+  } catch (err) {
+    console.error('Error fetching rules:', err);
+  }
 }
 
 function showCreateGlobalRuleForm() {
@@ -611,7 +619,7 @@ async function createRule(type, content) {
 
     if (res.ok) {
       document.getElementById('formContainer').innerHTML = '<p>تم إضافة القاعدة بنجاح!</p>';
-      fetchRules();
+      await fetchRules();
     } else {
       const data = await res.json();
       alert(data.message);
@@ -633,7 +641,7 @@ async function editRule(id, type, content) {
         },
         body: JSON.stringify({ type, content: newContent }),
       });
-      fetchRules();
+      await fetchRules();
     } catch (err) {
       console.error(err);
     }
@@ -654,7 +662,7 @@ async function editProductRule(id, product, price, currency) {
         },
         body: JSON.stringify({ type: 'products', content: { product: newProduct, price: newPrice, currency: newCurrency } }),
       });
-      fetchRules();
+      await fetchRules();
     } catch (err) {
       console.error(err);
     }
@@ -674,7 +682,7 @@ async function editQARule(id, question, answer) {
         },
         body: JSON.stringify({ type: 'qa', content: { question: newQuestion, answer: newAnswer } }),
       });
-      fetchRules();
+      await fetchRules();
     } catch (err) {
       console.error(err);
     }
@@ -693,7 +701,7 @@ async function editStoreRule(id, apiKey) {
         },
         body: JSON.stringify({ type: 'store', content: { apiKey: newApiKey } }),
       });
-      fetchRules();
+      await fetchRules();
     } catch (err) {
       console.error(err);
     }
@@ -707,7 +715,7 @@ async function deleteRule(id) {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      fetchRules();
+      await fetchRules();
     } catch (err) {
       console.error(err);
     }
