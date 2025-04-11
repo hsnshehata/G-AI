@@ -25,6 +25,12 @@ RUN apt-get update && apt-get install -y \
 # التأكد من المسار بتاع chromium
 RUN which chromium || echo "Error: chromium not found"
 
+# طباعة الـ permissions بتاعة chromium
+RUN ls -la /usr/bin/chromium || echo "Error: /usr/bin/chromium not found"
+
+# إصلاح الـ permissions عشان appuser يقدر يشغّل chromium
+RUN chmod +x /usr/bin/chromium && chown appuser:appuser /usr/bin/chromium
+
 # تحديد متغير بيئي لـ puppeteer عشان يلاقي Chromium
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
@@ -33,6 +39,9 @@ ENV PORT=3000
 # إنشاء user جديد لتشغيل التطبيق
 RUN useradd -m -s /bin/bash appuser
 USER appuser
+
+# التأكد من الـ PATH بتاع appuser
+RUN echo $PATH > /tmp/path.txt
 
 # تحديد مجلد العمل
 WORKDIR /app
