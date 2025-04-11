@@ -1,6 +1,4 @@
 const mongoose = require('mongoose');
-const User = require('./models/User');
-const bcrypt = require('bcryptjs');
 
 const connectDB = async () => {
   try {
@@ -11,18 +9,19 @@ const connectDB = async () => {
     console.log('MongoDB connected');
 
     // Create default admin if not exists
-    const adminExists = await User.findOne({ username: 'admin' });
-    if (!adminExists) {
-      const hashedPassword = await bcrypt.hash('123456', 10);
-      await User.create({
+    const User = require('./models/User');
+    const admin = await User.findOne({ username: 'admin' });
+    if (!admin) {
+      const newAdmin = new User({
         username: 'admin',
-        password: hashedPassword,
+        password: '123456',
         role: 'superadmin',
       });
+      await newAdmin.save();
       console.log('Default admin created');
     }
   } catch (err) {
-    console.error(err);
+    console.error('MongoDB connection error:', err.message);
     process.exit(1);
   }
 };
