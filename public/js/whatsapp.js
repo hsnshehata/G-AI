@@ -95,7 +95,7 @@ async function loadWhatsAppPage() {
       });
       const data = await res.json();
 
-      if (data.qr) {
+      if (res.ok && data.qr) {
         qrCodeDiv.innerHTML = '';
         QRCode.toCanvas(data.qr, { width: 200 }, (err, canvas) => {
           if (err) {
@@ -106,7 +106,7 @@ async function loadWhatsAppPage() {
           qrCodeDiv.appendChild(canvas);
         });
       } else {
-        qrCodeDiv.textContent = 'فشل في توليد QR Code';
+        qrCodeDiv.textContent = data.message || 'فشل في توليد QR Code';
       }
     } catch (err) {
       console.error('❌ خطأ في ربط واتساب:', err);
