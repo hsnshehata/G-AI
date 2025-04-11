@@ -15,11 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRulesPage();
   });
 
-  // إضافة حدث لزر تسجيل الخروج
+  document.getElementById('whatsappBtn').addEventListener('click', () => {
+    window.location.href = '#whatsapp';
+    loadWhatsAppPage();
+  });
+
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     try {
       console.log('📤 Sending logout request for username:', localStorage.getItem('username'));
-      const response = await fetch('/api/auth/logout', { // تصحيح الـ URL
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: localStorage.getItem('username') }),
@@ -29,13 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('📥 Logout response:', data);
 
       if (response.ok && data.success) {
-        // تنظيف الـ localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('userId');
         localStorage.removeItem('username');
         console.log('✅ Logout successful, localStorage cleared');
-        // إعادة توجيه المستخدم لصفحة تسجيل الدخول
         window.location.href = '/';
       } else {
         console.log('❌ Logout failed:', data.message);
