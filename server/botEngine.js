@@ -49,38 +49,6 @@ async function transcribeAudio(audioUrl) {
   }
 }
 
-// دالة لتحويل النص إلى صوت باستخدام LemonFox
-async function textToSpeech(text) {
-  try {
-    const LEMONFOX_API_KEY = process.env.LEMONFOX_API_KEY;
-    if (!LEMONFOX_API_KEY) {
-      throw new Error('LemonFox API Key is not defined');
-    }
-
-    console.log('🎙️ Converting text to speech using LemonFox...');
-    const response = await axios.post(
-      'https://api.lemonfox.ai/v1/tts', // استبدله بالـ endpoint الصحيح لو مختلف
-      {
-        text: text,
-        voice: 'ar-EG-male', // صوت رجل عربي
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${LEMONFOX_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    const audioUrl = response.data.audio_url; // بناءً على رد LemonFox
-    console.log('✅ Text converted to speech:', audioUrl);
-    return audioUrl;
-  } catch (err) {
-    console.error('❌ Error converting text to speech:', err.message, err.stack);
-    throw new Error(`Failed to convert text to speech: ${err.message}`);
-  }
-}
-
 async function processMessage(botId, userId, message, isImage = false, isVoice = false) {
   try {
     console.log('🤖 Processing message for bot:', botId, 'user:', userId, 'message:', message);
@@ -164,13 +132,7 @@ async function processMessage(botId, userId, message, isImage = false, isVoice =
     await conversation.save();
     console.log('💬 Assistant reply added to conversation:', reply);
 
-    // لو الرسالة صوتية، نحوّل الرد لصوت
-    if (isVoice) {
-      const audioReplyUrl = await textToSpeech(reply);
-      console.log('🎙️ Audio reply generated:', audioReplyUrl);
-      return audioReplyUrl;
-    }
-
+    // بنرجع الرد النصي مباشرة (سواء الرسالة صوتية أو نصية أو صورة)
     return reply;
   } catch (err) {
     console.error('❌ Error processing message:', err.message, err.stack);
