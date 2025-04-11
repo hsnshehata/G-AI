@@ -29,6 +29,7 @@ app.use('/api/rules', require('./routes/rules'));
 app.use('/api/bot', require('./routes/bot'));
 app.use('/api/webhook', require('./routes/webhook')); // إضافة الـ webhook لفيسبوك
 app.use('/webhook', webhookRouter); // دعم المسار القديم
+app.use('/api/whatsapp', require('./routes/whatsapp')); // إضافة الـ route لـ واتساب
 
 // Route لصفحة الـ Dashboard
 app.get('/dashboard', (req, res) => {
