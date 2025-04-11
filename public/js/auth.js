@@ -1,26 +1,26 @@
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const errorEl = document.getElementById('error');
 
   try {
-    const res = await fetch('/api/login', {
+    const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password }),
     });
 
     const data = await res.json();
-
-    if (res.ok && data.token) {
+    if (res.ok) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.role);
-      window.location.href = 'dashboard.html';
+      window.location.href = '/dashboard';
     } else {
-      document.getElementById('loginError').textContent = data.message || 'فشل تسجيل الدخول';
+      errorEl.textContent = data.message;
     }
   } catch (err) {
-    document.getElementById('loginError').textContent = 'حدث خطأ أثناء الاتصال بالسيرفر';
+    errorEl.textContent = 'Server error';
   }
 });
