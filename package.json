@@ -17,12 +17,13 @@
     "dotenv": "^16.4.5",
     "openai": "^4.67.1",
     "axios": "^1.7.7",
-    "request": "^2.88.2",
     "whatsapp-web.js": "^1.25.0",
     "qrcode": "^1.5.3",
-    "puppeteer": "^23.5.0"
+    "puppeteer": "^23.5.0",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"
-  }
+  },
+  "type": "module"
 }
