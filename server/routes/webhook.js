@@ -35,69 +35,80 @@ router.post('/facebook', async (req, res) => {
 
     const body = req.body;
 
-    if (body.object === 'page') {
-      for (const entry of body.entry) {
-        const webhookEvent = entry.messaging[0];
-        const senderPsid = webhookEvent.sender.id; // معرف المرسل
-        const message = webhookEvent.message ? webhookEvent.message.text : null;
-        const pageId = entry.id; // معرف الصفحة اللي بعتت الرسالة
+    if (body.object !== 'page') {
+      console.log('❌ Invalid webhook event: Not a page object');
+      return res.sendStatus(404);
+    }
 
-        console.log('💬 Message received:', { senderPsid, message, pageId });
-
-        if (message) {
-          // جلب الـ bot بناءً على الـ facebookPageId
-          const bot = await Bot.findOne({ facebookPageId: pageId });
-          if (!bot) {
-            console.log('❌ Bot not found for facebookPageId:', pageId);
-            return;
-          }
-
-          const botId = bot._id;
-          const facebookApiKey = bot.facebookApiKey;
-
-          console.log('🤖 Bot found:', { botId: botId.toString(), facebookApiKey });
-
-          if (!facebookApiKey) {
-            console.log('❌ No facebookApiKey found for botId:', botId);
-            return;
-          }
-
-          // جلب القواعد الخاصة بالبوت (ليها نفس الـ botId) أو القواعد الثابتة (global)
-          const rules = await Rule.find({
-            $or: [
-              { botId }, // القواعد الخاصة بالبوت
-              { type: 'global' }, // القواعد الثابتة
-            ],
-          });
-
-          console.log('📜 Rules found:', rules);
-
-          let reply = 'عذرًا، لم أتمكن من فهم رسالتك. جرب مرة تانية!';
-          if (rules.length > 0) {
-            // اختيار الرد بناءً على أولوية: قاعدة general أولًا، ثم global
-            const rule = rules.find((r) => r.type === 'general') || rules.find((r) => r.type === 'global');
-            if (rule) {
-              reply = rule.content;
-              console.log('✅ Reply selected:', reply);
-            } else {
-              console.log('❌ No matching rule (general or global) found');
-            }
-          } else {
-            console.log('❌ No rules found for botId:', botId);
-          }
-
-          // إرسال الرد للمستخدم
-          await sendMessage(senderPsid, reply, facebookApiKey);
-        } else {
-          console.log('❌ No message text found in webhook event');
-        }
+    for (const entry of body.entry) {
+      if (!entry.messaging || entry.messaging.length === 0) {
+        console.log('❌ No messaging events found in entry:', entry);
+        continue;
       }
 
-      res.status(200).json({ message: 'EVENT_RECEIVED' });
-    } else {
-      console.log('❌ Invalid webhook event: Not a page object');
-      res.sendStatus(404);
+      const webhookEvent = entry.messaging[0];
+      const senderPsid = webhookEvent.sender?.id; // معرف المرسل
+      const message = webhookEvent.message?.text; // نص الرسالة
+      const pageId = entry.id; // معرف الصفحة
+
+      console.log('💬 Message received:', { senderPsid, message, pageId });
+
+      if (!senderPsid) {
+        console.log('❌ Missing sender PSID in webhook event');
+        continue;
+      }
+
+      if (!message) {
+        console.log('❌ No message text found in webhook event');
+        continue;
+      }
+
+      // جلب الـ bot بناءً على الـ facebookPageId
+      const bot = await Bot.findOne({ facebookPageId: pageId });
+      if (!bot) {
+        console.log('❌ Bot not found for facebookPageId:', pageId);
+        continue;
+      }
+
+      const botId = bot._id;
+      const facebookApiKey = bot.facebookApiKey;
+
+      console.log('🤖 Bot found:', { botId: botId.toString(), facebookApiKey });
+
+      if (!facebookApiKey) {
+        console.log('❌ No facebookApiKey found for botId:', botId);
+        continue;
+      }
+
+      // جلب القواعد الخاصة بالبوت (ليها نفس الـ botId) أو القواعد الثابتة (global)
+      const rules = await Rule.find({
+        $or: [
+          { botId }, // القواعد الخاصة بالبوت
+          { type: 'global' }, // القواعد الثابتة
+        ],
+      });
+
+      console.log('📜 Rules found:', rules);
+
+      let reply = 'عذرًا، لم أتمكن من فهم رسالتك. جرب مرة تانية!';
+      if (rules.length > 0) {
+        // اختيار الرد بناءً على أولوية: قاعدة general أولًا، ثم global
+        const rule = rules.find((r) => r.type === 'general') || rules.find((r) => r.type === 'global');
+        if (rule) {
+          reply = rule.content;
+          console.log('✅ Reply selected:', reply);
+        } else {
+          console.log('❌ No matching rule (general or global) found');
+        }
+      } else {
+        console.log('❌ No rules found for botId:', botId);
+      }
+
+      // إرسال الرد للمستخدم
+      await sendMessage(senderPsid, reply, facebookApiKey);
     }
+
+    res.status(200).json({ message: 'EVENT_RECEIVED' });
   } catch (err) {
     console.error('❌ خطأ في معالجة رسالة فيسبوك:', err.message, err.stack);
     res.sendStatus(500);
