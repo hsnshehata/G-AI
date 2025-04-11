@@ -1,20 +1,11 @@
 const mongoose = require('mongoose');
 
 const ruleSchema = new mongoose.Schema({
-  // معرف البوت المرتبط بالقاعدة (اختياري لأن القواعد الثابتة ما بيكونش ليها botId)
-  botId: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot' },
-  
-  // نوع القاعدة (مطلوب)
-  type: { type: String, required: true, enum: ['general', 'products', 'qa', 'store', 'global'] },
-  
-  // محتوى القاعدة (يمكن أن يكون أي نوع بيانات)
-  content: { type: mongoose.Schema.Types.Mixed, required: true },
-  
-  // معرف المستخدم اللي أنشأ القاعدة
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  
-  // تاريخ الإنشاء
-  createdAt: { type: Date, default: Date.now },
+  botId: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot' }, // معرف البوت (اختياري للقواعد الثابتة)
+  type: { type: String, required: true, enum: ['general', 'products', 'qa', 'store', 'global'] }, // نوع القاعدة
+  content: { type: mongoose.Schema.Types.Mixed, required: true }, // محتوى القاعدة
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // معرف المستخدم اللي أنشأ القاعدة
+  createdAt: { type: Date, default: Date.now }, // تاريخ الإنشاء
 });
 
 module.exports = mongoose.model('Rule', ruleSchema);
