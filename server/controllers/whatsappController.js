@@ -78,7 +78,7 @@ exports.connectWhatsApp = async (req, res) => {
           '--single-process',
           '--disable-gpu',
         ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
       },
     });
 
