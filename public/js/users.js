@@ -92,9 +92,3 @@ async function deleteUser(id) {
     }
   }
 }
-
-module.exports = {
-  showCreateUserForm,
-  editUser,
-  deleteUser,
-};
