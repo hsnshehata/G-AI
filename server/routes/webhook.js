@@ -76,7 +76,6 @@ router.post('/facebook', async (req, res) => {
       }
 
       let reply;
-      let isVoiceMessage = false;
 
       // التحقق من نوع الرسالة (نص، صورة، صوت)
       if (webhookEvent.message?.text) {
@@ -94,7 +93,6 @@ router.post('/facebook', async (req, res) => {
         const audioUrl = webhookEvent.message.attachments[0].payload.url;
         console.log('🎙️ Audio message received:', audioUrl);
         reply = await processMessage(botId, senderPsid, audioUrl, false, true);
-        isVoiceMessage = true;
       } else {
         console.log('❌ Unsupported message type');
         reply = 'عذرًا، لا أستطيع التعامل مع هذا النوع من الرسائل حاليًا.';
@@ -102,8 +100,8 @@ router.post('/facebook', async (req, res) => {
 
       console.log('✅ Generated reply:', reply);
 
-      // إرسال الرد للمستخدم
-      await sendMessage(senderPsid, reply, facebookApiKey, isVoiceMessage);
+      // إرسال الرد للمستخدم (كله نصي دلوقتي)
+      await sendMessage(senderPsid, reply, facebookApiKey);
     }
 
     res.status(200).json({ message: 'EVENT_RECEIVED' });
@@ -113,37 +111,16 @@ router.post('/facebook', async (req, res) => {
   }
 });
 
-// دالة لإرسال رسالة عبر فيسبوك
-async function sendMessage(senderPsid, message, facebookApiKey, isVoiceMessage = false) {
-  let requestBody;
-
-  if (isVoiceMessage && message.startsWith('http')) {
-    // لو الرسالة صوتية، بنبعت رابط الصوت
-    requestBody = {
-      recipient: {
-        id: senderPsid,
-      },
-      message: {
-        attachment: {
-          type: 'audio',
-          payload: {
-            url: message,
-            is_reusable: true,
-          },
-        },
-      },
-    };
-  } else {
-    // لو الرسالة نصية أو صورة، بنبعت نص
-    requestBody = {
-      recipient: {
-        id: senderPsid,
-      },
-      message: {
-        text: message,
-      },
-    };
-  }
+// دالة لإرسال رسالة عبر فيسبوك (نص فقط)
+async function sendMessage(senderPsid, message, facebookApiKey) {
+  const requestBody = {
+    recipient: {
+      id: senderPsid,
+    },
+    message: {
+      text: message,
+    },
+  };
 
   console.log('📤 Sending message to PSID:', senderPsid, 'Message:', message);
 
