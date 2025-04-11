@@ -5,7 +5,7 @@ const request = require('request');
 
 // Webhook للتحقق من فيسبوك
 router.get('/facebook', (req, res) => {
-  const VERIFY_TOKEN = 'my_verify_token_123'; // نفس التوكن اللي استخدمته في الخطوة 2.4
+  const VERIFY_TOKEN = 'my_verify_token'; // نفس التوكن اللي استخدمته في الخطوة 2.4
 
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
