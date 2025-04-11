@@ -3,7 +3,7 @@ FROM node:18
 
 # تثبيت الـ dependencies المطلوبة لـ chromium
 RUN apt-get update && apt-get install -y \
-  chromium \
+  chromium-browser \
   libx11-xcb1 \
   libxcomposite1 \
   libxdamage1 \
