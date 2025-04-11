@@ -43,9 +43,21 @@ exports.connectWhatsApp = async (req, res) => {
       return res.status(404).json({ message: 'البوت غير موجود أو لا يخصك' });
     }
 
-    // التحقق لو فيه جلسة مفتوحة بالفعل
+    // لو فيه جلسة مفتوحة بالفعل، نسكّرها الأول
     if (clients.has(botId)) {
-      return res.status(400).json({ message: 'الجلسة مفتوحة بالفعل' });
+      const oldClient = clients.get(botId);
+      try {
+        await oldClient.destroy();
+        console.log('✅ Closed old WhatsApp session for botId:', botId);
+      } catch (err) {
+        console.error('❌ Error closing old WhatsApp session:', err);
+      }
+      clients.delete(botId);
+      await WhatsAppSession.findOneAndUpdate(
+        { botId },
+        { isConnected: false },
+        { new: true }
+      );
     }
 
     // إنشاء جلسة جديدة
