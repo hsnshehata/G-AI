@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Rule = require('../models/Rule');
 const Bot = require('../models/Bot');
 const request = require('request');
+const { processMessage } = require('../botEngine');
 
 // Webhook للتحقق من فيسبوك
 router.get('/facebook', (req, res) => {
@@ -80,29 +80,9 @@ router.post('/facebook', async (req, res) => {
         continue;
       }
 
-      // جلب القواعد الخاصة بالبوت (ليها نفس الـ botId) أو القواعد الثابتة (global)
-      const rules = await Rule.find({
-        $or: [
-          { botId }, // القواعد الخاصة بالبوت
-          { type: 'global' }, // القواعد الثابتة
-        ],
-      });
-
-      console.log('📜 Rules found:', rules);
-
-      let reply = 'عذرًا، لم أتمكن من فهم رسالتك. جرب مرة تانية!';
-      if (rules.length > 0) {
-        // اختيار الرد بناءً على أولوية: قاعدة general أولًا، ثم global
-        const rule = rules.find((r) => r.type === 'general') || rules.find((r) => r.type === 'global');
-        if (rule) {
-          reply = rule.content;
-          console.log('✅ Reply selected:', reply);
-        } else {
-          console.log('❌ No matching rule (general or global) found');
-        }
-      } else {
-        console.log('❌ No rules found for botId:', botId);
-      }
+      // معالجة الرسالة باستخدام botEngine
+      const reply = await processMessage(botId, senderPsid, message);
+      console.log('✅ Generated reply:', reply);
 
       // إرسال الرد للمستخدم
       await sendMessage(senderPsid, reply, facebookApiKey);
