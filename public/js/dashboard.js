@@ -18,39 +18,3 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load bots page by default
   loadBotsPage();
 });
-
-// استدعاء الدوال من الملفات الأخرى
-const {
-  loadBotsPage,
-  populateBotSelect,
-  selectBot,
-  fetchUsers,
-  showCreateBotForm,
-  editBot,
-  deleteBot,
-  getSelectedBotId,
-  setSelectedBotId,
-} = require('./bots.js');
-
-const {
-  loadRulesPage,
-  populateBotSelectRules,
-  fetchRules,
-  showCreateGlobalRuleForm,
-  showCreateGeneralRuleForm,
-  showCreateProductRuleForm,
-  showCreateQARuleForm,
-  showCreateStoreRuleForm,
-  createRule,
-  editRule,
-  editProductRule,
-  editQARule,
-  editStoreRule,
-  deleteRule,
-} = require('./rules.js');
-
-const {
-  showCreateUserForm,
-  editUser,
-  deleteUser,
-} = require('./users.js');
