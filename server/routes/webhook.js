@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const Bot = require('../models/Bot'); // نرجع لموديل Bot
+const Bot = require('../models/Bot');
 const request = require('request');
 const { processMessage } = require('../botEngine');
 
 // Webhook للتحقق من فيسبوك
 router.get('/facebook', (req, res) => {
-  const VERIFY_TOKEN = 'my_verify_token'; // نفس التوكن اللي استخدمته في إعدادات فيسبوك
+  const VERIFY_TOKEN = 'my_verify_token';
 
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
@@ -16,7 +16,7 @@ router.get('/facebook', (req, res) => {
 
   if (mode && token) {
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-      console.log('✅ Webhook verified');
+      console.log('✅ Webhook verified successfully');
       res.status(200).send(challenge);
     } else {
       console.log('❌ Webhook verification failed: Invalid token');
@@ -48,22 +48,16 @@ router.post('/facebook', async (req, res) => {
 
       const webhookEvent = entry.messaging[0];
       const senderPsid = webhookEvent.sender?.id; // معرف المرسل
-      const message = webhookEvent.message?.text; // نص الرسالة
       const pageId = entry.id; // معرف الصفحة
 
-      console.log('💬 Message received:', { senderPsid, message, pageId });
+      console.log('💬 Event received:', { senderPsid, pageId });
 
       if (!senderPsid) {
         console.log('❌ Missing sender PSID in webhook event');
         continue;
       }
 
-      if (!message) {
-        console.log('❌ No message text found in webhook event');
-        continue;
-      }
-
-      // جلب الـ bot بناءً على الـ facebookPageId من موديل Bot
+      // جلب الـ bot بناءً على الـ facebookPageId
       const bot = await Bot.findOne({ facebookPageId: pageId });
       if (!bot) {
         console.log('❌ Bot not found for facebookPageId:', pageId);
@@ -81,8 +75,29 @@ router.post('/facebook', async (req, res) => {
         continue;
       }
 
-      // معالجة الرسالة باستخدام botEngine
-      const reply = await processMessage(botId, senderPsid, message);
+      let reply;
+
+      // التحقق من نوع الرسالة (نص، صورة، صوت)
+      if (webhookEvent.message?.text) {
+        // رسالة نصية
+        const message = webhookEvent.message.text;
+        console.log('💬 Text message received:', message);
+        reply = await processMessage(botId, senderPsid, message, false, false);
+      } else if (webhookEvent.message?.attachments?.[0]?.type === 'image') {
+        // رسالة صورة
+        const imageUrl = webhookEvent.message.attachments[0].payload.url;
+        console.log('🖼️ Image message received:', imageUrl);
+        reply = await processMessage(botId, senderPsid, imageUrl, true, false);
+      } else if (webhookEvent.message?.attachments?.[0]?.type === 'audio') {
+        // رسالة صوتية
+        const audioUrl = webhookEvent.message.attachments[0].payload.url;
+        console.log('🎙️ Audio message received:', audioUrl);
+        reply = await processMessage(botId, senderPsid, audioUrl, false, true);
+      } else {
+        console.log('❌ Unsupported message type');
+        reply = 'عذرًا، لا أستطيع التعامل مع هذا النوع من الرسائل حاليًا.';
+      }
+
       console.log('✅ Generated reply:', reply);
 
       // إرسال الرد للمستخدم
