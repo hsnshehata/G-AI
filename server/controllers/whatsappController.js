@@ -64,25 +64,26 @@ exports.connectWhatsApp = async (req, res) => {
     }
 
     // إنشاء جلسة جديدة
-const client = new Client({
-  authStrategy: new LocalAuth({ clientId: botId }),
-  puppeteer: {
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--disable-gpu',
-      '--disable-features=IsolateOrigins,site-per-process',
-      '--disable-web-security',
-      '--allow-running-insecure-content',
-    ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
-  },
-});
+    const client = new Client({
+      authStrategy: new LocalAuth({ clientId: botId }),
+      puppeteer: {
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--disable-gpu',
+          '--disable-features=IsolateOrigins,site-per-process',
+          '--disable-web-security',
+          '--allow-running-insecure-content',
+        ],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+      },
+    });
+
     // حفظ العميل في الذاكرة
     clients.set(botId, client);
 
