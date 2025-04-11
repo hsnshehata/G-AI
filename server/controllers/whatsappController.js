@@ -60,7 +60,11 @@ exports.connectWhatsApp = async (req, res) => {
     // حفظ العميل في الذاكرة
     clients.set(botId, client);
 
+    let qrSent = false; // متغير عشان نتأكد إننا ردينا مرة واحدة بس
+
     client.on('qr', async (qr) => {
+      if (qrSent) return; // لو ردينا بالفعل، ما نردش تاني
+      qrSent = true;
       console.log('📸 QR Code generated for botId:', botId);
       res.status(200).json({ qr });
     });
