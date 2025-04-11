@@ -1,22 +1,22 @@
 {
   "name": "ai-chat-controller",
   "version": "1.0.0",
-  "description": "AI Chat Controller for managing bots",
+  "description": "AI Chat Controller with Bot Management",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
     "dev": "nodemon server/server.js"
   },
-"dependencies": {
-  "express": "^4.17.1",
-  "cors": "^2.8.5",
-  "mongoose": "^6.0.0",
-  "bcryptjs": "^2.4.3",
-  "jsonwebtoken": "^8.5.1",
-  "dotenv": "^10.0.0",
-  "openai": "^4.0.0"
-}
+  "dependencies": {
+    "express": "^4.17.1",
+    "cors": "^2.8.5",
+    "mongoose": "^6.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^8.5.1",
+    "dotenv": "^10.0.0",
+    "openai": "^4.0.0"
+  },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.14"
   }
 }
