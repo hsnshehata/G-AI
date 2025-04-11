@@ -74,6 +74,7 @@ async function processMessage(botId, userId, message, isImage = false, isVoice =
 
     // Call OpenAI
     console.log('📡 Calling OpenAI API...');
+    console.log('OpenAI API Key:', process.env.OPENAI_API_KEY || 'المفتاح فاضي!');
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages,
