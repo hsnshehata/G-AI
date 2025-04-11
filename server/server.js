@@ -17,7 +17,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/bots', require('./routes/bots'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/rules', require('./routes/rules'));
-app.use('/api/bot', require('./bot'));
+app.use('/api/bot', require('./routes/bot')); // تأكد إن المسار هنا صحيح
 
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/dashboard.html'));
