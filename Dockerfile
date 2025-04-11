@@ -1,10 +1,13 @@
-# استخدام صورة Node.js رسمية كـ base image
-FROM node:18-slim
+# استخدام صورة Node.js رسمية كـ base image (هنستخدم node:18 بدل node:18-slim عشان تكون أكتر استقرارًا)
+FROM node:18
 
-# تثبيت الـ dependencies اللي محتاجينها (بما فيها chromium)
+# تثبيت الـ dependencies المطلوبة لـ chromium
 RUN apt-get update && apt-get install -y \
   chromium \
   && rm -rf /var/lib/apt/lists/*
+
+# التأكد من المسار بتاع chromium
+RUN which chromium || echo "Error: chromium not found"
 
 # تحديد متغير بيئي لـ puppeteer عشان يلاقي Chromium
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
