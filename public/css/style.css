@@ -69,3 +69,43 @@ th {
 .selected-bot {
   background-color: #e0f7fa;
 }
+
+    .logout-btn {
+      background-color: #dc3545;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+    .logout-btn:hover {
+      background-color: #c82333;
+    }
+    #whatsappContent {
+      margin-top: 20px;
+    }
+    #qrCode {
+      margin: 20px 0;
+    }
+    #connectBtn, #disconnectBtn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    #connectBtn {
+      background-color: #25D366;
+      color: white;
+    }
+    #connectBtn:hover {
+      background-color: #1ebe57;
+    }
+    #disconnectBtn {
+      background-color: #dc3545;
+      color: white;
+    }
+    #disconnectBtn:hover {
+      background-color: #c82333;
+    }
