@@ -247,15 +247,3 @@ function getSelectedBotId() {
 function setSelectedBotId(botId) {
   selectedBotId = botId;
 }
-
-module.exports = {
-  loadBotsPage,
-  populateBotSelect,
-  selectBot,
-  fetchUsers,
-  showCreateBotForm,
-  editBot,
-  deleteBot,
-  getSelectedBotId,
-  setSelectedBotId,
-};
