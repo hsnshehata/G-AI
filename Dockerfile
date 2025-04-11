@@ -3,7 +3,7 @@ FROM node:18
 
 # تثبيت الـ dependencies المطلوبة لـ chromium
 RUN apt-get update && apt-get install -y \
-  chromium-browser \
+  chromium \
   libx11-xcb1 \
   libxcomposite1 \
   libxdamage1 \
@@ -22,11 +22,11 @@ RUN apt-get update && apt-get install -y \
   libxkbcommon0 \
   && rm -rf /var/lib/apt/lists/*
 
-# التأكد من المسار بتاع chromium-browser
-RUN which chromium-browser || echo "Error: chromium-browser not found"
+# التأكد من المسار بتاع chromium
+RUN which chromium || echo "Error: chromium not found"
 
 # تحديد متغير بيئي لـ puppeteer عشان يلاقي Chromium
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PORT=3000
 
