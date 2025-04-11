@@ -1,6 +1,6 @@
 const OpenAI = require('openai');
 const mongoose = require('mongoose');
-const axios = require('axios'); // لتحميل الملفات الصوتية
+const axios = require('axios');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -27,7 +27,11 @@ async function transcribeAudio(audioUrl) {
   try {
     console.log('📥 Downloading audio file from:', audioUrl);
     const response = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+    if (!response.data || response.data.length === 0) {
+      throw new Error('Failed to download audio file: Empty response');
+    }
     const audioBuffer = Buffer.from(response.data);
+    console.log('✅ Audio file downloaded, size:', audioBuffer.length, 'bytes');
 
     // تحويل الصوت إلى نص باستخدام OpenAI Whisper
     console.log('🎙️ Transcribing audio using OpenAI Whisper...');
@@ -41,7 +45,39 @@ async function transcribeAudio(audioUrl) {
     return transcription;
   } catch (err) {
     console.error('❌ Error transcribing audio:', err.message, err.stack);
-    throw new Error('Failed to transcribe audio');
+    throw new Error(`Failed to transcribe audio: ${err.message}`);
+  }
+}
+
+// دالة لتحويل النص إلى صوت باستخدام LemonFox (افتراضيًا)
+async function textToSpeech(text) {
+  try {
+    const LEMONFOX_API_KEY = process.env.LEMONFOX_API_KEY; // تأكد إن المفتاح موجود في .env
+    if (!LEMONFOX_API_KEY) {
+      throw new Error('LemonFox API Key is not defined');
+    }
+
+    console.log('🎙️ Converting text to speech using LemonFox...');
+    const response = await axios.post(
+      'https://api.lemonfox.ai/v1/tts', // افتراضي، استبدله بالـ endpoint الصحيح
+      {
+        text: text,
+        voice: 'ar-EG-male', // اختر صوت مناسب (مثلاً صوت رجل عربي)
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${LEMONFOX_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const audioUrl = response.data.audio_url; // افتراضي، بناءً على رد LemonFox
+    console.log('✅ Text converted to speech:', audioUrl);
+    return audioUrl;
+  } catch (err) {
+    console.error('❌ Error converting text to speech:', err.message, err.stack);
+    throw new Error(`Failed to convert text to speech: ${err.message}`);
   }
 }
 
@@ -125,11 +161,11 @@ async function processMessage(botId, userId, message, isImage = false, isVoice =
     await conversation.save();
     console.log('💬 Assistant reply added to conversation:', reply);
 
-    // لو عايزين نرد بصوت (اختياري)
+    // لو الرسالة صوتية، نحوّل الرد لصوت
     if (isVoice) {
-      console.log('🎙️ Processing voice response (Text-to-Speech)...');
-      // هنا ممكن نستخدم Text-to-Speech API زي LemonFox أو OpenAI TTS لو متاح
-      // دلوقتي هنرجع الرد كنص عادي
+      const audioReplyUrl = await textToSpeech(reply);
+      console.log('🎙️ Audio reply generated:', audioReplyUrl);
+      return audioReplyUrl; // هنرجع رابط الصوت عشان نستخدمه في الرد
     }
 
     return reply;
