@@ -1,7 +1,9 @@
+// تحميل صفحة القواعد وإعدادها
 async function loadRulesPage() {
   const content = document.getElementById('content');
   const role = localStorage.getItem('role');
-Authorization: Bearer YOUR_TOKEN
+
+  // بناء الواجهة الرئيسية
   let html = `
     <h2>إدارة القواعد</h2>
     <div>
@@ -11,6 +13,7 @@ Authorization: Bearer YOUR_TOKEN
     <div id="formContainer"></div>
   `;
 
+  // إضافة قسم القواعد الثابتة إذا كان المستخدم سوبر أدمن
   if (role === 'superadmin') {
     html += `
       <h3>القواعد الثابتة (للسوبر أدمن)</h3>
@@ -19,47 +22,62 @@ Authorization: Bearer YOUR_TOKEN
     `;
   }
 
+  // إضافة الأقسام الأخرى
   html += `
     <h3>القواعد العامة</h3>
     <button onclick="showCreateGeneralRuleForm()">إضافة قاعدة عامة</button>
     <div id="generalRules"></div>
-
     <h3>المنتجات والأسعار</h3>
     <button onclick="showCreateProductRuleForm()">إضافة منتج</button>
     <div id="productRules"></div>
-
     <h3>سؤال وجواب</h3>
     <button onclick="showCreateQARuleForm()">إضافة سؤال وجواب</button>
     <div id="qaRules"></div>
-
     <h3>ربط المتجر</h3>
     <button onclick="showCreateStoreRuleForm()">إضافة مفتاح API</button>
     <div id="storeRules"></div>
   `;
 
+  // إدراج الواجهة في الصفحة
   content.innerHTML = html;
+
+  // تعبئة قائمة البوتات
   await populateBotSelectRules();
-  if (!selectedBotId && document.getElementById('botSelectRules').options.length > 0) {
-    selectBot(document.getElementById('botSelectRules').options[0].value);
+
+  // اختيار أول بوت تلقائيًا إذا لم يتم تحديد واحد
+  const botSelect = document.getElementById('botSelectRules');
+  if (!getSelectedBotId() && botSelect.options.length > 0) {
+    selectBot(botSelect.options[0].value);
   }
+
+  // جلب القواعد الخاصة بالبوت المحدد
   await fetchRules();
 }
 
+// تعبئة قائمة البوتات
 async function populateBotSelectRules() {
   const botSelect = document.getElementById('botSelectRules');
   const role = localStorage.getItem('role');
-  const res = await fetch('/api/bots', {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-  });
-  const bots = await res.json();
+  const token = localStorage.getItem('token');
 
-  botSelect.innerHTML = '';
-  const userBots = role === 'superadmin' ? bots : bots.filter((bot) => bot.userId._id === localStorage.getItem('userId'));
-  userBots.forEach((bot) => {
-    botSelect.innerHTML += `<option value="${bot._id}">${bot.name}</option>`;
-  });
+  try {
+    const res = await fetch('/api/bots', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const bots = await res.json();
+
+    botSelect.innerHTML = '';
+    const userBots = role === 'superadmin' ? bots : bots.filter((bot) => bot.userId._id === localStorage.getItem('userId'));
+
+    userBots.forEach((bot) => {
+      botSelect.innerHTML += `<option value="${bot._id}">${bot.name}</option>`;
+    });
+  } catch (err) {
+    console.error('Error fetching bots:', err);
+  }
 }
 
+// جلب القواعد
 async function fetchRules() {
   const selectedBotId = getSelectedBotId();
   if (!selectedBotId) {
@@ -73,6 +91,7 @@ async function fetchRules() {
     });
     const rules = await res.json();
 
+    // مسح العناصر القديمة
     const generalRulesDiv = document.getElementById('generalRules');
     const productRulesDiv = document.getElementById('productRules');
     const qaRulesDiv = document.getElementById('qaRules');
@@ -85,9 +104,10 @@ async function fetchRules() {
     storeRulesDiv.innerHTML = '';
     if (globalRulesDiv) globalRulesDiv.innerHTML = '';
 
+    // عرض القواعد الجديدة
     rules.forEach((rule) => {
-      console.log('Rule:', rule);
       const ruleElement = document.createElement('p');
+
       if (rule.type === 'global' && globalRulesDiv) {
         ruleElement.innerHTML = `${rule.content}
           <button class="edit-rule" data-id="${rule._id}" data-type="global" data-content="${rule.content}">تعديل</button>
@@ -118,54 +138,196 @@ async function fetchRules() {
       }
     });
 
-    // إضافة event listeners لأزرار التعديل والحذف
-    document.querySelectorAll('.edit-rule').forEach((button) => {
-      button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
-        const type = button.getAttribute('data-type');
-        const content = button.getAttribute('data-content');
-        editRule(id, type, content);
-      });
-    });
-
-    document.querySelectorAll('.edit-product-rule').forEach((button) => {
-      button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
-        const product = button.getAttribute('data-product');
-        const price = button.getAttribute('data-price');
-        const currency = button.getAttribute('data-currency');
-        editProductRule(id, product, price, currency);
-      });
-    });
-
-    document.querySelectorAll('.edit-qa-rule').forEach((button) => {
-      button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
-        const question = button.getAttribute('data-question');
-        const answer = button.getAttribute('data-answer');
-        editQARule(id, question, answer);
-      });
-    });
-
-    document.querySelectorAll('.edit-store-rule').forEach((button) => {
-      button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
-        const apiKey = button.getAttribute('data-apikey');
-        editStoreRule(id, apiKey);
-      });
-    });
-
-    document.querySelectorAll('.delete-rule').forEach((button) => {
-      button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
-        deleteRule(id);
-      });
-    });
+    // إضافة Event Listeners للأزرار
+    addEventListeners();
   } catch (err) {
     console.error('Error fetching rules:', err);
   }
 }
 
+// إضافة Event Listeners للأزرار
+function addEventListeners() {
+  document.querySelectorAll('.edit-rule').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.getAttribute('data-id');
+      const type = button.getAttribute('data-type');
+      const content = button.getAttribute('data-content');
+      editRule(id, type, content);
+    });
+  });
+
+  document.querySelectorAll('.edit-product-rule').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.getAttribute('data-id');
+      const product = button.getAttribute('data-product');
+      const price = button.getAttribute('data-price');
+      const currency = button.getAttribute('data-currency');
+      editProductRule(id, product, price, currency);
+    });
+  });
+
+  document.querySelectorAll('.edit-qa-rule').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.getAttribute('data-id');
+      const question = button.getAttribute('data-question');
+      const answer = button.getAttribute('data-answer');
+      editQARule(id, question, answer);
+    });
+  });
+
+  document.querySelectorAll('.edit-store-rule').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.getAttribute('data-id');
+      const apiKey = button.getAttribute('data-apikey');
+      editStoreRule(id, apiKey);
+    });
+  });
+
+  document.querySelectorAll('.delete-rule').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.getAttribute('data-id');
+      deleteRule(id);
+    });
+  });
+}
+
+// إنشاء قاعدة جديدة
+async function createRule(type, content) {
+  try {
+    const res = await fetch('/api/rules', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({ botId: getSelectedBotId(), type, content }),
+    });
+
+    if (res.ok) {
+      document.getElementById('formContainer').innerHTML = '<p>تم إضافة القاعدة بنجاح!</p>';
+      await fetchRules();
+    } else {
+      const data = await res.json();
+      alert(data.message || 'حدث خطأ أثناء إضافة القاعدة.');
+    }
+  } catch (err) {
+    alert('خطأ في السيرفر');
+  }
+}
+
+// تعديل قاعدة
+async function editRule(id, type, content) {
+  const newContent = prompt('أدخل القاعدة الجديدة:', content);
+  if (newContent) {
+    try {
+      await fetch(`/api/rules/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ type, content: newContent }),
+      });
+      await fetchRules();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}
+
+// تعديل منتج
+async function editProductRule(id, product, price, currency) {
+  const newProduct = prompt('أدخل اسم المنتج الجديد:', product);
+  const newPrice = prompt('أدخل السعر الجديد:', price);
+  const newCurrency = prompt('أدخل العملة (جنيه مصري أو دولار):', currency);
+
+  if (newProduct && newPrice && newCurrency) {
+    try {
+      await fetch(`/api/rules/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ type: 'products', content: { product: newProduct, price: newPrice, currency: newCurrency } }),
+      });
+      await fetchRules();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}
+
+// تعديل سؤال وجواب
+async function editQARule(id, question, answer) {
+  const newQuestion = prompt('أدخل السؤال الجديد:', question);
+  const newAnswer = prompt('أدخل الإجابة الجديدة:', answer);
+
+  if (newQuestion && newAnswer) {
+    try {
+      await fetch(`/api/rules/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ type: 'qa', content: { question: newQuestion, answer: newAnswer } }),
+      });
+      await fetchRules();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}
+
+// تعديل مفتاح API للمتجر
+async function editStoreRule(id, apiKey) {
+  const newApiKey = prompt('أدخل مفتاح API الجديد:', apiKey);
+
+  if (newApiKey) {
+    try {
+      await fetch(`/api/rules/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ type: 'store', content: { apiKey: newApiKey } }),
+      });
+      await fetchRules();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}
+
+// حذف قاعدة
+async function deleteRule(id) {
+  if (confirm('هل أنت متأكد من حذف هذه القاعدة؟')) {
+    try {
+      await fetch(`/api/rules/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      await fetchRules();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}
+
+// اختيار بوت
+function selectBot(botId) {
+  localStorage.setItem('selectedBotId', botId);
+  fetchRules();
+}
+
+// الحصول على ID البوت المحدد
+function getSelectedBotId() {
+  return localStorage.getItem('selectedBotId');
+}
+
+// إظهار نموذج إضافة قاعدة ثابتة
 function showCreateGlobalRuleForm() {
   const formContainer = document.getElementById('formContainer');
   formContainer.innerHTML = `
@@ -182,11 +344,11 @@ function showCreateGlobalRuleForm() {
   document.getElementById('createGlobalRuleForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const content = document.getElementById('globalRuleContent').value;
-
     await createRule('global', content);
   });
 }
 
+// إظهار نموذج إضافة قاعدة عامة
 function showCreateGeneralRuleForm() {
   const formContainer = document.getElementById('formContainer');
   formContainer.innerHTML = `
@@ -203,11 +365,11 @@ function showCreateGeneralRuleForm() {
   document.getElementById('createGeneralRuleForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const content = document.getElementById('generalRuleContent').value;
-
     await createRule('general', content);
   });
 }
 
+// إظهار نموذج إضافة منتج
 function showCreateProductRuleForm() {
   const formContainer = document.getElementById('formContainer');
   formContainer.innerHTML = `
@@ -237,11 +399,11 @@ function showCreateProductRuleForm() {
     const product = document.getElementById('productName').value;
     const price = document.getElementById('productPrice').value;
     const currency = document.getElementById('productCurrency').value;
-
     await createRule('products', { product, price, currency });
   });
 }
 
+// إظهار نموذج إضافة سؤال وجواب
 function showCreateQARuleForm() {
   const formContainer = document.getElementById('formContainer');
   formContainer.innerHTML = `
@@ -263,11 +425,11 @@ function showCreateQARuleForm() {
     e.preventDefault();
     const question = document.getElementById('qaQuestion').value;
     const answer = document.getElementById('qaAnswer').value;
-
     await createRule('qa', { question, answer });
   });
 }
 
+// إظهار نموذج إضافة مفتاح API للمتجر
 function showCreateStoreRuleForm() {
   const formContainer = document.getElementById('formContainer');
   formContainer.innerHTML = `
@@ -284,123 +446,6 @@ function showCreateStoreRuleForm() {
   document.getElementById('createStoreRuleForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const apiKey = document.getElementById('storeApiKey').value;
-
     await createRule('store', { apiKey });
   });
-}
-
-async function createRule(type, content) {
-  try {
-    const res = await fetch('/api/rules', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify({ botId: getSelectedBotId(), type, content }),
-    });
-
-    if (res.ok) {
-      document.getElementById('formContainer').innerHTML = '<p>تم إضافة القاعدة بنجاح!</p>';
-      await fetchRules();
-    } else {
-      const data = await res.json();
-      alert(data.message);
-    }
-  } catch (err) {
-    alert('خطأ في السيرفر');
-  }
-}
-
-async function editRule(id, type, content) {
-  const newContent = prompt('أدخل القاعدة الجديدة:', content);
-  if (newContent) {
-    try {
-      await fetch(`/api/rules/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ type, content: newContent }),
-      });
-      await fetchRules();
-    } catch (err) {
-      console.error(err);
-    }
-  }
-}
-
-async function editProductRule(id, product, price, currency) {
-  const newProduct = prompt('أدخل اسم المنتج الجديد:', product);
-  const newPrice = prompt('أدخل السعر الجديد:', price);
-  const newCurrency = prompt('أدخل العملة (جنيه مصري أو دولار):', currency);
-  if (newProduct && newPrice && newCurrency) {
-    try {
-      await fetch(`/api/rules/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ type: 'products', content: { product: newProduct, price: newPrice, currency: newCurrency } }),
-      });
-      await fetchRules();
-    } catch (err) {
-      console.error(err);
-    }
-  }
-}
-
-async function editQARule(id, question, answer) {
-  const newQuestion = prompt('أدخل السؤال الجديد:', question);
-  const newAnswer = prompt('أدخل الإجابة الجديدة:', answer);
-  if (newQuestion && newAnswer) {
-    try {
-      await fetch(`/api/rules/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ type: 'qa', content: { question: newQuestion, answer: newAnswer } }),
-      });
-      await fetchRules();
-    } catch (err) {
-      console.error(err);
-    }
-  }
-}
-
-async function editStoreRule(id, apiKey) {
-  const newApiKey = prompt('أدخل مفتاح API الجديد:', apiKey);
-  if (newApiKey) {
-    try {
-      await fetch(`/api/rules/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ type: 'store', content: { apiKey: newApiKey } }),
-      });
-      await fetchRules();
-    } catch (err) {
-      console.error(err);
-    }
-  }
-}
-
-async function deleteRule(id) {
-  if (confirm('هل أنت متأكد من حذف هذه القاعدة؟')) {
-    try {
-      await fetch(`/api/rules/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      await fetchRules();
-    } catch (err) {
-      console.error(err);
-    }
-  }
 }
