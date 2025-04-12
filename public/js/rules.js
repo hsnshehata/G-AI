@@ -44,21 +44,21 @@ async function loadRulesPage() {
   // تعبئة قائمة البوتات
   await populateBotSelectRules();
 
-  // التأكد من وجود العناصر قبل استدعاء fetchRules
-  const generalRulesDiv = document.getElementById('generalRules');
-  if (!generalRulesDiv) {
-    console.error('generalRules div not found in DOM');
-    return;
-  }
-
   // اختيار أول بوت تلقائيًا إذا لم يتم تحديد واحد
   const botSelect = document.getElementById('botSelectRules');
   if (!getSelectedBotId() && botSelect.options.length > 0) {
     selectBot(botSelect.options[0].value);
   }
 
-  // جلب القواعد الخاصة بالبوت المحدد
-  await fetchRules();
+  // التأكد من تحميل الـ DOM قبل استدعاء fetchRules
+  setTimeout(async () => {
+    const generalRulesDiv = document.getElementById('generalRules');
+    if (!generalRulesDiv) {
+      console.error('generalRules div not found in DOM after timeout');
+      return;
+    }
+    await fetchRules();
+  }, 0);
 }
 
 // التحقق من وجود الـ token
@@ -243,12 +243,20 @@ function addEventListeners() {
 async function createRule(type, content) {
   if (!checkToken()) return;
 
+  // تحقق إضافي من الـ token
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('جلسة غير صالحة، برجاء تسجيل الدخول مجدداً');
+    window.location.href = '/index.html';
+    return;
+  }
+
   try {
     const res = await fetch('/api/rules', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ botId: getSelectedBotId(), type, content }),
     });
