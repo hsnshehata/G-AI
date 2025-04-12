@@ -1,85 +1,124 @@
-const axios = require('axios');
+const request = require('request');
+const Bot = require('../models/Bot');
 const { processMessage } = require('../botEngine');
 
-// تخزين حالة الجلسات (بدون الاعتماد على puppeteer)
-const sessions = new Map();
-
-exports.verifyWebhook = (req, res) => {
-  const VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
-
-  const mode = req.query['hub.mode'];
-  const token = req.query['hub.verify_token'];
-  const challenge = req.query['hub.challenge'];
-
-  if (mode && token) {
-    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-      console.log('✅ Webhook verified successfully!');
-      res.status(200).send(challenge);
-    } else {
-      console.error('❌ Webhook verification failed: Invalid token');
-      res.sendStatus(403);
-    }
-  } else {
-    console.error('❌ Webhook verification failed: Missing parameters');
-    res.sendStatus(400);
-  }
-};
-
+// دالة لمعالجة الرسايل من فيسبوك
 exports.handleMessage = async (req, res) => {
-  const body = req.body;
+  try {
+    console.log('📩 Webhook POST request received:', JSON.stringify(req.body, null, 2));
 
-  if (body.object === 'page') {
-    for (const entry of body.entry) {
-      const webhookEvent = entry.messaging[0];
-      console.log('💬 Facebook webhook event:', webhookEvent);
+    const body = req.body;
 
-      const senderId = webhookEvent.sender.id;
-      const pageId = webhookEvent.recipient.id;
-      const botId = req.botId; // هنجيب botId من الـ middleware (هنشرحه بعدين)
-      const message = webhookEvent.message?.text;
-      const isImage = webhookEvent.message?.attachments?.[0]?.type === 'image';
-      const imageUrl = isImage ? webhookEvent.message.attachments[0].payload.url : null;
-
-      if (message || isImage) {
-        // معالجة الرسالة باستخدام processMessage
-        const reply = await processMessage(
-          botId,
-          senderId,
-          isImage ? imageUrl : message,
-          isImage,
-          false // مش صوت
-        );
-
-        // إرسال الرد للمستخدم على فيسبوك
-        await sendMessage(senderId, reply);
-      }
+    if (body.object !== 'page') {
+      console.log('❌ Invalid webhook event: Not a page object');
+      return res.sendStatus(404);
     }
 
-    res.status(200).send('EVENT_RECEIVED');
-  } else {
-    console.error('❌ Invalid webhook event:', body);
-    res.sendStatus(404);
+    for (const entry of body.entry) {
+      if (!entry.messaging || entry.messaging.length === 0) {
+        console.log('❌ No messaging events found in entry:', entry);
+        continue;
+      }
+
+      const webhookEvent = entry.messaging[0];
+      const senderPsid = webhookEvent.sender?.id; // معرف المرسل
+      const pageId = entry.id; // معرف الصفحة
+
+      console.log('💬 Event received:', { senderPsid, pageId });
+
+      if (!senderPsid) {
+        console.log('❌ Missing sender PSID in webhook event');
+        continue;
+      }
+
+      // جلب الـ bot بناءً على الـ facebookPageId
+      const bot = await Bot.findOne({ facebookPageId: pageId });
+      if (!bot) {
+        console.log('❌ Bot not found for facebookPageId:', pageId);
+        continue;
+      }
+
+      const botId = bot._id;
+      const facebookApiKey = bot.facebookApiKey;
+
+      console.log('🤖 Bot found:', { botId: botId.toString(), facebookApiKey });
+
+      if (!facebookApiKey) {
+        console.log('❌ No facebookApiKey found for botId:', botId);
+        continue;
+      }
+
+      let reply;
+
+      // التحقق من نوع الرسالة (نص، صورة، صوت)
+      if (webhookEvent.message?.text) {
+        // رسالة نصية
+        const message = webhookEvent.message.text;
+        console.log('💬 Text message received:', message);
+        reply = await processMessage(botId, senderPsid, message, false, false);
+      } else if (webhookEvent.message?.attachments?.[0]?.type === 'image') {
+        // رسالة صورة
+        const imageUrl = webhookEvent.message.attachments[0].payload.url;
+        console.log('🖼️ Image message received:', imageUrl);
+        reply = await processMessage(botId, senderPsid, imageUrl, true, false);
+      } else if (webhookEvent.message?.attachments?.[0]?.type === 'audio') {
+        // رسالة صوتية
+        const audioUrl = webhookEvent.message.attachments[0].payload.url;
+        console.log('🎙️ Audio message received:', audioUrl);
+        reply = await processMessage(botId, senderPsid, audioUrl, false, true);
+      } else {
+        console.log('❌ Unsupported message type');
+        reply = 'عذرًا، لا أستطيع التعامل مع هذا النوع من الرسائل حاليًا.';
+      }
+
+      console.log('✅ Generated reply:', reply);
+
+      // إرسال الرد للمستخدم
+      await sendMessage(senderPsid, reply, facebookApiKey);
+    }
+
+    res.status(200).json({ message: 'EVENT_RECEIVED' });
+  } catch (err) {
+    console.error('❌ خطأ في معالجة رسالة فيسبوك:', err.message, err.stack);
+    res.sendStatus(500);
   }
 };
 
-// دالة لإرسال رسالة على فيسبوك
-async function sendMessage(senderId, message) {
-  try {
-    const PAGE_ACCESS_TOKEN = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
-    await axios.post(
-      `https://graph.facebook.com/v20.0/me/messages`,
+// دالة لإرسال رسالة عبر فيسبوك
+async function sendMessage(senderPsid, message, facebookApiKey) {
+  const requestBody = {
+    recipient: {
+      id: senderPsid,
+    },
+    message: {
+      text: message,
+    },
+  };
+
+  console.log('📤 Sending message to PSID:', senderPsid, 'Message:', message);
+
+  return new Promise((resolve, reject) => {
+    request(
       {
-        recipient: { id: senderId },
-        message: { text: message },
+        url: 'https://graph.facebook.com/v2.6/me/messages',
+        qs: { access_token: facebookApiKey },
+        method: 'POST',
+        json: requestBody,
       },
-      {
-        params: { access_token: PAGE_ACCESS_TOKEN },
+      (err, response, body) => {
+        if (err) {
+          console.error('❌ خطأ في إرسال الرسالة:', err);
+          reject(err);
+        } else if (response.body.error) {
+          console.error('❌ خطأ من فيسبوك:', response.body.error);
+          reject(response.body.error);
+        } else {
+          console.log('✅ تم إرسال الرسالة بنجاح:', body);
+          resolve(body);
+        }
       }
     );
-    console.log('✅ Facebook message sent to:', senderId, 'Message:', message);
-  } catch (err) {
-    console.error('❌ Error sending Facebook message:', err.message, err.stack);
-  }
+  });
 }
 
-module.exports = { verifyWebhook, handleMessage };
+module.exports = { handleMessage };
