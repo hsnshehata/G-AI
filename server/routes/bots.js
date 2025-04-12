@@ -2,26 +2,55 @@ const express = require('express');
 const router = express.Router();
 const Bot = require('../models/Bot');
 const User = require('../models/User');
-const auth = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 
-router.get('/', auth, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    console.log('📋 Fetching bots for user:', req.user._id);
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      console.log('❌ No token provided');
+      return res.status(401).json({ message: 'المستخدم غير معروف، برجاء تسجيل الدخول' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      console.error('❌ Invalid token:', err.message);
+      return res.status(401).json({ message: 'المستخدم غير معروف، الـ token غير صالح' });
+    }
+
+    console.log('📋 Fetching bots for user:', decoded.id);
     const bots = await Bot.find().populate('userId');
-    if (req.user.role === 'superadmin') {
+    if (decoded.role === 'superadmin') {
       console.log('✅ Returning all bots for superadmin:', bots.length);
       return res.json(bots);
     }
-    const userBots = bots.filter((bot) => bot.userId._id.toString() === req.user._id.toString());
+
+    const userBots = bots.filter((bot) => bot.userId._id.toString() === decoded.id);
     console.log('✅ Returning user bots:', userBots.length);
     res.json(userBots);
   } catch (err) {
     console.error('❌ Error fetching bots:', err.message, err.stack);
-    res.status(500).json({ message: 'خطأ في السيرفر', error: err.message });
+    res.status(500).json({ message: 'خطأ في السيرفر أثناء جلب البوتات' });
   }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', async (req, res) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) {
+    console.log('❌ No token provided');
+    return res.status(401).json({ message: 'المستخدم غير معروف، برجاء تسجيل الدخول' });
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    console.error('❌ Invalid token:', err.message);
+    return res.status(401).json({ message: 'المستخدم غير معروف، الـ token غير صالح' });
+  }
+
   const { name, userId, facebookApiKey, facebookPageId } = req.body;
 
   if (!name || !userId) {
@@ -29,8 +58,8 @@ router.post('/', auth, async (req, res) => {
     return res.status(400).json({ message: 'اسم البوت ومعرف المستخدم مطلوبان' });
   }
 
-  if (req.user.role !== 'superadmin') {
-    console.log('❌ Unauthorized access:', req.user._id);
+  if (decoded.role !== 'superadmin') {
+    console.log('❌ Unauthorized access:', decoded.id);
     return res.status(403).json({ message: 'غير مصرح لك' });
   }
 
@@ -46,15 +75,29 @@ router.post('/', auth, async (req, res) => {
     res.status(201).json(bot);
   } catch (err) {
     console.error('❌ Error creating bot:', err.message, err.stack);
-    res.status(500).json({ message: 'خطأ في السيرفر', error: err.message });
+    res.status(500).json({ message: 'خطأ في السيرفر أثناء إنشاء البوت' });
   }
 });
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', async (req, res) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) {
+    console.log('❌ No token provided');
+    return res.status(401).json({ message: 'المستخدم غير معروف، برجاء تسجيل الدخول' });
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    console.error('❌ Invalid token:', err.message);
+    return res.status(401).json({ message: 'المستخدم غير معروف، الـ token غير صالح' });
+  }
+
   const { name, facebookApiKey, facebookPageId } = req.body;
 
-  if (req.user.role !== 'superadmin') {
-    console.log('❌ Unauthorized access:', req.user._id);
+  if (decoded.role !== 'superadmin') {
+    console.log('❌ Unauthorized access:', decoded.id);
     return res.status(403).json({ message: 'غير مصرح لك' });
   }
 
@@ -75,13 +118,27 @@ router.put('/:id', auth, async (req, res) => {
     res.json(bot);
   } catch (err) {
     console.error('❌ Error updating bot:', err.message, err.stack);
-    res.status(500).json({ message: 'خطأ في السيرفر', error: err.message });
+    res.status(500).json({ message: 'خطأ في السيرفر أثناء تعديل البوت' });
   }
 });
 
-router.delete('/:id', auth, async (req, res) => {
-  if (req.user.role !== 'superadmin') {
-    console.log('❌ Unauthorized access:', req.user._id);
+router.delete('/:id', async (req, res) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) {
+    console.log('❌ No token provided');
+    return res.status(401).json({ message: 'المستخدم غير معروف، برجاء تسجيل الدخول' });
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    console.error('❌ Invalid token:', err.message);
+    return res.status(401).json({ message: 'المستخدم غير معروف، الـ token غير صالح' });
+  }
+
+  if (decoded.role !== 'superadmin') {
+    console.log('❌ Unauthorized access:', decoded.id);
     return res.status(403).json({ message: 'غير مصرح لك' });
   }
 
@@ -103,7 +160,7 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ message: 'تم حذف البوت بنجاح' });
   } catch (err) {
     console.error('❌ Error deleting bot:', err.message, err.stack);
-    res.status(500).json({ message: 'خطأ في السيرفر', error: err.message });
+    res.status(500).json({ message: 'خطأ في السيرفر أثناء حذف البوت' });
   }
 });
 
