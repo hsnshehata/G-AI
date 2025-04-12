@@ -30,7 +30,10 @@ async function transcribeAudio(audioUrl) {
   body.append('language', 'arabic');
   body.append('response_format', 'json');
   try {
-    console.log("LemonFox API Key: " + (process.env.LEMONFOX_API_KEY ? "تم جلب المفتاح" : "المفتاح فاضي!"));
+    console.log(
+      'LemonFox API Key: ' +
+        (process.env.LEMONFOX_API_KEY ? 'تم جلب المفتاح' : 'المفتاح فاضي!')
+    );
     const response = await axios.post(
       'https://api.lemonfox.ai/v1/audio/transcriptions',
       body,
