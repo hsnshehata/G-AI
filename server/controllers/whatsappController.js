@@ -1,6 +1,4 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
-const chromium = require('@sparticuz/chromium');
-const puppeteer = require('puppeteer-core');
 const WhatsAppSession = require('../models/WhatsAppSession');
 const Bot = require('../models/Bot');
 const { processMessage } = require('../botEngine');
@@ -66,26 +64,25 @@ exports.connectWhatsApp = async (req, res) => {
     }
 
     // إنشاء جلسة جديدة
-const client = new Client({
-  authStrategy: new LocalAuth({ clientId: botId }),
-  puppeteer: {
-    headless: true,
-    args: [
-      ...chromium.args,
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--disable-gpu',
-      '--single-process', // ده بيقلل استهلاك الـ memory
-      '--disable-extensions', // تقليل استهلاك الموارد
-      '--disable-background-networking', // تقليل استهلاك الموارد
-    ],
-    executablePath: await chromium.executablePath(),
-  },
-});
+    const client = new Client({
+      authStrategy: new LocalAuth({ clientId: botId }),
+      puppeteer: {
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--disable-gpu',
+          '--single-process',
+          '--disable-extensions',
+          '--disable-background-networking',
+        ],
+      },
+    });
+
     // حفظ العميل في الذاكرة
     clients.set(botId, client);
 
