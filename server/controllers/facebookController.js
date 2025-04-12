@@ -3,7 +3,7 @@ const Bot = require('../models/Bot');
 const { processMessage } = require('../botEngine');
 
 // دالة لمعالجة الرسايل من فيسبوك
-exports.handleMessage = async (req, res) => {
+const handleMessage = async (req, res) => {
   try {
     console.log('📩 Webhook POST request received:', JSON.stringify(req.body, null, 2));
 
@@ -85,7 +85,7 @@ exports.handleMessage = async (req, res) => {
 };
 
 // دالة لإرسال رسالة عبر فيسبوك
-async function sendMessage(senderPsid, message, facebookApiKey) {
+const sendMessage = async (senderPsid, message, facebookApiKey) => {
   const requestBody = {
     recipient: {
       id: senderPsid,
@@ -119,6 +119,6 @@ async function sendMessage(senderPsid, message, facebookApiKey) {
       }
     );
   });
-}
+};
 
 module.exports = { handleMessage };
