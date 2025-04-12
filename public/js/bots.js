@@ -1,350 +1,183 @@
-// تحميل صفحة البوتات
 async function loadBotsPage() {
-  const content = document.getElementById('content');
-  const role = localStorage.getItem('role');
-  const userId = localStorage.getItem('userId');
+  const token = localStorage.getItem("token");
+  const section = document.getElementById("dashboard-section");
 
-  let html = `
-    <h2>إدارة البوتات</h2>
-    <button onclick="showCreateBotForm()">إنشاء بوت جديد</button>
-    <div id="botsList"></div>
+  section.innerHTML = `<h2>البوتات</h2><div id="actions-container"></div><div id="bots-container">جاري التحميل...</div>`;
+
+  try {
+    const res = await fetch("/bots", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const bots = await res.json();
+
+    const userInfo = parseJwt(token);
+    const isAdmin = userInfo?.role === "admin";
+
+    const grouped = {};
+
+    bots.forEach((bot) => {
+      const username = bot.user?.username || "غير معروف";
+      if (!grouped[username]) grouped[username] = [];
+      grouped[username].push(bot);
+    });
+
+    const botsContainer = document.getElementById("bots-container");
+    let content = "";
+
+    if (isAdmin) {
+      document.getElementById("actions-container").innerHTML = `
+        <button onclick="showCreateUserForm()">➕ مستخدم جديد</button>
+        <button onclick="showCreateBotForm()">➕ بوت جديد</button>
+      `;
+    }
+
+    for (const [username, userBots] of Object.entries(grouped)) {
+      if (!isAdmin && username !== userInfo.username) continue;
+
+      content += `<div class="user-block"><h3>👤 ${username}</h3>`;
+      content += userBots
+        .map((bot) => {
+          return `
+            <div class="bot-box">
+              <strong>🤖 ${bot.name}</strong><br>
+              ${bot.facebookPageId ? `📘 صفحة: ${bot.facebookPageId}<br>` : ""}
+              ${isAdmin ? `<button onclick="deleteBot('${bot._id}')">🗑 حذف</button>` : ""}
+            </div>
+          `;
+        })
+        .join("");
+      content += "</div>";
+    }
+
+    botsContainer.innerHTML = content || "<p>لا توجد بوتات متاحة</p>";
+  } catch (err) {
+    console.error("فشل في جلب البوتات:", err);
+  }
+}
+
+function showCreateUserForm() {
+  const container = document.getElementById("dashboard-section");
+  container.innerHTML += `
+    <div class="popup-form">
+      <h3>إضافة مستخدم</h3>
+      <input id="newUsername" placeholder="اسم المستخدم">
+      <input id="newPassword" type="password" placeholder="كلمة المرور">
+      <select id="newRole">
+        <option value="user">مستخدم عادي</option>
+        <option value="admin">سوبر أدمن</option>
+      </select>
+      <button onclick="createUser()">✅ إنشاء</button>
+    </div>
   `;
-
-  if (role === 'superadmin') {
-    html += `
-      <h3>إدارة المستخدمين</h3>
-      <button onclick="showCreateUserForm()">إضافة مستخدم</button>
-      <div id="usersList"></div>
-    `;
-  }
-
-  content.innerHTML = html;
-
-  // جلب البوتات
-  const botsLoaded = await fetchBots();
-  if (!botsLoaded) {
-    content.innerHTML += '<p>فشل في جلب البوتات. برجاء المحاولة لاحقاً.</p>';
-    return;
-  }
-
-  // جلب المستخدمين إذا كان المستخدم سوبر أدمن
-  if (role === 'superadmin') {
-    const usersLoaded = await fetchUsers();
-    if (!usersLoaded) {
-      content.innerHTML += '<p>فشل في جلب المستخدمين. برجاء المحاولة لاحقاً.</p>';
-    }
-  }
 }
 
-// جلب البوتات
-async function fetchBots() {
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  const userId = localStorage.getItem('userId');
-  const botsList = document.getElementById('botsList');
+async function createUser() {
+  const token = localStorage.getItem("token");
+  const username = document.getElementById("newUsername").value;
+  const password = document.getElementById("newPassword").value;
+  const role = document.getElementById("newRole").value;
 
   try {
-    const res = await fetch('/api/bots', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('Failed to fetch bots:', data.message);
-      alert(data.message || 'فشل في جلب البوتات');
-      return false;
-    }
-
-    const userBots = role === 'superadmin' ? data : data.filter((bot) => bot.userId._id === userId);
-
-    botsList.innerHTML = userBots
-      .map(
-        (bot) => `
-          <div>
-            <p>اسم البوت: ${bot.name}</p>
-            <p>الحالة: ${bot.status}</p>
-            <button onclick="editBot('${bot._id}', '${bot.name}', '${bot.status}')">تعديل</button>
-            <button onclick="deleteBot('${bot._id}')">حذف</button>
-          </div>
-        `
-      )
-      .join('');
-    return true;
-  } catch (err) {
-    console.error('Error fetching bots:', err);
-    alert('خطأ في السيرفر أثناء جلب البوتات، برجاء المحاولة لاحقاً');
-    return false;
-  }
-}
-
-// جلب المستخدمين
-async function fetchUsers() {
-  const token = localStorage.getItem('token');
-  const usersList = document.getElementById('usersList');
-
-  try {
-    const res = await fetch('/api/users', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('Failed to fetch users:', data.message);
-      alert(data.message || 'فشل في جلب المستخدمين');
-      return false;
-    }
-
-    usersList.innerHTML = data
-      .map(
-        (user) => `
-          <div>
-            <p>اسم المستخدم: ${user.username}</p>
-            <p>الدور: ${user.role}</p>
-            <button onclick="editUser('${user._id}', '${user.username}', '${user.role}')">تعديل</button>
-            <button onclick="deleteUser('${user._id}')">حذف</button>
-          </div>
-        `
-      )
-      .join('');
-    return true;
-  } catch (err) {
-    console.error('Error fetching users:', err);
-    alert('خطأ في السيرفر أثناء جلب المستخدمين، برجاء المحاولة لاحقاً');
-    return false;
-  }
-}
-
-// إنشاء بوت جديد
-async function createBot(name, status) {
-  const token = localStorage.getItem('token');
-
-  try {
-    const res = await fetch('/api/bots', {
-      method: 'POST',
+    const res = await fetch("/users", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ name, status }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('Failed to create bot:', data.message);
-      alert(data.message || 'فشل في إنشاء البوت');
-      return;
-    }
-
-    await fetchBots();
-  } catch (err) {
-    console.error('Error creating bot:', err);
-    alert('خطأ في السيرفر أثناء إنشاء البوت، برجاء المحاولة لاحقاً');
-  }
-}
-
-// تعديل بوت
-async function editBot(id, name, status) {
-  const token = localStorage.getItem('token');
-  const newName = prompt('أدخل اسم البوت الجديد:', name);
-  const newStatus = prompt('أدخل حالة البوت الجديدة (active/inactive):', status);
-
-  if (newName && newStatus) {
-    try {
-      const res = await fetch(`/api/bots/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name: newName, status: newStatus }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Failed to edit bot:', data.message);
-        alert(data.message || 'فشل في تعديل البوت');
-        return;
-      }
-
-      await fetchBots();
-    } catch (err) {
-      console.error('Error editing bot:', err);
-      alert('خطأ في السيرفر أثناء تعديل البوت، برجاء المحاولة لاحقاً');
-    }
-  }
-}
-
-// حذف بوت
-async function deleteBot(id) {
-  const token = localStorage.getItem('token');
-
-  if (confirm('هل أنت متأكد من حذف هذا البوت؟')) {
-    try {
-      const res = await fetch(`/api/bots/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Failed to delete bot:', data.message);
-        alert(data.message || 'فشل في حذف البوت');
-        return;
-      }
-
-      await fetchBots();
-    } catch (err) {
-      console.error('Error deleting bot:', err);
-      alert('خطأ في السيرفر أثناء حذف البوت، برجاء المحاولة لاحقاً');
-    }
-  }
-}
-
-// إنشاء مستخدم جديد
-async function createUser(username, password, role) {
-  const token = localStorage.getItem('token');
-
-  try {
-    const res = await fetch('/api/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ username, password, role }),
     });
 
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('Failed to create user:', data.message);
-      alert(data.message || 'فشل في إنشاء المستخدم');
-      return;
+    if (res.ok) {
+      alert("✅ تم إنشاء المستخدم");
+      loadBotsPage();
+    } else {
+      const err = await res.json();
+      alert("❌ فشل: " + err.error);
     }
-
-    await fetchUsers();
   } catch (err) {
-    console.error('Error creating user:', err);
-    alert('خطأ في السيرفر أثناء إنشاء المستخدم، برجاء المحاولة لاحقاً');
+    console.error(err);
   }
 }
 
-// تعديل مستخدم
-async function editUser(id, username, role) {
-  const token = localStorage.getItem('token');
-  const newUsername = prompt('أدخل اسم المستخدم الجديد:', username);
-  const newRole = prompt('أدخل الدور الجديد (user/superadmin):', role);
-
-  if (newUsername && newRole) {
-    try {
-      const res = await fetch(`/api/users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ username: newUsername, role: newRole }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Failed to edit user:', data.message);
-        alert(data.message || 'فشل في تعديل المستخدم');
-        return;
-      }
-
-      await fetchUsers();
-    } catch (err) {
-      console.error('Error editing user:', err);
-      alert('خطأ في السيرفر أثناء تعديل المستخدم، برجاء المحاولة لاحقاً');
-    }
-  }
-}
-
-// حذف مستخدم
-async function deleteUser(id) {
-  const token = localStorage.getItem('token');
-
-  if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
-    try {
-      const res = await fetch(`/api/users/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Failed to delete user:', data.message);
-        alert(data.message || 'فشل في حذف المستخدم');
-        return;
-      }
-
-      await fetchUsers();
-    } catch (err) {
-      console.error('Error deleting user:', err);
-      alert('خطأ في السيرفر أثناء حذف المستخدم، برجاء المحاولة لاحقاً');
-    }
-  }
-}
-
-// إظهار نموذج إنشاء بوت
 function showCreateBotForm() {
-  const content = document.getElementById('content');
-  content.innerHTML = `
-    <h3>إنشاء بوت جديد</h3>
-    <form id="createBotForm">
-      <div>
-        <label for="botName">اسم البوت:</label>
-        <input type="text" id="botName" required>
-      </div>
-      <div>
-        <label for="botStatus">الحالة:</label>
-        <select id="botStatus" required>
-          <option value="active">نشط</option>
-          <option value="inactive">غير نشط</option>
-        </select>
-      </div>
-      <button type="submit">إنشاء</button>
-    </form>
+  const container = document.getElementById("dashboard-section");
+  container.innerHTML += `
+    <div class="popup-form">
+      <h3>إضافة بوت</h3>
+      <input id="botName" placeholder="اسم البوت">
+      <input id="facebookApiKey" placeholder="مفتاح فيسبوك (اختياري)" oninput="togglePageIdField()">
+      <input id="facebookPageId" placeholder="معرف صفحة فيسبوك" style="display:none">
+      <input id="botUsername" placeholder="اسم المستخدم المرتبط">
+      <button onclick="createBot()">✅ إنشاء</button>
+    </div>
   `;
-
-  document.getElementById('createBotForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('botName').value;
-    const status = document.getElementById('botStatus').value;
-    await createBot(name, status);
-  });
 }
 
-// إظهار نموذج إضافة مستخدم
-function showCreateUserForm() {
-  const content = document.getElementById('content');
-  content.innerHTML = `
-    <h3>إضافة مستخدم جديد</h3>
-    <form id="createUserForm">
-      <div>
-        <label for="username">اسم المستخدم:</label>
-        <input type="text" id="username" required>
-      </div>
-      <div>
-        <label for="password">كلمة المرور:</label>
-        <input type="password" id="password" required>
-      </div>
-      <div>
-        <label for="role">الدور:</label>
-        <select id="role" required>
-          <option value="user">مستخدم</option>
-          <option value="superadmin">سوبر أدمن</option>
-        </select>
-      </div>
-      <button type="submit">إضافة</button>
-    </form>
-  `;
+function togglePageIdField() {
+  const key = document.getElementById("facebookApiKey").value;
+  const pageIdField = document.getElementById("facebookPageId");
+  pageIdField.style.display = key ? "block" : "none";
+}
 
-  document.getElementById('createUserForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const role = document.getElementById('role').value;
-    await createUser(username, password, role);
-  });
+async function createBot() {
+  const token = localStorage.getItem("token");
+  const name = document.getElementById("botName").value;
+  const facebookApiKey = document.getElementById("facebookApiKey").value;
+  const facebookPageId = document.getElementById("facebookPageId").value;
+  const username = document.getElementById("botUsername").value;
+
+  try {
+    const res = await fetch("/bots", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        fbToken: facebookApiKey || undefined,
+        pageId: facebookPageId || undefined,
+        username,
+      }),
+    });
+
+    if (res.ok) {
+      alert("✅ تم إنشاء البوت");
+      loadBotsPage();
+    } else {
+      const err = await res.json();
+      alert("❌ فشل: " + err.error);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function deleteBot(id) {
+  const token = localStorage.getItem("token");
+  if (!confirm("هل تريد حذف هذا البوت؟")) return;
+
+  try {
+    const res = await fetch(`/bots/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.ok) {
+      alert("🗑️ تم الحذف");
+      loadBotsPage();
+    } else {
+      alert("❌ فشل الحذف");
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function parseJwt(token) {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
 }
