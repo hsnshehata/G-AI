@@ -5,9 +5,9 @@ async function loadBotsPage() {
   section.innerHTML = `<h2>البوتات</h2><div id="actions-container"></div><div id="bots-container">جاري التحميل...</div>`;
 
   try {
-    const res = await fetch("/bots", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const res = await fetch("/api/bots", {
+  headers: { Authorization: `Bearer ${token}` },
+});
     const bots = await res.json();
 
     const userInfo = parseJwt(token);
