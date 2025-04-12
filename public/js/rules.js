@@ -1,550 +1,318 @@
-// تحميل صفحة القواعد وإعدادها
 async function loadRulesPage() {
-  const content = document.getElementById('content');
+  const section = document.getElementById('dashboard-section');
   const role = localStorage.getItem('role');
 
-  // بناء الواجهة الرئيسية
-  let html = `
+  section.innerHTML = `
     <h2>إدارة القواعد</h2>
     <div>
       <label for="botSelectRules">اختر بوت:</label>
       <select id="botSelectRules" onchange="selectBot(this.value)"></select>
     </div>
     <div id="formContainer"></div>
-  `;
-
-  // إضافة قسم القواعد الثابتة إذا كان المستخدم سوبر أدمن
-  if (role === 'superadmin') {
-    html += `
-      <h3>القواعد الثابتة (للسوبر أدمن)</h3>
-      <button onclick="showCreateGlobalRuleForm()">إضافة قاعدة ثابتة</button>
+    ${role === 'admin' ? `
+      <h3>القواعد الثابتة</h3>
+      <button onclick="showCreateGlobalRuleForm()">➕ قاعدة ثابتة</button>
       <div id="globalRules"></div>
-    `;
-  }
-
-  // إضافة الأقسام الأخرى
-  html += `
+    ` : ""}
     <h3>القواعد العامة</h3>
-    <button onclick="showCreateGeneralRuleForm()">إضافة قاعدة عامة</button>
+    <button onclick="showCreateGeneralRuleForm()">➕ قاعدة عامة</button>
     <div id="generalRules"></div>
+
     <h3>المنتجات والأسعار</h3>
-    <button onclick="showCreateProductRuleForm()">إضافة منتج</button>
+    <button onclick="showCreateProductRuleForm()">➕ منتج</button>
     <div id="productRules"></div>
+
     <h3>سؤال وجواب</h3>
-    <button onclick="showCreateQARuleForm()">إضافة سؤال وجواب</button>
+    <button onclick="showCreateQARuleForm()">➕ سؤال وجواب</button>
     <div id="qaRules"></div>
+
     <h3>ربط المتجر</h3>
-    <button onclick="showCreateStoreRuleForm()">إضافة مفتاح API</button>
+    <button onclick="showCreateStoreRuleForm()">➕ مفتاح API</button>
     <div id="storeRules"></div>
   `;
 
-  // إدراج الواجهة في الصفحة
-  content.innerHTML = html;
-
-  // تعبئة قائمة البوتات
   const botsLoaded = await populateBotSelectRules();
+  if (!botsLoaded) return;
 
-  if (!botsLoaded) {
-    content.innerHTML += '<p>فشل في جلب البوتات. برجاء المحاولة لاحقاً.</p>';
-    return;
-  }
-
-  // اختيار أول بوت تلقائيًا إذا لم يتم تحديد واحد
   const botSelect = document.getElementById('botSelectRules');
-  if (!getSelectedBotId() && botSelect.options.length > 0) {
+  if (!localStorage.getItem("selectedBotId") && botSelect.options.length > 0) {
     selectBot(botSelect.options[0].value);
   }
 
-  // التأكد من تحميل الـ DOM قبل استدعاء fetchRules
-  setTimeout(async () => {
-    const generalRulesDiv = document.getElementById('generalRules');
-    if (!generalRulesDiv) {
-      console.error('generalRules div not found in DOM after timeout');
-      content.innerHTML += '<p>خطأ في تحميل الصفحة. برجاء إعادة المحاولة.</p>';
-      return;
-    }
-    await fetchRules();
-  }, 100); // زيادة الـ timeout للتأكد من الـ DOM
+  setTimeout(() => {
+    fetchRules();
+  }, 100);
 }
 
-// تعبئة قائمة البوتات
 async function populateBotSelectRules() {
-  const botSelect = document.getElementById('botSelectRules');
-  const role = localStorage.getItem('role');
+  const select = document.getElementById('botSelectRules');
   const token = localStorage.getItem('token');
 
   try {
-    const res = await fetch('/api/bots', {
-      headers: { Authorization: `Bearer ${token}` },
+    const res = await fetch("/api/bots", {
+      headers: { Authorization: `Bearer ${token}` }
     });
 
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('Failed to fetch bots:', data.message);
-      alert(data.message || 'فشل في جلب البوتات');
-      return false;
-    }
+    const bots = await res.json();
+    if (!res.ok) throw new Error("فشل في جلب البوتات");
 
-    botSelect.innerHTML = '';
-    const userBots = role === 'superadmin' ? data : data.filter((bot) => bot.userId._id === localStorage.getItem('userId'));
-
-    userBots.forEach((bot) => {
-      botSelect.innerHTML += `<option value="${bot._id}">${bot.name}</option>`;
+    select.innerHTML = '';
+    bots.forEach(bot => {
+      select.innerHTML += `<option value="${bot._id}">${bot.name}</option>`;
     });
+
     return true;
   } catch (err) {
-    console.error('Error fetching bots:', err);
-    alert('خطأ في السيرفر أثناء جلب البوتات، برجاء المحاولة لاحقاً');
+    console.error(err);
+    alert('⚠️ حدث خطأ أثناء تحميل البوتات');
     return false;
   }
 }
 
-// جلب القواعد
-async function fetchRules() {
-  const selectedBotId = getSelectedBotId();
-  if (!selectedBotId) {
-    console.log('No bot selected');
-    return;
-  }
-
-  try {
-    const res = await fetch(`/api/rules?botId=${selectedBotId}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('Failed to fetch rules:', data.message);
-      alert(data.message || 'فشل في جلب القواعد');
-      return;
-    }
-
-    const rules = data;
-
-    // التأكد من وجود العناصر في الـ DOM
-    const generalRulesDiv = document.getElementById('generalRules');
-    const productRulesDiv = document.getElementById('productRules');
-    const qaRulesDiv = document.getElementById('qaRules');
-    const storeRulesDiv = document.getElementById('storeRules');
-    const globalRulesDiv = document.getElementById('globalRules');
-
-    if (!generalRulesDiv || !productRulesDiv || !qaRulesDiv || !storeRulesDiv) {
-      console.error('One or more rule divs not found in DOM');
-      return;
-    }
-
-    // مسح العناصر القديمة
-    generalRulesDiv.innerHTML = '';
-    productRulesDiv.innerHTML = '';
-    qaRulesDiv.innerHTML = '';
-    storeRulesDiv.innerHTML = '';
-    if (globalRulesDiv) globalRulesDiv.innerHTML = '';
-
-    // عرض القواعد الجديدة
-    rules.forEach((rule) => {
-      const ruleElement = document.createElement('p');
-
-      if (rule.type === 'global' && globalRulesDiv) {
-        ruleElement.innerHTML = `${rule.content}
-          <button class="edit-rule" data-id="${rule._id}" data-type="global" data-content="${rule.content}">تعديل</button>
-          <button class="delete-rule" data-id="${rule._id}">حذف</button>`;
-        globalRulesDiv.appendChild(ruleElement);
-      } else if (rule.botId && rule.botId.toString() === selectedBotId) {
-        if (rule.type === 'general') {
-          ruleElement.innerHTML = `${rule.content}
-            <button class="edit-rule" data-id="${rule._id}" data-type="general" data-content="${rule.content}">تعديل</button>
-            <button class="delete-rule" data-id="${rule._id}">حذف</button>`;
-          generalRulesDiv.appendChild(ruleElement);
-        } else if (rule.type === 'products') {
-          ruleElement.innerHTML = `المنتج: ${rule.content.product}، السعر: ${rule.content.price} ${rule.content.currency}
-            <button class="edit-product-rule" data-id="${rule._id}" data-product="${rule.content.product}" data-price="${rule.content.price}" data-currency="${rule.content.currency}">تعديل</button>
-            <button class="delete-rule" data-id="${rule._id}">حذف</button>`;
-          productRulesDiv.appendChild(ruleElement);
-        } else if (rule.type === 'qa') {
-          ruleElement.innerHTML = `السؤال: ${rule.content.question}، الإجابة: ${rule.content.answer}
-            <button class="edit-qa-rule" data-id="${rule._id}" data-question="${rule.content.question}" data-answer="${rule.content.answer}">تعديل</button>
-            <button class="delete-rule" data-id="${rule._id}">حذف</button>`;
-          qaRulesDiv.appendChild(ruleElement);
-        } else if (rule.type === 'store') {
-          ruleElement.innerHTML = `مفتاح API: ${rule.content.apiKey}
-            <button class="edit-store-rule" data-id="${rule._id}" data-apikey="${rule.content.apiKey}">تعديل</button>
-            <button class="delete-rule" data-id="${rule._id}">حذف</button>`;
-          storeRulesDiv.appendChild(ruleElement);
-        }
-      }
-    });
-
-    // إضافة Event Listeners للأزرار
-    addEventListeners();
-  } catch (err) {
-    console.error('Error fetching rules:', err);
-    alert('خطأ في السيرفر أثناء جلب القواعد، برجاء المحاولة لاحقاً');
-  }
-}
-
-// إضافة Event Listeners للأزرار
-function addEventListeners() {
-  document.querySelectorAll('.edit-rule').forEach((button) => {
-    button.addEventListener('click', () => {
-      const id = button.getAttribute('data-id');
-      const type = button.getAttribute('data-type');
-      const content = button.getAttribute('data-content');
-      editRule(id, type, content);
-    });
-  });
-
-  document.querySelectorAll('.edit-product-rule').forEach((button) => {
-    button.addEventListener('click', () => {
-      const id = button.getAttribute('data-id');
-      const product = button.getAttribute('data-product');
-      const price = button.getAttribute('data-price');
-      const currency = button.getAttribute('data-currency');
-      editProductRule(id, product, price, currency);
-    });
-  });
-
-  document.querySelectorAll('.edit-qa-rule').forEach((button) => {
-    button.addEventListener('click', () => {
-      const id = button.getAttribute('data-id');
-      const question = button.getAttribute('data-question');
-      const answer = button.getAttribute('data-answer');
-      editQARule(id, question, answer);
-    });
-  });
-
-  document.querySelectorAll('.edit-store-rule').forEach((button) => {
-    button.addEventListener('click', () => {
-      const id = button.getAttribute('data-id');
-      const apiKey = button.getAttribute('data-apikey');
-      editStoreRule(id, apiKey);
-    });
-  });
-
-  document.querySelectorAll('.delete-rule').forEach((button) => {
-    button.addEventListener('click', () => {
-      const id = button.getAttribute('data-id');
-      deleteRule(id);
-    });
-  });
-}
-
-// إنشاء قاعدة جديدة
-async function createRule(type, content) {
-  const token = localStorage.getItem('token');
-
-  try {
-    console.log('📤 Sending create rule request with token:', token);
-    const res = await fetch('/api/rules', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ botId: getSelectedBotId(), type, content }),
-    });
-
-    const data = await res.json();
-    console.log('📥 Create rule response:', res.status, data);
-
-    if (res.ok) {
-      document.getElementById('formContainer').innerHTML = '<p>تم إضافة القاعدة بنجاح!</p>';
-      await fetchRules();
-    } else {
-      console.error('Failed to create rule:', data.message);
-      alert(data.message || 'حدث خطأ أثناء إضافة القاعدة.');
-    }
-  } catch (err) {
-    console.error('Error creating rule:', err);
-    alert('خطأ في السيرفر أثناء إضافة القاعدة، برجاء المحاولة لاحقاً');
-  }
-}
-
-// تعديل قاعدة
-async function editRule(id, type, content) {
-  const token = localStorage.getItem('token');
-
-  const newContent = prompt('أدخل القاعدة الجديدة:', content);
-  if (newContent) {
-    try {
-      const res = await fetch(`/api/rules/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ type, content: newContent }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Failed to edit rule:', data.message);
-        alert(data.message || 'حدث خطأ أثناء تعديل القاعدة.');
-        return;
-      }
-
-      await fetchRules();
-    } catch (err) {
-      console.error('Error editing rule:', err);
-      alert('خطأ في السيرفر أثناء تعديل القاعدة، برجاء المحاولة لاحقاً');
-    }
-  }
-}
-
-// تعديل منتج
-async function editProductRule(id, product, price, currency) {
-  const token = localStorage.getItem('token');
-
-  const newProduct = prompt('أدخل اسم المنتج الجديد:', product);
-  const newPrice = prompt('أدخل السعر الجديد:', price);
-  const newCurrency = prompt('أدخل العملة (جنيه مصري أو دولار):', currency);
-
-  if (newProduct && newPrice && newCurrency) {
-    try {
-      const res = await fetch(`/api/rules/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ type: 'products', content: { product: newProduct, price: newPrice, currency: newCurrency } }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Failed to edit product rule:', data.message);
-        alert(data.message || 'حدث خطأ أثناء تعديل المنتج.');
-        return;
-      }
-
-      await fetchRules();
-    } catch (err) {
-      console.error('Error editing product rule:', err);
-      alert('خطأ في السيرفر أثناء تعديل المنتج، برجاء المحاولة لاحقاً');
-    }
-  }
-}
-
-// تعديل سؤال وجواب
-async function editQARule(id, question, answer) {
-  const token = localStorage.getItem('token');
-
-  const newQuestion = prompt('أدخل السؤال الجديد:', question);
-  const newAnswer = prompt('أدخل الإجابة الجديدة:', answer);
-
-  if (newQuestion && newAnswer) {
-    try {
-      const res = await fetch(`/api/rules/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ type: 'qa', content: { question: newQuestion, answer: newAnswer } }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Failed to edit QA rule:', data.message);
-        alert(data.message || 'حدث خطأ أثناء تعديل السؤال والجواب.');
-        return;
-      }
-
-      await fetchRules();
-    } catch (err) {
-      console.error('Error editing QA rule:', err);
-      alert('خطأ في السيرفر أثناء تعديل السؤال والجواب، برجاء المحاولة لاحقاً');
-    }
-  }
-}
-
-// تعديل مفتاح API للمتجر
-async function editStoreRule(id, apiKey) {
-  const token = localStorage.getItem('token');
-
-  const newApiKey = prompt('أدخل مفتاح API الجديد:', apiKey);
-
-  if (newApiKey) {
-    try {
-      const res = await fetch(`/api/rules/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ type: 'store', content: { apiKey: newApiKey } }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Failed to edit store rule:', data.message);
-        alert(data.message || 'حدث خطأ أثناء تعديل مفتاح API.');
-        return;
-      }
-
-      await fetchRules();
-    } catch (err) {
-      console.error('Error editing store rule:', err);
-      alert('خطأ في السيرفر أثناء تعديل مفتاح API، برجاء المحاولة لاحقاً');
-    }
-  }
-}
-
-// حذف قاعدة
-async function deleteRule(id) {
-  const token = localStorage.getItem('token');
-
-  if (confirm('هل أنت متأكد من حذف هذه القاعدة؟')) {
-    try {
-      const res = await fetch(`/api/rules/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Failed to delete rule:', data.message);
-        alert(data.message || 'حدث خطأ أثناء حذف القاعدة.');
-        return;
-      }
-
-      await fetchRules();
-    } catch (err) {
-      console.error('Error deleting rule:', err);
-      alert('خطأ في السيرفر أثناء حذف القاعدة، برجاء المحاولة لاحقاً');
-    }
-  }
-}
-
-// اختيار بوت
 function selectBot(botId) {
-  localStorage.setItem('selectedBotId', botId);
+  localStorage.setItem("selectedBotId", botId);
   fetchRules();
 }
 
-// الحصول على ID البوت المحدد
 function getSelectedBotId() {
-  return localStorage.getItem('selectedBotId');
+  return localStorage.getItem("selectedBotId");
 }
 
-// إظهار نموذج إضافة قاعدة ثابتة
-function showCreateGlobalRuleForm() {
-  const formContainer = document.getElementById('formContainer');
-  formContainer.innerHTML = `
-    <h3>إضافة قاعدة ثابتة</h3>
-    <form id="createGlobalRuleForm">
-      <div>
-        <label for="globalRuleContent">القاعدة:</label>
-        <textarea id="globalRuleContent" required></textarea>
-      </div>
-      <button type="submit">إضافة</button>
-    </form>
-  `;
+async function fetchRules() {
+  const token = localStorage.getItem("token");
+  const botId = getSelectedBotId();
+  if (!botId) return;
 
-  document.getElementById('createGlobalRuleForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const content = document.getElementById('globalRuleContent').value;
-    await createRule('global', content);
-  });
+  try {
+    const res = await fetch(`/api/rules?botId=${botId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const rules = await res.json();
+    if (!res.ok) throw new Error("فشل في جلب القواعد");
+
+    document.getElementById("generalRules").innerHTML = '';
+    document.getElementById("productRules").innerHTML = '';
+    document.getElementById("qaRules").innerHTML = '';
+    document.getElementById("storeRules").innerHTML = '';
+    if (document.getElementById("globalRules")) {
+      document.getElementById("globalRules").innerHTML = '';
+    }
+
+    rules.forEach(rule => {
+      const el = document.createElement("div");
+
+      if (rule.type === "global" && document.getElementById("globalRules")) {
+        el.innerHTML = `${rule.content}
+          <button onclick="editRule('${rule._id}', 'global', '${rule.content}')">✏️</button>
+          <button onclick="deleteRule('${rule._id}')">🗑</button>`;
+        document.getElementById("globalRules").appendChild(el);
+      }
+
+      if (rule.botId !== botId) return;
+
+      if (rule.type === "general") {
+        el.innerHTML = `${rule.content}
+          <button onclick="editRule('${rule._id}', 'general', '${rule.content}')">✏️</button>
+          <button onclick="deleteRule('${rule._id}')">🗑</button>`;
+        document.getElementById("generalRules").appendChild(el);
+      }
+
+      if (rule.type === "products") {
+        el.innerHTML = `📦 ${rule.content.product} - 💰 ${rule.content.price} ${rule.content.currency}
+          <button onclick="editProductRule('${rule._id}', ${JSON.stringify(rule.content)})">✏️</button>
+          <button onclick="deleteRule('${rule._id}')">🗑</button>`;
+        document.getElementById("productRules").appendChild(el);
+      }
+
+      if (rule.type === "qa") {
+        el.innerHTML = `❓ ${rule.content.question} <br> 💬 ${rule.content.answer}
+          <button onclick="editQARule('${rule._id}', ${JSON.stringify(rule.content)})">✏️</button>
+          <button onclick="deleteRule('${rule._id}')">🗑</button>`;
+        document.getElementById("qaRules").appendChild(el);
+      }
+
+      if (rule.type === "store") {
+        el.innerHTML = `🔑 API: ${rule.content.apiKey}
+          <button onclick="editStoreRule('${rule._id}', '${rule.content.apiKey}')">✏️</button>
+          <button onclick="deleteRule('${rule._id}')">🗑</button>`;
+        document.getElementById("storeRules").appendChild(el);
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    alert("⚠️ فشل في تحميل القواعد");
+  }
 }
 
-// إظهار نموذج إضافة قاعدة عامة
+// ===== النماذج والإجراءات =====
 function showCreateGeneralRuleForm() {
-  const formContainer = document.getElementById('formContainer');
-  formContainer.innerHTML = `
-    <h3>إضافة قاعدة عامة</h3>
-    <form id="createGeneralRuleForm">
-      <div>
-        <label for="generalRuleContent">القاعدة:</label>
-        <textarea id="generalRuleContent" required></textarea>
-      </div>
-      <button type="submit">إضافة</button>
-    </form>
+  document.getElementById("formContainer").innerHTML = `
+    <textarea id="ruleContent" placeholder="اكتب القاعدة هنا"></textarea>
+    <button onclick="createRule('general')">➕ إضافة</button>
   `;
-
-  document.getElementById('createGeneralRuleForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const content = document.getElementById('generalRuleContent').value;
-    await createRule('general', content);
-  });
 }
 
-// إظهار نموذج إضافة منتج
+function showCreateGlobalRuleForm() {
+  document.getElementById("formContainer").innerHTML = `
+    <textarea id="ruleContent" placeholder="قاعدة للسوبر أدمن"></textarea>
+    <button onclick="createRule('global')">➕ إضافة</button>
+  `;
+}
+
 function showCreateProductRuleForm() {
-  const formContainer = document.getElementById('formContainer');
-  formContainer.innerHTML = `
-    <h3>إضافة منتج</h3>
-    <form id="createProductRuleForm">
-      <div>
-        <label for="productName">اسم المنتج:</label>
-        <input type="text" id="productName" required>
-      </div>
-      <div>
-        <label for="productPrice">السعر:</label>
-        <input type="number" id="productPrice" required>
-      </div>
-      <div>
-        <label for="productCurrency">العملة:</label>
-        <select id="productCurrency" required>
-          <option value="جنيه مصري">جنيه مصري</option>
-          <option value="دولار">دولار</option>
-        </select>
-      </div>
-      <button type="submit">إضافة</button>
-    </form>
+  document.getElementById("formContainer").innerHTML = `
+    <input placeholder="المنتج" id="product">
+    <input placeholder="السعر" id="price">
+    <input placeholder="العملة" id="currency">
+    <button onclick="createRule('products')">➕ إضافة</button>
   `;
-
-  document.getElementById('createProductRuleForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const product = document.getElementById('productName').value;
-    const price = document.getElementById('productPrice').value;
-    const currency = document.getElementById('productCurrency').value;
-    await createRule('products', { product, price, currency });
-  });
 }
 
-// إظهار نموذج إضافة سؤال وجواب
 function showCreateQARuleForm() {
-  const formContainer = document.getElementById('formContainer');
-  formContainer.innerHTML = `
-    <h3>إضافة سؤال وجواب</h3>
-    <form id="createQARuleForm">
-      <div>
-        <label for="qaQuestion">السؤال:</label>
-        <input type="text" id="qaQuestion" required>
-      </div>
-      <div>
-        <label for="qaAnswer">الإجابة:</label>
-        <input type="text" id="qaAnswer" required>
-      </div>
-      <button type="submit">إضافة</button>
-    </form>
+  document.getElementById("formContainer").innerHTML = `
+    <input placeholder="السؤال" id="question">
+    <input placeholder="الإجابة" id="answer">
+    <button onclick="createRule('qa')">➕ إضافة</button>
   `;
-
-  document.getElementById('createQARuleForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const question = document.getElementById('qaQuestion').value;
-    const answer = document.getElementById('qaAnswer').value;
-    await createRule('qa', { question, answer });
-  });
 }
 
-// إظهار نموذج إضافة مفتاح API للمتجر
 function showCreateStoreRuleForm() {
-  const formContainer = document.getElementById('formContainer');
-  formContainer.innerHTML = `
-    <h3>إضافة مفتاح API للمتجر</h3>
-    <form id="createStoreRuleForm">
-      <div>
-        <label for="storeApiKey">مفتاح API:</label>
-        <input type="text" id="storeApiKey" required>
-      </div>
-      <button type="submit">إضافة</button>
-    </form>
+  document.getElementById("formContainer").innerHTML = `
+    <input placeholder="API Key" id="apiKey">
+    <button onclick="createRule('store')">➕ إضافة</button>
   `;
+}
 
-  document.getElementById('createStoreRuleForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const apiKey = document.getElementById('storeApiKey').value;
-    await createRule('store', { apiKey });
+async function createRule(type) {
+  const token = localStorage.getItem("token");
+  const botId = getSelectedBotId();
+  if (!botId) return;
+
+  let content = "";
+  if (type === "products") {
+    content = {
+      product: document.getElementById("product").value,
+      price: document.getElementById("price").value,
+      currency: document.getElementById("currency").value,
+    };
+  } else if (type === "qa") {
+    content = {
+      question: document.getElementById("question").value,
+      answer: document.getElementById("answer").value,
+    };
+  } else if (type === "store") {
+    content = { apiKey: document.getElementById("apiKey").value };
+  } else {
+    content = document.getElementById("ruleContent").value;
+  }
+
+  try {
+    const res = await fetch("/api/rules", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ botId, type, content })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      fetchRules();
+    } else {
+      alert("❌ " + data.message);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function editRule(id, type, content) {
+  const token = localStorage.getItem("token");
+  const newContent = prompt("أدخل القاعدة الجديدة:", content);
+  if (!newContent) return;
+
+  try {
+    await fetch(`/api/rules/${id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ type, content: newContent })
+    });
+
+    fetchRules();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function editProductRule(id, content) {
+  const { product, price, currency } = content;
+  const newProduct = prompt("اسم المنتج:", product);
+  const newPrice = prompt("السعر:", price);
+  const newCurrency = prompt("العملة:", currency);
+
+  await fetch(`/api/rules/${id}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      type: "products",
+      content: { product: newProduct, price: newPrice, currency: newCurrency }
+    })
   });
+
+  fetchRules();
+}
+
+async function editQARule(id, content) {
+  const newQ = prompt("السؤال:", content.question);
+  const newA = prompt("الإجابة:", content.answer);
+
+  await fetch(`/api/rules/${id}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      type: "qa",
+      content: { question: newQ, answer: newA }
+    })
+  });
+
+  fetchRules();
+}
+
+async function editStoreRule(id, apiKey) {
+  const newKey = prompt("API Key الجديد:", apiKey);
+
+  await fetch(`/api/rules/${id}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ type: "store", content: { apiKey: newKey } })
+  });
+
+  fetchRules();
+}
+
+async function deleteRule(id) {
+  if (!confirm("هل تريد حذف القاعدة؟")) return;
+
+  await fetch(`/api/rules/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`
+    }
+  });
+
+  fetchRules();
 }
