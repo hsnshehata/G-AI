@@ -66,24 +66,26 @@ exports.connectWhatsApp = async (req, res) => {
     }
 
     // إنشاء جلسة جديدة
-    const client = new Client({
-      authStrategy: new LocalAuth({ clientId: botId }),
-      puppeteer: {
-        headless: true,
-        args: [
-          ...chromium.args,
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu',
-        ],
-        executablePath: await chromium.executablePath(),
-      },
-    });
-
+const client = new Client({
+  authStrategy: new LocalAuth({ clientId: botId }),
+  puppeteer: {
+    headless: true,
+    args: [
+      ...chromium.args,
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-gpu',
+      '--single-process', // ده بيقلل استهلاك الـ memory
+      '--disable-extensions', // تقليل استهلاك الموارد
+      '--disable-background-networking', // تقليل استهلاك الموارد
+    ],
+    executablePath: await chromium.executablePath(),
+  },
+});
     // حفظ العميل في الذاكرة
     clients.set(botId, client);
 
