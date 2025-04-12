@@ -1,4 +1,6 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
 const WhatsAppSession = require('../models/WhatsAppSession');
 const Bot = require('../models/Bot');
 const { processMessage } = require('../botEngine');
@@ -69,6 +71,7 @@ exports.connectWhatsApp = async (req, res) => {
       puppeteer: {
         headless: true,
         args: [
+          ...chromium.args,
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
@@ -76,11 +79,8 @@ exports.connectWhatsApp = async (req, res) => {
           '--no-first-run',
           '--no-zygote',
           '--disable-gpu',
-          '--disable-features=IsolateOrigins,site-per-process',
-          '--disable-web-security',
-          '--allow-running-insecure-content',
         ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+        executablePath: await chromium.executablePath(),
       },
     });
 
