@@ -1,28 +1,23 @@
 {
   "name": "ai-chat-controller",
   "version": "1.0.0",
-  "description": "AI Chat Controller with Bot Management",
+  "description": "AI Chat Controller with Bot Management for Facebook",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "nodemon server/server.js",
-    "postinstall": "node -e \"require('puppeteer').executablePath()\""
+    "dev": "nodemon server/server.js"
   },
   "dependencies": {
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "^4.21.1",
     "form-data": "^4.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.6.0",
-    "node-fetch": "^3.3.2",
-    "openai": "^4.67.1",
-    "puppeteer": "^23.5.3",
-    "qrcode": "^1.5.3",
-    "request": "^2.88.2",
-    "whatsapp-web.js": "^1.25.0"
+    "mongoose": "^8.7.2",
+    "openai": "^4.67.3",
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"
