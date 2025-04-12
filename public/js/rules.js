@@ -1,7 +1,7 @@
 async function loadRulesPage() {
   const content = document.getElementById('content');
   const role = localStorage.getItem('role');
-
+Authorization: Bearer YOUR_TOKEN
   let html = `
     <h2>إدارة القواعد</h2>
     <div>
