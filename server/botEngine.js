@@ -9,7 +9,7 @@ const openai = new OpenAI({
 
 const conversationSchema = new mongoose.Schema({
   botId: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
-  userId: { type: String, required: true }, // Facebook/WhatsApp user ID
+  userId: { type: String, required: true }, // Facebook user ID
   messages: [
     {
       role: { type: String, enum: ['user', 'assistant'], required: true },
