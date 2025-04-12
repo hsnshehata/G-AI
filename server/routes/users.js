@@ -77,8 +77,8 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'اسم المستخدم موجود بالفعل' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ username, password: hashedPassword, role });
+    // هنسيب الـ pre('save') middleware يعمل الـ hash
+    const user = new User({ username, password, role }); // ما نعملش hash هنا
     await user.save();
 
     console.log('✅ User created:', user._id);
