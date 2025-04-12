@@ -42,7 +42,12 @@ async function loadRulesPage() {
   content.innerHTML = html;
 
   // تعبئة قائمة البوتات
-  await populateBotSelectRules();
+  const botsLoaded = await populateBotSelectRules();
+
+  if (!botsLoaded) {
+    content.innerHTML += '<p>فشل في جلب البوتات. برجاء المحاولة لاحقاً.</p>';
+    return;
+  }
 
   // اختيار أول بوت تلقائيًا إذا لم يتم تحديد واحد
   const botSelect = document.getElementById('botSelectRules');
@@ -55,10 +60,11 @@ async function loadRulesPage() {
     const generalRulesDiv = document.getElementById('generalRules');
     if (!generalRulesDiv) {
       console.error('generalRules div not found in DOM after timeout');
+      content.innerHTML += '<p>خطأ في تحميل الصفحة. برجاء إعادة المحاولة.</p>';
       return;
     }
     await fetchRules();
-  }, 0);
+  }, 100); // زيادة الـ timeout للتأكد من الـ DOM
 }
 
 // تعبئة قائمة البوتات
@@ -74,8 +80,9 @@ async function populateBotSelectRules() {
 
     const data = await res.json();
     if (!res.ok) {
+      console.error('Failed to fetch bots:', data.message);
       alert(data.message || 'فشل في جلب البوتات');
-      return;
+      return false;
     }
 
     botSelect.innerHTML = '';
@@ -84,9 +91,11 @@ async function populateBotSelectRules() {
     userBots.forEach((bot) => {
       botSelect.innerHTML += `<option value="${bot._id}">${bot.name}</option>`;
     });
+    return true;
   } catch (err) {
     console.error('Error fetching bots:', err);
-    alert('خطأ في السيرفر، برجاء المحاولة لاحقاً');
+    alert('خطأ في السيرفر أثناء جلب البوتات، برجاء المحاولة لاحقاً');
+    return false;
   }
 }
 
@@ -105,6 +114,7 @@ async function fetchRules() {
 
     const data = await res.json();
     if (!res.ok) {
+      console.error('Failed to fetch rules:', data.message);
       alert(data.message || 'فشل في جلب القواعد');
       return;
     }
@@ -168,7 +178,7 @@ async function fetchRules() {
     addEventListeners();
   } catch (err) {
     console.error('Error fetching rules:', err);
-    alert('خطأ في السيرفر، برجاء المحاولة لاحقاً');
+    alert('خطأ في السيرفر أثناء جلب القواعد، برجاء المحاولة لاحقاً');
   }
 }
 
@@ -240,11 +250,12 @@ async function createRule(type, content) {
       document.getElementById('formContainer').innerHTML = '<p>تم إضافة القاعدة بنجاح!</p>';
       await fetchRules();
     } else {
+      console.error('Failed to create rule:', data.message);
       alert(data.message || 'حدث خطأ أثناء إضافة القاعدة.');
     }
   } catch (err) {
-    alert('خطأ في السيرفر، برجاء المحاولة لاحقاً');
     console.error('Error creating rule:', err);
+    alert('خطأ في السيرفر أثناء إضافة القاعدة، برجاء المحاولة لاحقاً');
   }
 }
 
@@ -266,6 +277,7 @@ async function editRule(id, type, content) {
 
       const data = await res.json();
       if (!res.ok) {
+        console.error('Failed to edit rule:', data.message);
         alert(data.message || 'حدث خطأ أثناء تعديل القاعدة.');
         return;
       }
@@ -273,7 +285,7 @@ async function editRule(id, type, content) {
       await fetchRules();
     } catch (err) {
       console.error('Error editing rule:', err);
-      alert('خطأ في السيرفر، برجاء المحاولة لاحقاً');
+      alert('خطأ في السيرفر أثناء تعديل القاعدة، برجاء المحاولة لاحقاً');
     }
   }
 }
@@ -299,6 +311,7 @@ async function editProductRule(id, product, price, currency) {
 
       const data = await res.json();
       if (!res.ok) {
+        console.error('Failed to edit product rule:', data.message);
         alert(data.message || 'حدث خطأ أثناء تعديل المنتج.');
         return;
       }
@@ -306,7 +319,7 @@ async function editProductRule(id, product, price, currency) {
       await fetchRules();
     } catch (err) {
       console.error('Error editing product rule:', err);
-      alert('خطأ في السيرفر، برجاء المحاولة لاحقاً');
+      alert('خطأ في السيرفر أثناء تعديل المنتج، برجاء المحاولة لاحقاً');
     }
   }
 }
@@ -331,6 +344,7 @@ async function editQARule(id, question, answer) {
 
       const data = await res.json();
       if (!res.ok) {
+        console.error('Failed to edit QA rule:', data.message);
         alert(data.message || 'حدث خطأ أثناء تعديل السؤال والجواب.');
         return;
       }
@@ -338,7 +352,7 @@ async function editQARule(id, question, answer) {
       await fetchRules();
     } catch (err) {
       console.error('Error editing QA rule:', err);
-      alert('خطأ في السيرفر، برجاء المحاولة لاحقاً');
+      alert('خطأ في السيرفر أثناء تعديل السؤال والجواب، برجاء المحاولة لاحقاً');
     }
   }
 }
@@ -362,6 +376,7 @@ async function editStoreRule(id, apiKey) {
 
       const data = await res.json();
       if (!res.ok) {
+        console.error('Failed to edit store rule:', data.message);
         alert(data.message || 'حدث خطأ أثناء تعديل مفتاح API.');
         return;
       }
@@ -369,7 +384,7 @@ async function editStoreRule(id, apiKey) {
       await fetchRules();
     } catch (err) {
       console.error('Error editing store rule:', err);
-      alert('خطأ في السيرفر، برجاء المحاولة لاحقاً');
+      alert('خطأ في السيرفر أثناء تعديل مفتاح API، برجاء المحاولة لاحقاً');
     }
   }
 }
@@ -387,6 +402,7 @@ async function deleteRule(id) {
 
       const data = await res.json();
       if (!res.ok) {
+        console.error('Failed to delete rule:', data.message);
         alert(data.message || 'حدث خطأ أثناء حذف القاعدة.');
         return;
       }
@@ -394,7 +410,7 @@ async function deleteRule(id) {
       await fetchRules();
     } catch (err) {
       console.error('Error deleting rule:', err);
-      alert('خطأ في السيرفر، برجاء المحاولة لاحقاً');
+      alert('خطأ في السيرفر أثناء حذف القاعدة، برجاء المحاولة لاحقاً');
     }
   }
 }
