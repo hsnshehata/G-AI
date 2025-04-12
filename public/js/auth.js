@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // تحقق إن المستخدم مسجل دخول لو هو في صفحة الـ dashboard
+  if (window.location.pathname.includes('dashboard')) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('برجاء تسجيل الدخول أولاً');
+      window.location.href = '/index.html';
+      return;
+    }
+  }
+
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
@@ -31,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
           localStorage.setItem('token', data.token);
           localStorage.setItem('role', data.role);
           localStorage.setItem('userId', data.userId);
-          localStorage.setItem('username', data.username); // إضافة تخزين الـ username
+          localStorage.setItem('username', data.username);
           console.log('✅ Login successful, stored in localStorage:', {
             token: data.token,
             role: data.role,
@@ -45,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('❌ Login failed:', data.message);
         }
       } catch (err) {
-        errorEl.textContent = 'خطأ في السيرفر';
+        errorEl.textContent = 'خطأ في السيرفر، برجاء المحاولة لاحقاً';
         console.error('❌ Server error during login:', err);
       }
     });
