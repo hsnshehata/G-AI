@@ -1,14 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // تحقق إن المستخدم مسجل دخول لو هو في صفحة الـ dashboard
-  if (window.location.pathname.includes('dashboard')) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('برجاء تسجيل الدخول أولاً');
-      window.location.href = '/index.html';
-      return;
-    }
-  }
-
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
