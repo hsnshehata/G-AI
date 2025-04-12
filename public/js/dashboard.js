@@ -1,12 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // التحقق من وجود الـ token
-  const token = localStorage.getItem('token');
-  if (!token) {
-    alert('برجاء تسجيل الدخول أولاً');
-    window.location.href = '/';
-    return;
-  }
-
   // التحقق من وجود الأزرار في الـ DOM
   const botsBtn = document.getElementById('botsBtn');
   const rulesBtn = document.getElementById('rulesBtn');
@@ -37,13 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
   logoutBtn.addEventListener('click', async () => {
     const username = localStorage.getItem('username');
     const token = localStorage.getItem('token');
-
-    if (!username || !token) {
-      alert('خطأ: بيانات المستخدم غير موجودة، برجاء تسجيل الدخول مجدداً');
-      localStorage.clear();
-      window.location.href = '/';
-      return;
-    }
 
     try {
       console.log('📤 Sending logout request for username:', username);
