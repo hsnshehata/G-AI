@@ -18,8 +18,8 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: 'اسم المستخدم موجود بالفعل' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ username, password: hashedPassword, role });
+    // هنسيب الـ pre('save') middleware يعمل الـ hash
+    const user = await User.create({ username, password, role }); // ما نعملش hash هنا
 
     console.log('✅ User created:', user._id);
     res.status(201).json({ message: 'تم إنشاء المستخدم بنجاح', user: { id: user._id, username: user.username, role: user.role } });
@@ -86,7 +86,7 @@ exports.updateUser = async (req, res) => {
 
     const updateData = { username, role };
     if (password) {
-      updateData.password = await bcrypt.hash(password, 10);
+      updateData.password = password; // ما نعملش hash هنا، الـ pre('save') middleware هيتكفل بيه
     }
 
     const updatedUser = await User.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
@@ -98,3 +98,5 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ message: 'خطأ في السيرفر', error: err.message });
   }
 };
+
+module.exports = exports;
