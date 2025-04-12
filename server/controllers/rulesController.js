@@ -16,6 +16,11 @@ const createRule = async (req, res) => {
       return res.status(400).json({ message: 'معرف البوت غير صالح' });
     }
 
+    // التحقق من وجود req.user._id
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'المستخدم غير معروف، برجاء تسجيل الدخول' });
+    }
+
     // إنشاء قاعدة جديدة
     const rule = new Rule({
       botId,
