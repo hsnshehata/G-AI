@@ -1,54 +1,39 @@
-const mongoose = require('mongoose');
+// server/server.js
 
-// دالة لمحاولة الاتصال بـ MongoDB مع إعادة المحاولة
-const connectDB = async () => {
-  const maxRetries = 5; // عدد المحاولات القصوى
-  const retryInterval = 5000; // الوقت بين كل محاولة (5 ثواني)
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const connectDB = require('./config/db'); // تأكد أن المسار ده صحيح حسب مكان ملف connectDB.js
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      // التحقق من وجود MONGODB_URI
-      if (!process.env.MONGODB_URI) {
-        throw new Error('MONGODB_URI is not defined in environment variables');
-      }
+// استدعاء المسارات (أضف أو احذف حسب مشروعك)
+const botRoutes = require('./routes/bots');
+const chatRoutes = require('./routes/chats');
+const ratingRoutes = require('./routes/ratings');
+const statRoutes = require('./routes/stats');
+const whatsappRoutes = require('./routes/whatsapp');
+const configRoutes = require('./routes/config');
 
-      console.log(`📡 Attempting to connect to MongoDB (Attempt ${attempt}/${maxRetries})...`);
+const app = express();
 
-      // الاتصال بـ MongoDB
-      await mongoose.connect(process.env.MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        serverSelectionTimeoutMS: 5000, // الوقت المسموح لاختيار السيرفر
-      });
+// ميدل وير
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-      console.log('✅ MongoDB connected successfully');
-      break; // الخروج من الحلقة لو الاتصال نجح
-    } catch (err) {
-      console.error(`❌ MongoDB connection error (Attempt ${attempt}/${maxRetries}):`, err.message, err.stack);
+// الاتصال بقاعدة البيانات
+connectDB();
 
-      if (attempt === maxRetries) {
-        console.error('❌ Max retries reached. Exiting process...');
-        process.exit(1); // الخروج لو وصلنا لآخر محاولة وفشلنا
-      }
+// ربط المسارات
+app.use('/bots', botRoutes);
+app.use('/chats', chatRoutes);
+app.use('/ratings', ratingRoutes);
+app.use('/stats', statRoutes);
+app.use('/whatsapp', whatsappRoutes);
+app.use('/config', configRoutes);
 
-      console.log(`⏳ Retrying in ${retryInterval / 1000} seconds...`);
-      await new Promise((resolve) => setTimeout(resolve, retryInterval)); // الانتظار قبل المحاولة التالية
-    }
-  }
+// تشغيل السيرفر
+const PORT = process.env.PORT || 3000;
 
-  // مراقبة حالة الاتصال
-  mongoose.connection.on('disconnected', () => {
-    console.warn('⚠️ MongoDB disconnected! Attempting to reconnect...');
-    // يمكنك هنا إضافة منطق لإعادة الاتصال تلقائيًا
-  });
-
-  mongoose.connection.on('reconnected', () => {
-    console.log('✅ MongoDB reconnected successfully');
-  });
-
-  mongoose.connection.on('error', (err) => {
-    console.error('❌ MongoDB connection error:', err.message, err.stack);
-  });
-};
-
-module.exports = connectDB;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
