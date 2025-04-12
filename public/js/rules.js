@@ -61,21 +61,8 @@ async function loadRulesPage() {
   }, 0);
 }
 
-// التحقق من وجود الـ token
-function checkToken() {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    alert('برجاء تسجيل الدخول أولاً');
-    window.location.href = '/index.html';
-    return false;
-  }
-  return true;
-}
-
 // تعبئة قائمة البوتات
 async function populateBotSelectRules() {
-  if (!checkToken()) return;
-
   const botSelect = document.getElementById('botSelectRules');
   const role = localStorage.getItem('role');
   const token = localStorage.getItem('token');
@@ -85,32 +72,26 @@ async function populateBotSelectRules() {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    const data = await res.json();
     if (!res.ok) {
-      if (res.status === 401) {
-        alert('جلسة غير صالحة، برجاء تسجيل الدخول مجدداً');
-        window.location.href = '/index.html';
-        return;
-      }
-      throw new Error('Failed to fetch bots');
+      alert(data.message || 'فشل في جلب البوتات');
+      return;
     }
 
-    const bots = await res.json();
-
     botSelect.innerHTML = '';
-    const userBots = role === 'superadmin' ? bots : bots.filter((bot) => bot.userId._id === localStorage.getItem('userId'));
+    const userBots = role === 'superadmin' ? data : data.filter((bot) => bot.userId._id === localStorage.getItem('userId'));
 
     userBots.forEach((bot) => {
       botSelect.innerHTML += `<option value="${bot._id}">${bot.name}</option>`;
     });
   } catch (err) {
     console.error('Error fetching bots:', err);
+    alert('خطأ في السيرفر، برجاء المحاولة لاحقاً');
   }
 }
 
 // جلب القواعد
 async function fetchRules() {
-  if (!checkToken()) return;
-
   const selectedBotId = getSelectedBotId();
   if (!selectedBotId) {
     console.log('No bot selected');
@@ -122,16 +103,13 @@ async function fetchRules() {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     });
 
+    const data = await res.json();
     if (!res.ok) {
-      if (res.status === 401) {
-        alert('جلسة غير صالحة، برجاء تسجيل الدخول مجدداً');
-        window.location.href = '/index.html';
-        return;
-      }
-      throw new Error('Failed to fetch rules');
+      alert(data.message || 'فشل في جلب القواعد');
+      return;
     }
 
-    const rules = await res.json();
+    const rules = data;
 
     // التأكد من وجود العناصر في الـ DOM
     const generalRulesDiv = document.getElementById('generalRules');
@@ -190,6 +168,7 @@ async function fetchRules() {
     addEventListeners();
   } catch (err) {
     console.error('Error fetching rules:', err);
+    alert('خطأ في السيرفر، برجاء المحاولة لاحقاً');
   }
 }
 
@@ -241,17 +220,10 @@ function addEventListeners() {
 
 // إنشاء قاعدة جديدة
 async function createRule(type, content) {
-  if (!checkToken()) return;
-
-  // تحقق إضافي من الـ token
   const token = localStorage.getItem('token');
-  if (!token) {
-    alert('جلسة غير صالحة، برجاء تسجيل الدخول مجدداً');
-    window.location.href = '/index.html';
-    return;
-  }
 
   try {
+    console.log('📤 Sending create rule request with token:', token);
     const res = await fetch('/api/rules', {
       method: 'POST',
       headers: {
@@ -261,16 +233,13 @@ async function createRule(type, content) {
       body: JSON.stringify({ botId: getSelectedBotId(), type, content }),
     });
 
+    const data = await res.json();
+    console.log('📥 Create rule response:', res.status, data);
+
     if (res.ok) {
       document.getElementById('formContainer').innerHTML = '<p>تم إضافة القاعدة بنجاح!</p>';
       await fetchRules();
     } else {
-      const data = await res.json();
-      if (res.status === 401) {
-        alert('جلسة غير صالحة، برجاء تسجيل الدخول مجدداً');
-        window.location.href = '/index.html';
-        return;
-      }
       alert(data.message || 'حدث خطأ أثناء إضافة القاعدة.');
     }
   } catch (err) {
@@ -281,7 +250,7 @@ async function createRule(type, content) {
 
 // تعديل قاعدة
 async function editRule(id, type, content) {
-  if (!checkToken()) return;
+  const token = localStorage.getItem('token');
 
   const newContent = prompt('أدخل القاعدة الجديدة:', content);
   if (newContent) {
@@ -290,18 +259,13 @@ async function editRule(id, type, content) {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ type, content: newContent }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        if (res.status === 401) {
-          alert('جلسة غير صالحة، برجاء تسجيل الدخول مجدداً');
-          window.location.href = '/index.html';
-          return;
-        }
-        const data = await res.json();
         alert(data.message || 'حدث خطأ أثناء تعديل القاعدة.');
         return;
       }
@@ -316,7 +280,7 @@ async function editRule(id, type, content) {
 
 // تعديل منتج
 async function editProductRule(id, product, price, currency) {
-  if (!checkToken()) return;
+  const token = localStorage.getItem('token');
 
   const newProduct = prompt('أدخل اسم المنتج الجديد:', product);
   const newPrice = prompt('أدخل السعر الجديد:', price);
@@ -328,18 +292,13 @@ async function editProductRule(id, product, price, currency) {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ type: 'products', content: { product: newProduct, price: newPrice, currency: newCurrency } }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        if (res.status === 401) {
-          alert('جلسة غير صالحة، برجاء تسجيل الدخول مجدداً');
-          window.location.href = '/index.html';
-          return;
-        }
-        const data = await res.json();
         alert(data.message || 'حدث خطأ أثناء تعديل المنتج.');
         return;
       }
@@ -354,7 +313,7 @@ async function editProductRule(id, product, price, currency) {
 
 // تعديل سؤال وجواب
 async function editQARule(id, question, answer) {
-  if (!checkToken()) return;
+  const token = localStorage.getItem('token');
 
   const newQuestion = prompt('أدخل السؤال الجديد:', question);
   const newAnswer = prompt('أدخل الإجابة الجديدة:', answer);
@@ -365,18 +324,13 @@ async function editQARule(id, question, answer) {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ type: 'qa', content: { question: newQuestion, answer: newAnswer } }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        if (res.status === 401) {
-          alert('جلسة غير صالحة، برجاء تسجيل الدخول مجدداً');
-          window.location.href = '/index.html';
-          return;
-        }
-        const data = await res.json();
         alert(data.message || 'حدث خطأ أثناء تعديل السؤال والجواب.');
         return;
       }
@@ -391,7 +345,7 @@ async function editQARule(id, question, answer) {
 
 // تعديل مفتاح API للمتجر
 async function editStoreRule(id, apiKey) {
-  if (!checkToken()) return;
+  const token = localStorage.getItem('token');
 
   const newApiKey = prompt('أدخل مفتاح API الجديد:', apiKey);
 
@@ -401,18 +355,13 @@ async function editStoreRule(id, apiKey) {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ type: 'store', content: { apiKey: newApiKey } }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        if (res.status === 401) {
-          alert('جلسة غير صالحة، برجاء تسجيل الدخول مجدداً');
-          window.location.href = '/index.html';
-          return;
-        }
-        const data = await res.json();
         alert(data.message || 'حدث خطأ أثناء تعديل مفتاح API.');
         return;
       }
@@ -427,22 +376,17 @@ async function editStoreRule(id, apiKey) {
 
 // حذف قاعدة
 async function deleteRule(id) {
-  if (!checkToken()) return;
+  const token = localStorage.getItem('token');
 
   if (confirm('هل أنت متأكد من حذف هذه القاعدة؟')) {
     try {
       const res = await fetch(`/api/rules/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        if (res.status === 401) {
-          alert('جلسة غير صالحة، برجاء تسجيل الدخول مجدداً');
-          window.location.href = '/index.html';
-          return;
-        }
-        const data = await res.json();
         alert(data.message || 'حدث خطأ أثناء حذف القاعدة.');
         return;
       }
