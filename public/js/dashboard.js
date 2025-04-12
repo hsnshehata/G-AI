@@ -1,84 +1,50 @@
-document.addEventListener('DOMContentLoaded', () => {
-  // التحقق من وجود الأزرار في الـ DOM
-  const botsBtn = document.getElementById('botsBtn');
-  const rulesBtn = document.getElementById('rulesBtn');
-  const whatsappBtn = document.getElementById('whatsappBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
+document.addEventListener("DOMContentLoaded", () => {
+  const logoutBtn = document.getElementById("logout-btn");
+  const botsBtn = document.getElementById("botsBtn");
+  const rulesBtn = document.getElementById("rulesBtn");
+  const whatsappBtn = document.getElementById("whatsappBtn");
+  const usersBtn = document.getElementById("usersBtn"); // زر المستخدمين
 
-  if (!botsBtn || !rulesBtn || !whatsappBtn || !logoutBtn) {
-    console.error('One or more buttons not found in DOM');
-    return;
-  }
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  });
 
-  // إضافة Event Listeners للأزرار
-  botsBtn.addEventListener('click', () => {
-    window.location.href = '#bots';
+  botsBtn.addEventListener("click", () => {
+    window.location.href = "#bots";
     loadBotsPage();
   });
 
-  rulesBtn.addEventListener('click', () => {
-    window.location.href = '#rules';
+  rulesBtn.addEventListener("click", () => {
+    window.location.href = "#rules";
     loadRulesPage();
   });
 
-  whatsappBtn.addEventListener('click', () => {
-    window.location.href = '#whatsapp';
+  whatsappBtn.addEventListener("click", () => {
+    window.location.href = "#whatsapp";
     loadWhatsAppPage();
   });
 
-  logoutBtn.addEventListener('click', async () => {
-    const username = localStorage.getItem('username');
-    const token = localStorage.getItem('token');
-
-    try {
-      console.log('📤 Sending logout request for username:', username);
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ username }),
-      });
-
-      const data = await response.json();
-      console.log('📥 Logout response:', data);
-
-      if (response.ok && data.success) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('username');
-        localStorage.removeItem('selectedBotId');
-        console.log('✅ Logout successful, localStorage cleared');
-        window.location.href = '/';
-      } else {
-        console.log('❌ Logout failed:', data.message);
-        alert(data.message || 'فشل تسجيل الخروج، حاول مرة أخرى');
-      }
-    } catch (err) {
-      console.error('❌ Error during logout:', err);
-      alert('حدث خطأ أثناء تسجيل الخروج، برجاء المحاولة لاحقاً');
-    }
+  usersBtn.addEventListener("click", () => {
+    window.location.href = "#users";
+    loadUsersPage(); // دي لازم تكون موجودة في users.js
   });
 
-  // تحميل الصفحة بناءً على الـ Hash
-  const loadPageBasedOnHash = () => {
+  function loadPageBasedOnHash() {
     const hash = window.location.hash;
-    if (hash === '#rules') {
+
+    if (hash === "#rules") {
       loadRulesPage();
-    } else if (hash === '#whatsapp') {
+    } else if (hash === "#whatsapp") {
       loadWhatsAppPage();
+    } else if (hash === "#users") {
+      loadUsersPage(); // نضيف دعم المستخدمين
     } else {
-      // الافتراضي: تحميل صفحة البوتات
-      window.location.href = '#bots';
+      window.location.href = "#bots";
       loadBotsPage();
     }
-  };
+  }
 
-  // تحميل الصفحة بناءً على الـ Hash عند تحميل الصفحة
+  window.addEventListener("hashchange", loadPageBasedOnHash);
   loadPageBasedOnHash();
-
-  // الاستماع لتغييرات الـ Hash
-  window.addEventListener('hashchange', loadPageBasedOnHash);
 });
