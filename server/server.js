@@ -3,7 +3,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const connectDB = require('./config/db'); // تأكد أن المسار ده صحيح حسب مكان ملف connectDB.js
+const connectDB = require('./db'); // تأكد أن المسار ده صحيح حسب مكان ملف connectDB.js
 
 // استدعاء المسارات (أضف أو احذف حسب مشروعك)
 const botRoutes = require('./routes/bots');
