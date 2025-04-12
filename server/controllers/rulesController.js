@@ -76,6 +76,11 @@ const updateRule = async (req, res) => {
       return res.status(400).json({ message: 'معرف القاعدة غير صالح' });
     }
 
+    // التحقق من وجود req.user._id
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'المستخدم غير معروف، برجاء تسجيل الدخول' });
+    }
+
     // البحث عن القاعدة
     const rule = await Rule.findById(ruleId);
     if (!rule) {
