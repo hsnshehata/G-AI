@@ -1,111 +1,106 @@
-function showCreateUserForm() {
-  const formContainer = document.getElementById('formContainer');
-  formContainer.innerHTML = `
-    <h3>إنشاء مستخدم جديد</h3>
-    <form id="createUserForm">
-      <div>
-        <label for="username">اسم المستخدم:</label>
-        <input type="text" id="username" required>
-      </div>
-      <div>
-        <label for="password">كلمة المرور:</label>
-        <input type="password" id="password" required>
-      </div>
-      <div>
-        <label for="confirmPassword">تأكيد كلمة المرور:</label>
-        <input type="password" id="confirmPassword" required>
-      </div>
-      <div>
-        <label for="role">نوع المستخدم:</label>
-        <select id="role" required>
-          <option value="user">مستخدم عادي</option>
-          <option value="superadmin">سوبر أدمن</option>
-        </select>
-      </div>
-      <button type="submit">إنشاء</button>
-    </form>
-    <p id="userError" style="color: red;"></p>
+async function loadUsersPage() {
+  const token = localStorage.getItem("token");
+  const dashboard = document.getElementById("dashboard-section");
+  dashboard.innerHTML = `
+    <h2>إدارة المستخدمين</h2>
+    <button onclick="showCreateUserForm()">➕ إضافة مستخدم</button>
+    <div id="formContainer"></div>
+    <div id="usersList">جاري التحميل...</div>
   `;
 
-  document.getElementById('createUserForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+  try {
+    const res = await fetch("/users", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const users = await res.json();
+    const usersList = document.getElementById("usersList");
 
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const role = document.getElementById('role').value;
-    const errorEl = document.getElementById('userError');
-
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ username, password, confirmPassword, role }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        formContainer.innerHTML = '<p>تم إنشاء المستخدم بنجاح!</p>';
-        await fetchUsers();
-      } else {
-        errorEl.textContent = data.message || 'فشل في إنشاء المستخدم';
-      }
-    } catch (err) {
-      console.error('خطأ في إنشاء المستخدم:', err);
-      errorEl.textContent = 'خطأ في السيرفر';
+    if (!Array.isArray(users)) {
+      usersList.innerHTML = "<p>لا يوجد مستخدمون متاحون</p>";
+      return;
     }
-  });
-}
 
-async function editUser(id, username, role) {
-  const newUsername = prompt('أدخل اسم المستخدم الجديد:', username);
-  const newRole = prompt('أدخل نوع المستخدم (user أو superadmin):', role);
-  if (newUsername && newRole) {
-    try {
-      const res = await fetch(`/api/users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ username: newUsername, role: newRole }),
-      });
+    const usersHTML = users
+      .map(
+        (u) => `
+      <div class="user-box">
+        <h4>👤 ${u.username} (${u.role})</h4>
+        <button onclick="deleteUser('${u._id}')">🗑 حذف</button>
+      </div>`
+      )
+      .join("");
 
-      const data = await res.json();
-      if (res.ok) {
-        alert('تم تعديل المستخدم بنجاح');
-        await fetchUsers();
-      } else {
-        alert(data.message || 'فشل في تعديل المستخدم');
-      }
-    } catch (err) {
-      console.error('خطأ في تعديل المستخدم:', err);
-      alert('خطأ في السيرفر');
-    }
+    usersList.innerHTML = usersHTML;
+  } catch (err) {
+    console.error("حدث خطأ في جلب المستخدمين:", err);
   }
 }
 
-async function deleteUser(id) {
-  if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
-    try {
-      const res = await fetch(`/api/users/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
+function showCreateUserForm() {
+  const container = document.getElementById("formContainer");
+  container.innerHTML = `
+    <h3>إنشاء مستخدم جديد</h3>
+    <input type="text" id="newUsername" placeholder="اسم المستخدم">
+    <input type="password" id="newPassword" placeholder="كلمة المرور">
+    <select id="newRole">
+      <option value="user">مستخدم عادي</option>
+      <option value="admin">سوبر أدمن</option>
+    </select>
+    <button onclick="createUser()">إنشاء</button>
+  `;
+}
 
-      const data = await res.json();
-      if (res.ok) {
-        alert('تم حذف المستخدم بنجاح');
-        await fetchUsers();
-      } else {
-        alert(data.message || 'فشل في حذف المستخدم');
-      }
-    } catch (err) {
-      console.error('خطأ في حذف المستخدم:', err);
-      alert('خطأ في السيرفر');
+async function createUser() {
+  const token = localStorage.getItem("token");
+  const username = document.getElementById("newUsername").value;
+  const password = document.getElementById("newPassword").value;
+  const role = document.getElementById("newRole").value;
+
+  if (!username || !password) {
+    alert("يرجى إدخال جميع البيانات");
+    return;
+  }
+
+  try {
+    const res = await fetch("/users", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password, role }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("✅ تم إنشاء المستخدم");
+      loadUsersPage();
+    } else {
+      alert("❌ فشل في الإنشاء: " + (data.error || "حدث خطأ"));
     }
+  } catch (err) {
+    console.error("فشل الإنشاء:", err);
+  }
+}
+
+async function deleteUser(userId) {
+  const token = localStorage.getItem("token");
+
+  if (!confirm("هل أنت متأكد من حذف هذا المستخدم؟")) return;
+
+  try {
+    const res = await fetch(`/users/${userId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.ok) {
+      alert("✅ تم الحذف");
+      loadUsersPage();
+    } else {
+      alert("❌ فشل في الحذف");
+    }
+  } catch (err) {
+    console.error("خطأ في حذف المستخدم:", err);
   }
 }
