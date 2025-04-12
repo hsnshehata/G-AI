@@ -8,7 +8,6 @@
     "dev": "nodemon server/server.js"
   },
   "dependencies": {
-    "@sparticuz/chromium": "^129.0.0",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -19,7 +18,7 @@
     "mongoose": "^8.6.0",
     "node-fetch": "^3.3.2",
     "openai": "^4.67.1",
-    "puppeteer-core": "^23.5.3",
+    "puppeteer": "^23.5.3",
     "qrcode": "^1.5.3",
     "request": "^2.88.2",
     "whatsapp-web.js": "^1.25.0"
