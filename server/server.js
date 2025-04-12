@@ -35,8 +35,8 @@ app.use('/api/bots', require('./routes/bots'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/rules', require('./routes/rules'));
 app.use('/api/bot', require('./routes/bot'));
-app.use('/webhook/facebook', require('./routes/facebook')); // Route لفيسبوك (بدل /api/webhook)
-app.use('/api/whatsapp', require('./routes/whatsapp')); // Route لواتساب (محتفظين بيه لكن مركّنينه دلوقتي)
+app.use('/webhook', require('./routes/webhook')); // Route لفيسبوك
+app.use('/api/whatsapp', require('./routes/whatsapp')); // Route لواتساب (مركّنينه دلوقتي)
 
 // Route لصفحة الـ Dashboard
 app.get('/dashboard', (req, res) => {
