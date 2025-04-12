@@ -1,80 +1,54 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
-const connectDB = require('./db');
+const mongoose = require('mongoose');
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+// دالة لمحاولة الاتصال بـ MongoDB مع إعادة المحاولة
+const connectDB = async () => {
+  const maxRetries = 5; // عدد المحاولات القصوى
+  const retryInterval = 5000; // الوقت بين كل محاولة (5 ثواني)
 
-// إعدادات CORS للسماح بالاتصال من نطاقات معينة (للأمان في الإنتاج)
-const allowedOrigins = [
-  'http://localhost:3000', // للتطوير
-  'https://g-ai-70ea.onrender.com', // النطاق بتاعك على Render
-  // أضف أي نطاقات أخرى هنا
-];
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // السماح للطلبات بدون origin (مثل الطلبات من Postman)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-        return callback(new Error(msg), false);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // التحقق من وجود MONGODB_URI
+      if (!process.env.MONGODB_URI) {
+        throw new Error('MONGODB_URI is not defined in environment variables');
       }
-      return callback(null, true);
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
 
-// إعدادات الـ middleware
-app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
+      console.log(`📡 Attempting to connect to MongoDB (Attempt ${attempt}/${maxRetries})...`);
 
-// إعداد الـ Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/bots', require('./routes/bots'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/rules', require('./routes/rules'));
-app.use('/api/bot', require('./routes/bot'));
-app.use('/webhook', require('./routes/webhook')); // Route لفيسبوك
+      // الاتصال بـ MongoDB
+      await mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000, // الوقت المسموح لاختيار السيرفر
+      });
 
-// Route لصفحة الـ Dashboard
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/dashboard.html'));
-});
+      console.log('✅ MongoDB connected successfully');
+      break; // الخروج من الحلقة لو الاتصال نجح
+    } catch (err) {
+      console.error(`❌ MongoDB connection error (Attempt ${attempt}/${maxRetries}):`, err.message, err.stack);
 
-// Route للصفحة الرئيسية
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
-});
+      if (attempt === maxRetries) {
+        console.error('❌ Max retries reached. Exiting process...');
+        process.exit(1); // الخروج لو وصلنا لآخر محاولة وفشلنا
+      }
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error('❌ خطأ في السيرفر:', err.message, err.stack);
-  res.status(500).json({ message: 'خطأ في السيرفر', error: err.message });
-});
-
-// الاتصال بقاعدة البيانات وتشغيل السيرفر
-const startServer = async () => {
-  try {
-    await connectDB(); // الانتظار حتى ينجح الاتصال بقاعدة البيانات
-    console.log('✅ MongoDB connected successfully');
-
-    // تشغيل السيرفر بعد نجاح الاتصال
-    app.listen(PORT, () => {
-      console.log(`✅ Server running on port ${PORT}`);
-    });
-  } catch (err) {
-    console.error('❌ Failed to connect to MongoDB:', err.message, err.stack);
-    process.exit(1); // إغلاق السيرفر لو الاتصال فشل
+      console.log(`⏳ Retrying in ${retryInterval / 1000} seconds...`);
+      await new Promise((resolve) => setTimeout(resolve, retryInterval)); // الانتظار قبل المحاولة التالية
+    }
   }
+
+  // مراقبة حالة الاتصال
+  mongoose.connection.on('disconnected', () => {
+    console.warn('⚠️ MongoDB disconnected! Attempting to reconnect...');
+    // يمكنك هنا إضافة منطق لإعادة الاتصال تلقائيًا
+  });
+
+  mongoose.connection.on('reconnected', () => {
+    console.log('✅ MongoDB reconnected successfully');
+  });
+
+  mongoose.connection.on('error', (err) => {
+    console.error('❌ MongoDB connection error:', err.message, err.stack);
+  });
 };
 
-// استدعاء دالة تشغيل السيرفر
-startServer();
-
-module.exports = app;
+module.exports = connectDB;
